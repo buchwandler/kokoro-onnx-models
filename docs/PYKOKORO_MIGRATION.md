@@ -21,7 +21,6 @@ New planned tags:
 - `model-files-arabic-nabra-v0.1`
 - `model-files-german-kerstin-v1.0`
 
-
 The Nabra release additionally contains `vocab-arabic-nabra-v0.1.json` alongside
 the ONNX model and both named NPZ/raw voice assets. Its runtime contract is
 `input_ids` (int64), `ref_s` (float32), and `speed` (float32), with a 510-token

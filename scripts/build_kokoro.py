@@ -340,8 +340,10 @@ def resolve_model(
 
     raise BuildError(f"Unsupported model.kind={spec['kind']!r}")
 
+
 def resolve_auxiliary_files(
-    profile: dict[str, Any], cache_dir: Path, out_dir: Path) -> list[dict[str, str]]:
+    profile: dict[str, Any], cache_dir: Path, out_dir: Path
+) -> list[dict[str, str]]:
     repo_id = profile["repo_id"]
     revision = profile.get("revision", "main")
     resolved: list[dict[str, str]] = []
@@ -548,15 +550,10 @@ def build_profile(
         seq_len=seq_len,
     )
 
-
-    auxiliary_files = resolve_auxiliary_files(
-        profile, cache_dir, out_dir
-    )
+    auxiliary_files = resolve_auxiliary_files(profile, cache_dir, out_dir)
     contract = dict(profile.get("onnx_contract", {}))
     contract["sample_rate"] = profile.get("sample_rate", 24000)
-    contract_issues = validate_onnx_contract(
-        out_dir / "model.onnx", contract
-    )
+    contract_issues = validate_onnx_contract(out_dir / "model.onnx", contract)
     if contract_issues:
         for issue in contract_issues:
             print(f"warning: {issue}", file=sys.stderr)

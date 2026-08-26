@@ -1,0 +1,90 @@
+name: build-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_key:
+        description: Entry from catalog/releases.json
+        required: true
+        type: string
+      allow_restricted:
+        description: Allow a release disabled by default
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.resolve.outputs.kind }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      profile: ${{ steps.resolve.outputs.profile }}
+      publish: ${{ steps.resolve.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: resolve
+        env:
+          RELEASE_KEY: ${{ inputs.release_key }}
+          ALLOW_RESTRICTED: ${{ inputs.allow_restricted }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          catalog = json.loads(Path("catalog/releases.json").read_text())
+          key = os.environ["RELEASE_KEY"]
+          try:
+              spec = catalog["releases"][key]
+          except KeyError as exc:
+              raise SystemExit(f"Unknown release key: {key}") from exc
+          publish = bool(spec.get("publish", True))
+          if not publish and os.environ["ALLOW_RESTRICTED"].lower() != "true":
+              raise SystemExit("Release is disabled; set allow_restricted only after reviewing its license")
+          for name, value in {
+              "kind": spec["kind"],
+              "tag": spec["tag"],
+              "profile": spec.get("profile", key),
+              "publish": str(publish).lower(),
+          }.items():
+              print(f"{name}={value}", file=open(os.environ["GITHUB_OUTPUT"], "a"))
+          PY
+
+  candidate:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build or mirror release
+        env:
+          KIND: ${{ needs.prepare.outputs.kind }}
+          PROFILE: ${{ needs.prepare.outputs.profile }}
+          RELEASE_KEY: ${{ inputs.release_key }}
+        run: |
+          if [ "$KIND" = "mirror" ]; then
+            uv run --with pytest --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
+          else
+            uv run --with numpy python scripts/build_kokoro.py build "$PROFILE"
+            uv run --with numpy python scripts/prepare_release.py "$PROFILE"
+          fi
+      - name: Verify candidate
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PROFILE: ${{ needs.prepare.outputs.profile }}
+          ALLOW_RESTRICTED: ${{ inputs.allow_restricted }}
+        run: |
+          args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
+          if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
+          uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
+      - name: Upload immutable candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: kokoro-candidate-${{ inputs.release_key }}-${{ github.sha }}
+          path: dist/${{ needs.prepare.outputs.tag }}
+          compression-level: 0
+          if-no-files-found: error

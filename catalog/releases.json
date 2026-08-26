@@ -1,52 +1,134 @@
 {
-  "schema": 1,
+  "schema": 2,
   "target_repository": "buchwandler/kokoro-onnx-models",
   "releases": {
     "v1.0": {
       "kind": "mirror",
+      "profile": "v1.0",
       "tag": "model-files-v1.0",
+      "model_version": "1.0",
       "license": "Apache-2.0",
+      "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
+      "frontend": "pykokoro-native-v1",
+      "runtime": {
+        "default_voice": "af",
+        "voices": ["af"]
+      },
       "source_repository": "thewh1teagle/kokoro-onnx",
-      "source_tag": "model-files-v1.0",
+      "source_revision": "model-files-v1.0",
+      "source_type": "github-release",
       "assets": [
-        "kokoro-v1.0.onnx",
-        "kokoro-v1.0.fp16.onnx",
-        "kokoro-v1.0.fp16-gpu.onnx",
-        "kokoro-v1.0.int8.onnx",
-        "voices-v1.0.bin"
+        {
+          "source": "kokoro-v1.0.onnx",
+          "name": "kokoro-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "kokoro-v1.0.fp16.onnx",
+          "name": "kokoro-v1.0.fp16.onnx",
+          "role": "model",
+          "quality": "fp16",
+          "format": "onnx"
+        },
+        {
+          "source": "kokoro-v1.0.fp16-gpu.onnx",
+          "name": "kokoro-v1.0.fp16-gpu.onnx",
+          "role": "model",
+          "quality": "fp16-gpu",
+          "format": "onnx"
+        },
+        {
+          "source": "kokoro-v1.0.int8.onnx",
+          "name": "kokoro-v1.0.int8.onnx",
+          "role": "model",
+          "quality": "int8",
+          "format": "onnx"
+        },
+        {
+          "source": "voices-v1.0.bin",
+          "name": "voices-v1.0.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        }
       ]
     },
     "v1.1-zh": {
       "kind": "mirror",
+      "profile": "v1.1-zh",
       "tag": "model-files-v1.1",
+      "model_version": "1.1",
       "license": "Apache-2.0",
+      "language_codes": ["zh"],
+      "frontend": "pykokoro-native-v1",
+      "runtime": {
+        "default_voice": "af_maple",
+        "voices": ["af_maple"]
+      },
       "source_repository": "thewh1teagle/kokoro-onnx",
-      "source_tag": "model-files-v1.1",
+      "source_revision": "model-files-v1.1",
+      "source_type": "github-release",
       "assets": [
-        "kokoro-v1.1-zh.onnx",
-        "kokoro-v1.1-zh.fp16.onnx",
-        "kokoro-v1.1-zh.int8.onnx",
-        "voices-v1.1-zh.bin"
+        {
+          "source": "kokoro-v1.1-zh.onnx",
+          "name": "kokoro-v1.1-zh.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "kokoro-v1.1-zh.fp16.onnx",
+          "name": "kokoro-v1.1-zh.fp16.onnx",
+          "role": "model",
+          "quality": "fp16",
+          "format": "onnx"
+        },
+        {
+          "source": "kokoro-v1.1-zh.int8.onnx",
+          "name": "kokoro-v1.1-zh.int8.onnx",
+          "role": "model",
+          "quality": "int8",
+          "format": "onnx"
+        },
+        {
+          "source": "voices-v1.1-zh.bin",
+          "name": "voices-v1.1-zh.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        }
       ]
     },
     "v1.2-de-martin": {
       "kind": "mirror",
+      "profile": "v1.2-de-martin",
       "source_type": "huggingface",
       "tag": "model-files-german-martin-v1.2",
+      "model_version": "1.2",
       "license": "Apache-2.0",
-      "language": "de",
+      "language_codes": ["de", "de-de", "de-at", "de-ch"],
+      "frontend": "german-ipa-v1",
+      "runtime": {
+        "default_voice": "martin",
+        "voices": ["martin"]
+      },
       "source_repository": "Godelaune/Kokoro-82M-ONNX-German-Martin",
       "source_revision": "main",
       "assets": [
         {
           "source": "kokoro-martin.onnx",
           "name": "kokoro-german-martin-v1.2.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx",
           "size": 325512630,
           "sha256": "c302f1d8bc7adf40a842cb550e18c39a5026bdb1afdd29dbb700b501cb49276b"
         },
         {
           "source": "voices-martin.npz",
           "name": "voices-german-martin-v1.2.bin",
+          "role": "voices",
+          "format": "numpy-npz",
           "size": 522506,
           "sha256": "5b9c8553398d7abf67498ce500c186cefaa7b68fed3e3d415da5380670105acd"
         }
@@ -56,82 +138,197 @@
       "kind": "build",
       "profile": "vi-contextbox",
       "tag": "model-files-vietnamese-v1.0",
+      "model_version": "1.0",
       "assets": [
-        "model.onnx",
-        "voices.npz",
-        "voices.raw.bin",
-        "bundle.json",
-        "config.json"
-      ],
-      "voice_formats": {
-        "voices.npz": "numpy-npz",
-        "voices.raw.bin": "raw-float32-le"
-      }
+        {
+          "source": "model.onnx",
+          "name": "kokoro-vietnamese-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-vietnamese-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-vietnamese-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-vietnamese-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     },
     "vi-anphunl": {
       "kind": "build",
       "profile": "vi-anphunl",
       "tag": "model-files-vietnamese-anphunl-v1.0",
+      "model_version": "1.0",
       "assets": [
-        "model.onnx",
-        "voices.npz",
-        "voices.raw.bin",
-        "bundle.json",
-        "config.json"
-      ],
-      "voice_formats": {
-        "voices.npz": "numpy-npz",
-        "voices.raw.bin": "raw-float32-le"
-      }
+        {
+          "source": "model.onnx",
+          "name": "kokoro-vietnamese-anphunl-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-vietnamese-anphunl-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-vietnamese-anphunl-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-vietnamese-anphunl-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     },
     "ar-nabra": {
       "kind": "build",
       "profile": "ar-nabra",
       "tag": "model-files-arabic-nabra-v0.1",
+      "model_version": "0.1",
       "assets": [
-        "model.onnx",
-        "voices.npz",
-        "voices.raw.bin",
-        "bundle.json",
-        "vocab.json"
-      ],
-      "voice_formats": {
-        "voices.npz": "numpy-npz",
-        "voices.raw.bin": "raw-float32-le"
-      }
+        {
+          "source": "model.onnx",
+          "name": "kokoro-arabic-nabra-v0.1.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-arabic-nabra-v0.1.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-arabic-nabra-v0.1.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "vocab.json",
+          "name": "vocab-arabic-nabra-v0.1.json",
+          "role": "vocab",
+          "format": "json"
+        }
+      ]
     },
     "de-crane": {
       "kind": "build",
       "profile": "de-crane",
       "tag": "model-files-german-kerstin-v1.0",
+      "model_version": "1.0",
       "assets": [
-        "model.onnx",
-        "voices.npz",
-        "voices.raw.bin",
-        "bundle.json",
-        "config.json"
-      ],
-      "voice_formats": {
-        "voices.npz": "numpy-npz",
-        "voices.raw.bin": "raw-float32-le"
-      }
+        {
+          "source": "model.onnx",
+          "name": "kokoro-german-kerstin-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-german-kerstin-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-german-kerstin-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-german-kerstin-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     },
     "he-hebrew-nc": {
       "kind": "build",
       "profile": "he-hebrew-nc",
       "tag": "model-files-hebrew-nc-v1.0",
+      "model_version": "1.0",
       "publish": false,
       "assets": [
-        "model.onnx",
-        "voices.npz",
-        "voices.raw.bin",
-        "bundle.json",
-        "config.json"
-      ],
-      "voice_formats": {
-        "voices.npz": "numpy-npz",
-        "voices.raw.bin": "raw-float32-le"
-      }
+        {
+          "source": "model.onnx",
+          "name": "kokoro-hebrew-nc-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-hebrew-nc-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-hebrew-nc-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-hebrew-nc-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     }
   }
 }

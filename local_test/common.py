@@ -399,7 +399,9 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         )
 
     missing_required = [
-        filename for filename in spec.required_files if not (asset_dir / filename).is_file()
+        filename
+        for filename in spec.required_files
+        if not (asset_dir / filename).is_file()
     ]
     if missing_required:
         raise FileNotFoundError(

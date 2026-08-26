@@ -3,32 +3,135 @@
   "$id": "https://github.com/buchwandler/kokoro-onnx-models/schemas/release-manifest.schema.json",
   "title": "Kokoro ONNX release manifest",
   "type": "object",
-  "required": ["schema", "repository", "tag", "license", "assets"],
+  "required": [
+    "schema",
+    "runtime_contract",
+    "repository",
+    "tag",
+    "profile",
+    "model_version",
+    "generated_at",
+    "source",
+    "license",
+    "publication",
+    "runtime",
+    "onnx_contract",
+    "assets"
+  ],
   "properties": {
-    "schema": { "const": 1 },
-    "repository": { "type": "string" },
-    "tag": { "type": "string" },
-    "profile": { "type": ["string", "null"] },
-    "source": { "type": "object" },
-    "license": { "type": "string" },
-    "language": { "type": ["string", "null"] },
-    "sample_rate": { "type": "integer", "minimum": 1 },
-    "frontend": { "type": ["object", "null"] },
-    "onnx_contract": { "type": ["object", "null"] },
-    "publication": { "type": ["object", "null"] },
+    "schema": { "const": 2 },
+    "runtime_contract": { "const": 1 },
+    "repository": { "const": "buchwandler/kokoro-onnx-models" },
+    "tag": { "type": "string", "minLength": 1 },
+    "profile": { "type": "string", "minLength": 1 },
+    "model_version": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "builder": {
+      "type": "object",
+      "required": ["repository", "commit"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["type", "repository", "revision"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": true
+    },
+    "license": { "type": "string", "minLength": 1 },
+    "publication": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "runtime": {
+      "type": "object",
+      "required": [
+        "language_codes",
+        "sample_rate",
+        "frontend",
+        "frontend_experimental",
+        "max_tokens",
+        "default_voice",
+        "voices"
+      ],
+      "properties": {
+        "language_codes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sample_rate": { "type": "integer", "minimum": 1 },
+        "frontend": { "type": "string", "minLength": 1 },
+        "frontend_experimental": { "type": "boolean" },
+        "tokenizer_vocab_version": { "type": "string", "minLength": 1 },
+        "vocabulary_source": { "type": "string", "minLength": 1 },
+        "max_tokens": { "type": "integer", "minimum": 1 },
+        "default_voice": { "type": "string", "minLength": 1 },
+        "voices": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "onnx_contract": {
+      "type": "object",
+      "required": ["inputs", "outputs", "max_tokens"],
+      "properties": {
+        "inputs": { "type": "object", "minProperties": 1 },
+        "outputs": { "type": "object", "minProperties": 1 },
+        "max_tokens": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
     "assets": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["name", "size", "sha256"],
+        "required": ["name", "role", "format", "size", "sha256"],
         "properties": {
-          "name": { "type": "string" },
-          "size": { "type": "integer", "minimum": 0 },
-          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-          "role": { "type": "string" },
-          "format": { "type": "string" }
+          "name": { "type": "string", "minLength": 1 },
+          "role": {
+            "enum": [
+              "model",
+              "voices",
+              "config",
+              "vocab",
+              "bundle",
+              "metadata",
+              "license",
+              "attribution"
+            ]
+          },
+          "quality": { "type": "string", "minLength": 1 },
+          "format": { "type": "string", "minLength": 1 },
+          "size": { "type": "integer", "minimum": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": { "properties": { "role": { "const": "model" } } },
+            "then": { "required": ["quality"] }
+          }
+        ]
       }
     }
   },

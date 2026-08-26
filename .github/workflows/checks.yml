@@ -11,7 +11,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv run --with pytest --with numpy pytest -q
-      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py
+      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py
       - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
       - run: python -m json.tool catalog/releases.json >/dev/null
       - run: python -m json.tool schemas/release-manifest.schema.json >/dev/null
+      - name: Check catalog contract metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          catalog = json.loads(Path("catalog/releases.json").read_text())
+          assert catalog["schema"] == 2
+          for key, release in catalog["releases"].items():
+              assert release["tag"]
+              assert release.get("profile", key)
+              for asset in release["assets"]:
+                  assert asset["role"] and asset["format"]
+                  if asset["role"] == "model":
+                      assert asset.get("quality")
+          PY

@@ -104,14 +104,19 @@ def test_resolve_model_nabra_does_not_export_checkpoint(tmp_path: Path) -> None:
             side_effect=AssertionError("Nabra must not export a checkpoint"),
         ),
     ):
-        assert build_kokoro.resolve_model(
-            profile, tmp_path / "cache", out, opset=14, seq_len=64
-        ) is None
+        assert (
+            build_kokoro.resolve_model(
+                profile, tmp_path / "cache", out, opset=14, seq_len=64
+            )
+            is None
+        )
 
     assert out.read_bytes() == b"prebuilt-onnx"
 
 
-def test_resolve_auxiliary_files_copies_vocab_at_pinned_revision(tmp_path: Path) -> None:
+def test_resolve_auxiliary_files_copies_vocab_at_pinned_revision(
+    tmp_path: Path,
+) -> None:
     profile = build_kokoro.load_profiles()["ar-nabra"]
     source = tmp_path / "vocab.json"
     source.write_text('{"ʕ": 7, "ħ": 8}', encoding="utf-8")
@@ -149,12 +154,19 @@ def test_validate_nabra_named_onnx_contract(tmp_path: Path) -> None:
     )
     onnx.save(helper.make_model(graph), model_path)
 
-    assert build_kokoro.validate_onnx_contract(
-        model_path,
-        {
-            "inputs": {"input_ids": "int64", "ref_s": "float32", "speed": "float32"},
-            "outputs": {"audio": "float32"},
-            "sample_rate": 24000,
-            "max_tokens": 510,
-        },
-    ) == []
+    assert (
+        build_kokoro.validate_onnx_contract(
+            model_path,
+            {
+                "inputs": {
+                    "input_ids": "int64",
+                    "ref_s": "float32",
+                    "speed": "float32",
+                },
+                "outputs": {"audio": "float32"},
+                "sample_rate": 24000,
+                "max_tokens": 510,
+            },
+        )
+        == []
+    )

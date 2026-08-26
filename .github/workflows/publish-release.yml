@@ -1,0 +1,79 @@
+name: publish-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: Completed build-release workflow run ID
+        required: true
+        type: string
+      candidate_commit:
+        description: Commit used to build the candidate
+        required: true
+        type: string
+      release_key:
+        description: Entry from catalog/releases.json
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  RELEASE_REPOSITORY: buchwandler/kokoro-onnx-models
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.candidate_run_id }}
+          name: kokoro-candidate-${{ inputs.release_key }}-${{ inputs.candidate_commit }}
+          path: candidate
+      - name: Resolve and verify release metadata
+        id: resolve
+        env:
+          RELEASE_KEY: ${{ inputs.release_key }}
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          catalog = json.loads(Path("catalog/releases.json").read_text())
+          key = os.environ["RELEASE_KEY"]
+          try:
+              spec = catalog["releases"][key]
+          except KeyError as exc:
+              raise SystemExit(f"Unknown release key: {key}") from exc
+          out = Path(os.environ["GITHUB_OUTPUT"])
+          with out.open("a") as output:
+              print(f"tag={spec['tag']}", file=output)
+              print(f"profile={spec.get('profile', key)}", file=output)
+          PY
+          python scripts/verify_candidate.py candidate \
+            --expected-tag "$(awk -F= '/^tag=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
+            --expected-profile "$(awk -F= '/^profile=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
+            --expected-builder-commit "$CANDIDATE_COMMIT"
+      - name: Refuse existing release tag
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$RELEASE_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release tag already exists: $TAG" >&2
+            exit 1
+          fi
+      - name: Publish exact candidate bytes
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          gh release create "$TAG" candidate/* \
+            --repo "$RELEASE_REPOSITORY" \
+            --title "$TAG" \
+            --notes-file candidate/release-notes.md

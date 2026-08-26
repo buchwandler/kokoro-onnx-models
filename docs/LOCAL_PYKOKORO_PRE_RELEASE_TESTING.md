@@ -89,16 +89,16 @@ integration shim, not as evidence of automatic profile compatibility.
 The repository profile metadata already records this, and the local tests must
 not erase that distinction.
 
-| Profile          | Required/expected frontend                                                       | Current test meaning                                       |
-| ---------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `v1.0`           | current pykokoro/kokorog2p frontend                                              | real integration smoke test                                |
-| `v1.1-zh`        | current pykokoro Chinese frontend                                                | real integration smoke test                                |
-| `v1.2-de-martin` | current pykokoro German frontend                                                 | real integration smoke test                                |
-| `vi-contextbox`  | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
-| `vi-anphunl`     | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
+| Profile          | Required/expected frontend                                           | Current test meaning                                       |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `v1.0`           | current pykokoro/kokorog2p frontend                                  | real integration smoke test                                |
+| `v1.1-zh`        | current pykokoro Chinese frontend                                    | real integration smoke test                                |
+| `v1.2-de-martin` | current pykokoro German frontend                                     | real integration smoke test                                |
+| `vi-contextbox`  | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
+| `vi-anphunl`     | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
 | `ar-nabra`       | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
-| `de-crane`       | German IPA; training data used `espeak-ng` German IPA                            | useful smoke test, but model contract must also be checked |
-| `he-hebrew-nc`   | Hebrew-specific G2P/config                                                       | experimental and restricted/non-commercial                 |
+| `de-crane`       | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
+| `he-hebrew-nc`   | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
 
 For unsupported frontends the harness refuses to synthesize ordinary text by
 default. `--allow-frontend-mismatch` enables an **experimental** espeak-backed
@@ -461,7 +461,6 @@ Hebrew: model-specific Hebrew G2P/config
 Nabra's Arabic adapter is implemented in the current kokorog2p dependency and
 must retain its dedicated normalization, diacritization, phonemization, cleanup,
 and vocabulary golden tests.
-
 
 Add golden phoneme fixtures from each upstream implementation. Audio-only tests
 are insufficient because a wrong frontend can still produce non-empty audio.
