@@ -36,7 +36,7 @@
       "license": "Apache-2.0",
       "language": "de",
       "source_repository": "Godelaune/Kokoro-82M-ONNX-German-Martin",
-      "source_revision": "a1cba7fbf0e72fbae38f0a3a48ce0dc8e6077804",
+      "source_revision": "main",
       "assets": [
         {
           "source": "kokoro-martin.onnx",

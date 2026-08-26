@@ -27,7 +27,6 @@ Large model binaries should live in **GitHub Releases**, not in git history.
 ```bash
 python scripts/mirror_release.py v1.0
 python scripts/mirror_release.py v1.1-zh
-python scripts/mirror_release.py v1.1-de
 python scripts/mirror_release.py v1.2-de-martin
 ```
 
@@ -35,7 +34,10 @@ Each command creates `dist/<release-tag>/` and a `release-manifest.json`. Upload
 those files to a release with the same tag in this repository. Keeping the tags
 and filenames unchanged makes the initial `pykokoro` migration small.
 
-The `v1.2-de-martin` command mirrors the Apache-2.0 German Martin artifacts from the pinned `Godelaune/Kokoro-82M-ONNX-German-Martin` Hugging Face revision. The ONNX and NPZ voice bytes are copied unchanged, then renamed to the established release filenames.
+The `v1.2-de-martin` command mirrors the exact Apache-2.0 German Martin files from
+`Godelaune/Kokoro-82M-ONNX-German-Martin` at `main`: `kokoro-martin.onnx` and
+`voices-martin.npz`. The files are copied unchanged, then renamed to the established
+release filenames.
 ## New Kokoro-family profiles
 
 ```bash

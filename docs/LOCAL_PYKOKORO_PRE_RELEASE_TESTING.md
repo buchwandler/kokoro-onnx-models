@@ -69,7 +69,6 @@ actually be a NumPy archive.
 ```text
 v1.0
 v1.1-zh
-v1.1-de
 v1.2-de-martin
 vi-contextbox
 vi-anphunl
@@ -165,6 +164,9 @@ Prepare one profile:
 python local_test/prepare_local_assets.py v1.2-de-martin
 python local_test/prepare_local_assets.py vi-contextbox
 ```
+
+The Martin preparation command follows the catalog's Hugging Face mirror entry and downloads the exact
+Godelaune `kokoro-martin.onnx` and `voices-martin.npz` source files.
 
 Prepare all catalog entries:
 

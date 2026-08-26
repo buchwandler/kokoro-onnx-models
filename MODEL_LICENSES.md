@@ -9,8 +9,7 @@ license allows redistribution.
 |---|---|---|
 | Kokoro v1.0 | `hexgrad/Kokoro-82M`; existing ONNX release from `thewh1teagle/kokoro-onnx` | Apache-2.0 upstream model; mirror provenance is recorded in the manifest |
 | Kokoro v1.1 Chinese | `hexgrad/Kokoro-82M-v1.1-zh`; existing ONNX release from `thewh1teagle/kokoro-onnx` | Apache-2.0 upstream model |
-| German v1.1 Eva/Bernd | existing release from `holgern/kokoro-onnx-model` | Preserve upstream release attribution; source model repository may no longer be available |
-| German Martin v1.2 | `Godelaune/Kokoro-82M-ONNX-German-Martin` | Apache-2.0 as declared by the Hugging Face model repository; mirror bytes are preserved unchanged and provenance is recorded in `release-manifest.json` |
+| German Martin | `Godelaune/Kokoro-82M-ONNX-German-Martin` | Apache-2.0 as declared by the Hugging Face model repository; the requested `kokoro-martin.onnx` and `voices-martin.npz` files are mirrored unchanged and provenance is recorded in `release-manifest.json` |
 | Vietnamese | `contextboxai/Kokoro-Vietnamese` / `anphunl/Kokoro-Vietnamese` | Apache-2.0 |
 | Arabic Nabra | `oddadmix/Nabra-82M-v0.1` | Apache-2.0 |
 | German Kerstin | `crane-local-ai/Kokoro-82M-v1.0-German-ONNX` | Apache-2.0; publisher states Kerstin 1.0 training data is CC0-1.0 |

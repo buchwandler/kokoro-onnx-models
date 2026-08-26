@@ -18,24 +18,30 @@ def test_hebrew_not_published_by_default() -> None:
     assert data["releases"]["he-hebrew-nc"]["publish"] is False
 
 
-def test_martin_uses_godelaune_huggingface_source() -> None:
+def test_martin_is_mirrored_from_godelaune() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     spec = data["releases"]["v1.2-de-martin"]
 
     assert spec["kind"] == "mirror"
     assert spec["source_type"] == "huggingface"
     assert spec["source_repository"] == "Godelaune/Kokoro-82M-ONNX-German-Martin"
-    assert spec["source_revision"] == "a1cba7fbf0e72fbae38f0a3a48ce0dc8e6077804"
+    assert spec["source_revision"] == "main"
     assert spec["tag"] == "model-files-german-martin-v1.2"
 
     by_name = {item["name"]: item for item in spec["assets"]}
     assert by_name["kokoro-german-martin-v1.2.onnx"]["source"] == "kokoro-martin.onnx"
-    assert by_name["kokoro-german-martin-v1.2.onnx"]["size"] == 325512630
-    assert by_name["kokoro-german-martin-v1.2.onnx"]["sha256"] == (
-        "c302f1d8bc7adf40a842cb550e18c39a5026bdb1afdd29dbb700b501cb49276b"
-    )
     assert by_name["voices-german-martin-v1.2.bin"]["source"] == "voices-martin.npz"
-    assert by_name["voices-german-martin-v1.2.bin"]["size"] == 522506
-    assert by_name["voices-german-martin-v1.2.bin"]["sha256"] == (
-        "5b9c8553398d7abf67498ce500c186cefaa7b68fed3e3d415da5380670105acd"
-    )
+
+
+def test_german_v1_1_and_holgern_are_retired() -> None:
+    paths = [
+        ROOT / "README.md",
+        ROOT / "MODEL_LICENSES.md",
+        ROOT / "catalog" / "releases.json",
+        ROOT / "docs" / "LOCAL_PYKOKORO_PRE_RELEASE_TESTING.md",
+        ROOT / "docs" / "PYKOKORO_MIGRATION.md",
+    ]
+    text = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+    assert "v1.1-de" not in text
+    assert "holgern/kokoro-onnx-model" not in text

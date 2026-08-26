@@ -6,8 +6,7 @@ Target all GitHub model downloads at one repository:
 MODEL_RELEASE_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ```
 
-Existing tags and filenames are intentionally preserved for the first four
-profiles, so the migration can be mostly a repository-name change:
+Existing tags and filenames are intentionally preserved for the three retained
 
 | pykokoro variant | Release tag |
 |---|---|

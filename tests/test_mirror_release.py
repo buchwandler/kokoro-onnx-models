@@ -38,22 +38,22 @@ def test_normalize_assets_supports_legacy_and_mapped_entries() -> None:
 
 
 def test_huggingface_sources_use_pinned_revision_and_source_paths() -> None:
-    assets = [mirror_release.MirrorAsset("voices/martin.npz", "martin.bin")]
+    assets = [mirror_release.MirrorAsset("voices/test.npz", "test.bin")]
     urls, source = mirror_release.huggingface_sources(
         {
-            "source_repository": "Godelaune/Kokoro-82M-ONNX-German-Martin",
+            "source_repository": "source/repo",
             "source_revision": "a1b2c3",
         },
         assets,
     )
 
-    assert urls["martin.bin"] == (
-        "https://huggingface.co/Godelaune/Kokoro-82M-ONNX-German-Martin/resolve/"
-        "a1b2c3/voices/martin.npz?download=true"
+    assert urls["test.bin"] == (
+        "https://huggingface.co/source/repo/resolve/"
+        "a1b2c3/voices/test.npz?download=true"
     )
     assert source == {
         "type": "huggingface",
-        "repository": "Godelaune/Kokoro-82M-ONNX-German-Martin",
+        "repository": "source/repo",
         "revision": "a1b2c3",
     }
 
