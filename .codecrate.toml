@@ -1,0 +1,27 @@
+[codecrate]
+output = "context_kokoro_onnx_models.md"
+keep_docstrings = true
+dedupe = true
+respect_gitignore = true
+exclude = ["*/.venv/*", "context_kokoro_onnx_models.*"]
+include = [
+  "**/*.py",
+  "**/*.toml",
+  "**/*.rst",
+  "**/*.md",
+  "**/*.json",
+  "**/*.jsonl",
+  "**/*.ipynb",
+  "**/*.txt",
+  "**/*.yaml",
+  "**/*.yml",
+  "**/py.typed",
+  ".gitignore",
+  "LICENSE*",
+  "MANIFEST.in",
+  "NOTICE*",
+]
+split_max_chars = 2500000
+layout = "full"
+profile = "portable-agent"
+emit_standalone_unpacker = true

@@ -1,0 +1,15 @@
+[project]
+name = "kokoro-onnx-models-tools"
+version = "0.1.0"
+description = "Build and release tooling for Buchwandler Kokoro ONNX model artifacts"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26"]
+
+[project.optional-dependencies]
+build = [
+  "huggingface-hub>=0.27",
+  "onnx>=1.17",
+  "torch>=2.6",
+  "kokoro>=0.9.4",
+]
+test = ["pytest>=8"]

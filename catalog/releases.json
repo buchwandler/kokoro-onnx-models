@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "target_repository": "buchwandler/kokoro-onnx-models",
+  "releases": {
+    "v1.0": {
+      "kind": "mirror",
+      "tag": "model-files-v1.0",
+      "license": "Apache-2.0",
+      "source_repository": "thewh1teagle/kokoro-onnx",
+      "source_tag": "model-files-v1.0",
+      "assets": [
+        "kokoro-v1.0.onnx",
+        "kokoro-v1.0.fp16.onnx",
+        "kokoro-v1.0.fp16-gpu.onnx",
+        "kokoro-v1.0.int8.onnx",
+        "voices-v1.0.bin"
+      ]
+    },
+    "v1.1-zh": {
+      "kind": "mirror",
+      "tag": "model-files-v1.1",
+      "license": "Apache-2.0",
+      "source_repository": "thewh1teagle/kokoro-onnx",
+      "source_tag": "model-files-v1.1",
+      "assets": [
+        "kokoro-v1.1-zh.onnx",
+        "kokoro-v1.1-zh.fp16.onnx",
+        "kokoro-v1.1-zh.int8.onnx",
+        "voices-v1.1-zh.bin"
+      ]
+    },
+    "v1.2-de-martin": {
+      "kind": "mirror",
+      "tag": "model-files-german-martin-v1.2",
+      "license": "See upstream model terms and release provenance",
+      "source_repository": "holgern/kokoro-onnx-model",
+      "source_tag": "model-files-german-martin-v1.2",
+      "assets": [
+        "kokoro-german-martin-v1.2.onnx",
+        "voices-german-martin-v1.2.bin"
+      ]
+    },
+    "vi-contextbox": {"kind": "build", "profile": "vi-contextbox", "tag": "model-files-vietnamese-v1.0"},
+    "vi-anphunl": {"kind": "build", "profile": "vi-anphunl", "tag": "model-files-vietnamese-anphunl-v1.0"},
+    "ar-nabra": {"kind": "build", "profile": "ar-nabra", "tag": "model-files-arabic-nabra-v0.1"},
+    "de-crane": {"kind": "build", "profile": "de-crane", "tag": "model-files-german-kerstin-v1.0"},
+    "he-hebrew-nc": {"kind": "build", "profile": "he-hebrew-nc", "tag": "model-files-hebrew-nc-v1.0", "publish": false}
+  }
+}

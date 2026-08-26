@@ -1,0 +1,17 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --with pytest --with numpy pytest -q
+      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py
+      - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
+      - run: python -m json.tool catalog/releases.json >/dev/null
+      - run: python -m json.tool schemas/release-manifest.schema.json >/dev/null

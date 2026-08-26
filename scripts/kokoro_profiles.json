@@ -1,0 +1,117 @@
+{
+  "vi-contextbox": {
+    "display_name": "Kokoro Vietnamese (ContextBoxAI)",
+    "repo_id": "contextboxai/Kokoro-Vietnamese",
+    "revision": "main",
+    "license": "Apache-2.0",
+    "language": "vi",
+    "sample_rate": 24000,
+    "model": {"kind": "checkpoint", "path": "kokoro_vi.pth", "config": "config.json"},
+    "voices": {"kind": "json_pt", "index": "voices.json"},
+    "frontend": {
+      "kind": "external",
+      "name": "vig2p",
+      "sherpa_text_compatible": false,
+      "note": "Vietnamese training/inference uses vig2p; preserve that G2P behavior in pykokoro."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-vietnamese-v1.0",
+      "model_filename": "kokoro-vietnamese-v1.0.onnx",
+      "voices_filename": "voices-vietnamese-v1.0.bin",
+      "config_filename": "config-vietnamese-v1.0.json"
+    }
+  },
+  "vi-anphunl": {
+    "display_name": "Kokoro Vietnamese (anphunl mirror)",
+    "repo_id": "anphunl/Kokoro-Vietnamese",
+    "revision": "main",
+    "license": "Apache-2.0",
+    "language": "vi",
+    "sample_rate": 24000,
+    "model": {"kind": "checkpoint", "path": "kokoro_vi.pth", "config": "config.json"},
+    "voices": {"kind": "json_pt", "index": "voices.json"},
+    "frontend": {
+      "kind": "external",
+      "name": "vig2p",
+      "sherpa_text_compatible": false,
+      "note": "Mirror of the ContextBoxAI model; use vig2p-compatible preprocessing."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-vietnamese-anphunl-v1.0",
+      "model_filename": "kokoro-vietnamese-anphunl-v1.0.onnx",
+      "voices_filename": "voices-vietnamese-anphunl-v1.0.bin",
+      "config_filename": "config-vietnamese-anphunl-v1.0.json"
+    }
+  },
+  "ar-nabra": {
+    "display_name": "Nabra-82M Arabic",
+    "repo_id": "oddadmix/Nabra-82M-v0.1",
+    "revision": "main",
+    "license": "Apache-2.0",
+    "language": "ar",
+    "sample_rate": 24000,
+    "model": {"kind": "checkpoint", "path": "kokoro_arabic.pth", "config": "config.json"},
+    "voices": {"kind": "fixed_pt", "items": {"af_msa": "af_msa.pt"}},
+    "frontend": {
+      "kind": "espeak_plus_preprocess",
+      "name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
+      "sherpa_text_compatible": false,
+      "note": "Nabra expects diacritized MSA and its model-specific G2P cleanup."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-arabic-nabra-v0.1",
+      "model_filename": "kokoro-arabic-nabra-v0.1.onnx",
+      "voices_filename": "voices-arabic-nabra-v0.1.bin",
+      "config_filename": "config-arabic-nabra-v0.1.json"
+    }
+  },
+  "de-crane": {
+    "display_name": "Kokoro German Kerstin (Crane)",
+    "repo_id": "crane-local-ai/Kokoro-82M-v1.0-German-ONNX",
+    "revision": "main",
+    "license": "Apache-2.0",
+    "language": "de",
+    "sample_rate": 24000,
+    "model": {"kind": "onnx", "path": "onnx/model.onnx", "config": "config.json"},
+    "voices": {"kind": "raw", "path": "voices/df_kerstin.bin", "names": ["df_kerstin"]},
+    "frontend": {
+      "kind": "espeak",
+      "name": "German IPA compatible frontend",
+      "sherpa_text_compatible": false,
+      "note": "Training used espeak-ng German IPA, while the publisher ships Crane's German G2P. Verify pykokoro G2P output before marking this profile automatic."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-german-kerstin-v1.0",
+      "model_filename": "kokoro-german-kerstin-v1.0.onnx",
+      "voices_filename": "voices-german-kerstin-v1.0.bin",
+      "config_filename": "config-german-kerstin-v1.0.json"
+    }
+  },
+  "he-hebrew-nc": {
+    "display_name": "Kokoro Hebrew NC",
+    "repo_id": "thewh1teagle/kokoro-hebrew-nc",
+    "revision": "main",
+    "license": "Non-commercial; original gated model/dataset terms apply",
+    "language": "he",
+    "sample_rate": 24000,
+    "model": {"kind": "onnx", "path": "kokoro.onnx", "config": "config.json"},
+    "voices": {"kind": "archive_or_raw", "path": "voices-hebrew.bin", "names": ["he_shaul"]},
+    "frontend": {
+      "kind": "external",
+      "name": "Hebrew-specific G2P",
+      "sherpa_text_compatible": false,
+      "note": "Packaging is supported, but redistribution and use are subject to non-commercial upstream terms."
+    },
+    "release": {
+      "enabled": false,
+      "tag": "model-files-hebrew-nc-v1.0",
+      "model_filename": "kokoro-hebrew-nc-v1.0.onnx",
+      "voices_filename": "voices-hebrew-nc-v1.0.bin",
+      "config_filename": "config-hebrew-nc-v1.0.json"
+    }
+  }
+}

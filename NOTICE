@@ -1,0 +1,9 @@
+Kokoro ONNX Models
+Copyright 2026 Buchwandler contributors
+
+The Apache-2.0 LICENSE in this repository applies to repository-authored source
+code and documentation. Model weights, voice packs, converted ONNX files, and
+mirrored release assets remain subject to their upstream licenses and required
+attributions. See MODEL_LICENSES.md and each generated release-manifest.json.
+
+This project is not affiliated with the upstream model publishers.
