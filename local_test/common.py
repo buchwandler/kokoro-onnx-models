@@ -119,9 +119,20 @@ SPECS: dict[str, LocalTestSpec] = {
         model_source="github",
         model_variant="v1.0",
         expected_speakers=(
-            "diem_trinh", "hung_thinh", "mai_linh", "mai_loan", "manh_dung",
-            "my_yen", "ngoc_huyen", "phat_tai", "thanh_dat", "thuc_trinh",
-            "tuan_ngoc", "storyvert", "duc_an", "duc_duy",
+            "diem_trinh",
+            "hung_thinh",
+            "mai_linh",
+            "mai_loan",
+            "manh_dung",
+            "my_yen",
+            "ngoc_huyen",
+            "phat_tai",
+            "thanh_dat",
+            "thuc_trinh",
+            "tuan_ngoc",
+            "storyvert",
+            "duc_an",
+            "duc_duy",
         ),
         frontend="vig2p required upstream; espeak here is experimental only",
         exact_pykokoro_expected=False,
@@ -134,9 +145,20 @@ SPECS: dict[str, LocalTestSpec] = {
         model_source="github",
         model_variant="v1.0",
         expected_speakers=(
-            "diem_trinh", "hung_thinh", "mai_linh", "mai_loan", "manh_dung",
-            "my_yen", "ngoc_huyen", "phat_tai", "thanh_dat", "thuc_trinh",
-            "tuan_ngoc", "storyvert", "duc_an", "duc_duy",
+            "diem_trinh",
+            "hung_thinh",
+            "mai_linh",
+            "mai_loan",
+            "manh_dung",
+            "my_yen",
+            "ngoc_huyen",
+            "phat_tai",
+            "thanh_dat",
+            "thuc_trinh",
+            "tuan_ngoc",
+            "storyvert",
+            "duc_an",
+            "duc_duy",
         ),
         frontend="vig2p required upstream; espeak here is experimental only",
         exact_pykokoro_expected=False,
@@ -335,7 +357,9 @@ def _language_for_voice(spec: LocalTestSpec, voice: str) -> str:
     return VOICE_PREFIX_LANGUAGE.get(prefix[0].lower(), spec.language)
 
 
-def _tokenizer_for(spec: LocalTestSpec, lang: str, allow_frontend_mismatch: bool) -> TokenizerConfig:
+def _tokenizer_for(
+    spec: LocalTestSpec, lang: str, allow_frontend_mismatch: bool
+) -> TokenizerConfig:
     native = {"en-us", "en-gb", "es", "fr-fr", "de", "it", "pt", "ja", "zh"}
     if lang in native:
         return TokenizerConfig()
@@ -354,7 +378,9 @@ def _print_header(spec: LocalTestSpec, model: Path, voices: Path, exact: bool) -
     print(f"model:   {model}")
     print(f"voices:  {voices}")
     print(f"frontend:{spec.frontend}")
-    print(f"exact voice-package compatibility: {'YES' if exact else 'NO (local conversion)'}")
+    print(
+        f"exact voice-package compatibility: {'YES' if exact else 'NO (local conversion)'}"
+    )
     if spec.notes:
         print(f"note:    {spec.notes}")
     print("=" * 80)
@@ -415,17 +441,23 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         model_variant=spec.model_variant,  # type: ignore[arg-type]
         model_quality="fp32",
         provider=args.provider,
-        generation=GenerationConfig(lang=_language_for_voice(spec, selected[0]), speed=args.speed),
+        generation=GenerationConfig(
+            lang=_language_for_voice(spec, selected[0]), speed=args.speed
+        ),
         return_trace=True,
     )
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s"
+    )
     with KokoroPipeline(base_config) as pipeline:
         for index, voice in enumerate(selected, start=1):
             lang = _language_for_voice(spec, voice)
             sentence = SENTENCES[lang]
             try:
-                tokenizer_config = _tokenizer_for(spec, lang, args.allow_frontend_mismatch)
+                tokenizer_config = _tokenizer_for(
+                    spec, lang, args.allow_frontend_mismatch
+                )
                 generation = GenerationConfig(lang=lang, speed=args.speed)
                 print(f"[{index}/{len(selected)}] {voice} ({lang}): {sentence}")
                 result = pipeline.run(

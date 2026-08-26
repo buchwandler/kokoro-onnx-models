@@ -4,4 +4,4 @@
 from common import run_cli
 
 if __name__ == "__main__":
-    raise SystemExit(run_cli('v1.2-de-martin'))
+    raise SystemExit(run_cli("v1.2-de-martin"))

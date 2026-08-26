@@ -140,7 +140,9 @@ def _read_raw_voice_file(path: Path, names: list[str]) -> dict[str, np.ndarray]:
     return {name: np.ascontiguousarray(packed[i]) for i, name in enumerate(names)}
 
 
-def _read_npz_voice_archive(path: Path, expected_names: list[str]) -> dict[str, np.ndarray]:
+def _read_npz_voice_archive(
+    path: Path, expected_names: list[str]
+) -> dict[str, np.ndarray]:
     voices: dict[str, np.ndarray] = {}
     with np.load(path, allow_pickle=False) as archive:
         keys = list(archive.files)
@@ -203,7 +205,9 @@ def resolve_voices(profile: dict[str, Any], cache_dir: Path) -> dict[str, np.nda
     raise BuildError(f"Unsupported voices.kind={kind!r}")
 
 
-def write_sherpa_voices_bin(voices: Mapping[str, np.ndarray], out_path: Path) -> tuple[int, int, int]:
+def write_sherpa_voices_bin(
+    voices: Mapping[str, np.ndarray], out_path: Path
+) -> tuple[int, int, int]:
     shape = _validate_same_shape(voices)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("wb") as f:
@@ -216,7 +220,10 @@ def write_sherpa_voices_bin(voices: Mapping[str, np.ndarray], out_path: Path) ->
         raise BuildError(f"Voice pack size mismatch: expected {expected}, got {actual}")
     return shape
 
-def write_numpy_voice_archive(voices: Mapping[str, np.ndarray], out_path: Path) -> tuple[int, int, int]:
+
+def write_numpy_voice_archive(
+    voices: Mapping[str, np.ndarray], out_path: Path
+) -> tuple[int, int, int]:
     """Write a named NumPy archive for pykokoro consumers."""
     shape = _validate_same_shape(voices)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -298,7 +305,12 @@ def export_checkpoint_to_onnx(
 
 
 def resolve_model(
-    profile: dict[str, Any], cache_dir: Path, out_path: Path, *, opset: int, seq_len: int
+    profile: dict[str, Any],
+    cache_dir: Path,
+    out_path: Path,
+    *,
+    opset: int,
+    seq_len: int,
 ) -> Path | None:
     repo_id = profile["repo_id"]
     revision = profile.get("revision", "main")
@@ -340,7 +352,9 @@ def validate_onnx_contract(path: Path) -> list[str]:
 
     model = onnx.load(str(path), load_external_data=True)
     if len(model.graph.input) < 3:
-        raise BuildError(f"{path} exposes only {len(model.graph.input)} inputs; expected 3")
+        raise BuildError(
+            f"{path} exposes only {len(model.graph.input)} inputs; expected 3"
+        )
     token, style, speed = model.graph.input[:3]
     issues: list[str] = []
 
@@ -348,11 +362,17 @@ def validate_onnx_contract(path: Path) -> list[str]:
     style_type = style.type.tensor_type.elem_type
     speed_type = speed.type.tensor_type.elem_type
     if token_type != onnx.TensorProto.INT64:
-        issues.append(f"token input {token.name!r} is {_onnx_type_name(token_type)}, expected INT64")
+        issues.append(
+            f"token input {token.name!r} is {_onnx_type_name(token_type)}, expected INT64"
+        )
     if style_type != onnx.TensorProto.FLOAT:
-        issues.append(f"style input {style.name!r} is {_onnx_type_name(style_type)}, expected FLOAT")
+        issues.append(
+            f"style input {style.name!r} is {_onnx_type_name(style_type)}, expected FLOAT"
+        )
     if speed_type != onnx.TensorProto.FLOAT:
-        issues.append(f"speed input {speed.name!r} is {_onnx_type_name(speed_type)}, expected FLOAT")
+        issues.append(
+            f"speed input {speed.name!r} is {_onnx_type_name(speed_type)}, expected FLOAT"
+        )
 
     if not model.graph.output:
         issues.append("model has no outputs")

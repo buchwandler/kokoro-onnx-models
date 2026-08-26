@@ -25,7 +25,12 @@ def test_normalize_assets_supports_legacy_and_mapped_entries() -> None:
     assets = mirror_release.normalize_assets(
         [
             "foo.bin",
-            {"source": "upstream.npz", "name": "release.bin", "size": 3, "sha256": "abc"},
+            {
+                "source": "upstream.npz",
+                "name": "release.bin",
+                "size": 3,
+                "sha256": "abc",
+            },
         ]
     )
 
@@ -108,7 +113,9 @@ def test_main_preserves_bytes_when_mapping_source_to_target(
     output = tmp_path / "dist" / "model-files-martin"
     assert (output / "release.onnx").read_bytes() == model
     assert (output / "release.bin").read_bytes() == voices
-    manifest = json.loads((output / "release-manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (output / "release-manifest.json").read_text(encoding="utf-8")
+    )
     assert manifest["source"] == {
         "type": "huggingface",
         "repository": "Godelaune/model",
@@ -132,8 +139,18 @@ def test_mismatch_is_rejected_before_any_asset_is_published(
                 "tag": "tag",
                 "license": "Apache-2.0",
                 "assets": [
-                    {"source": "good", "name": "good.bin", "size": len(good), "sha256": asset_hash(good)},
-                    {"source": "bad", "name": "bad.bin", "size": 99, "sha256": asset_hash(bad)},
+                    {
+                        "source": "good",
+                        "name": "good.bin",
+                        "size": len(good),
+                        "sha256": asset_hash(good),
+                    },
+                    {
+                        "source": "bad",
+                        "name": "bad.bin",
+                        "size": 99,
+                        "sha256": asset_hash(bad),
+                    },
                 ],
             }
         },
@@ -146,7 +163,9 @@ def test_mismatch_is_rejected_before_any_asset_is_published(
         path.write_bytes(good if url.endswith("/good?download=true") else bad)
 
     monkeypatch.setattr(mirror_release, "download", fake_download)
-    monkeypatch.setattr("sys.argv", ["mirror_release.py", "test", "--dist", str(tmp_path / "dist")])
+    monkeypatch.setattr(
+        "sys.argv", ["mirror_release.py", "test", "--dist", str(tmp_path / "dist")]
+    )
 
     with pytest.raises(SystemExit, match="Size mismatch for bad.bin"):
         mirror_release.main()

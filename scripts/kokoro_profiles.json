@@ -163,9 +163,7 @@
     "voices": {
       "kind": "raw",
       "path": "voices/df_kerstin.bin",
-      "names": [
-        "df_kerstin"
-      ]
+      "names": ["df_kerstin"]
     },
     "frontend": {
       "kind": "espeak",
@@ -215,9 +213,7 @@
     "voices": {
       "kind": "archive_or_raw",
       "path": "voices-hebrew.bin",
-      "names": [
-        "he_shaul"
-      ]
+      "names": ["he_shaul"]
     },
     "frontend": {
       "kind": "external",

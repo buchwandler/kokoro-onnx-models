@@ -5,28 +5,28 @@
   "type": "object",
   "required": ["schema", "repository", "tag", "license", "assets"],
   "properties": {
-    "schema": {"const": 1},
-    "repository": {"type": "string"},
-    "tag": {"type": "string"},
-    "profile": {"type": ["string", "null"]},
-    "source": {"type": "object"},
-    "license": {"type": "string"},
-    "language": {"type": ["string", "null"]},
-    "sample_rate": {"type": "integer", "minimum": 1},
-    "frontend": {"type": ["object", "null"]},
-    "onnx_contract": {"type": ["object", "null"]},
-    "publication": {"type": ["object", "null"]},
+    "schema": { "const": 1 },
+    "repository": { "type": "string" },
+    "tag": { "type": "string" },
+    "profile": { "type": ["string", "null"] },
+    "source": { "type": "object" },
+    "license": { "type": "string" },
+    "language": { "type": ["string", "null"] },
+    "sample_rate": { "type": "integer", "minimum": 1 },
+    "frontend": { "type": ["object", "null"] },
+    "onnx_contract": { "type": ["object", "null"] },
+    "publication": { "type": ["object", "null"] },
     "assets": {
       "type": "array",
       "items": {
         "type": "object",
         "required": ["name", "size", "sha256"],
         "properties": {
-          "name": {"type": "string"},
-          "size": {"type": "integer", "minimum": 0},
-          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-          "role": {"type": "string"},
-          "format": {"type": "string"}
+          "name": { "type": "string" },
+          "size": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "role": { "type": "string" },
+          "format": { "type": "string" }
         },
         "additionalProperties": false
       }

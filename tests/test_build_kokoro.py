@@ -15,7 +15,9 @@ SPEC.loader.exec_module(build_kokoro)
 
 
 def test_normalizes_rank2_voice() -> None:
-    got = build_kokoro.normalize_voice(np.zeros((17, 256), dtype=np.float32), name="test")
+    got = build_kokoro.normalize_voice(
+        np.zeros((17, 256), dtype=np.float32), name="test"
+    )
     assert got.shape == (17, 1, 256)
 
 
@@ -39,6 +41,7 @@ def test_raw_round_trip_multiple_speakers() -> None:
         np.testing.assert_array_equal(reread["a"], a)
         np.testing.assert_array_equal(reread["b"], b)
 
+
 def test_named_numpy_archive_round_trip_multiple_speakers() -> None:
     a = np.arange(12 * 256, dtype=np.float32).reshape(12, 1, 256)
     b = np.full((12, 1, 256), 7.0, dtype=np.float32)
@@ -54,5 +57,11 @@ def test_named_numpy_archive_round_trip_multiple_speakers() -> None:
 
 def test_expected_profiles_exist() -> None:
     profiles = build_kokoro.load_profiles()
-    assert set(profiles) == {"vi-contextbox", "vi-anphunl", "ar-nabra", "de-crane", "he-hebrew-nc"}
+    assert set(profiles) == {
+        "vi-contextbox",
+        "vi-anphunl",
+        "ar-nabra",
+        "de-crane",
+        "he-hebrew-nc",
+    }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False

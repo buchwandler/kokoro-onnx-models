@@ -44,7 +44,8 @@ def _asset_name(item: str | dict[str, Any]) -> str:
 def _select_model_asset(items: list[str | dict[str, Any]]) -> str:
     names = [_asset_name(item) for item in items]
     fp32 = [
-        name for name in names
+        name
+        for name in names
         if name.endswith(".onnx")
         and all(marker not in name for marker in (".fp16", ".int8", ".q", "uint8"))
     ]
@@ -55,7 +56,11 @@ def _select_model_asset(items: list[str | dict[str, Any]]) -> str:
 
 def _select_voice_asset(items: list[str | dict[str, Any]]) -> str:
     names = [_asset_name(item) for item in items]
-    voices = [name for name in names if "voice" in name.lower() and name.endswith((".bin", ".npz"))]
+    voices = [
+        name
+        for name in names
+        if "voice" in name.lower() and name.endswith((".bin", ".npz"))
+    ]
     npz = [name for name in voices if name.endswith(".npz")]
     if len(npz) == 1:
         return npz[0]
@@ -134,7 +139,9 @@ def main() -> int:
         elif spec.get("kind") == "build":
             prepare_build(key, spec)
         else:
-            raise RuntimeError(f"Unsupported catalog kind for {key}: {spec.get('kind')!r}")
+            raise RuntimeError(
+                f"Unsupported catalog kind for {key}: {spec.get('kind')!r}"
+            )
     print(f"\nLocal assets are under {ASSETS}")
     return 0
 

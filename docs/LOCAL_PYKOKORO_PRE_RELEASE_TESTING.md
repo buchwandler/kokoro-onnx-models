@@ -88,16 +88,16 @@ frontends, so those runs are not evidence of automatic profile compatibility.
 The repository profile metadata already records this, and the local tests must
 not erase that distinction.
 
-| Profile | Required/expected frontend | Current test meaning |
-|---|---|---|
-| `v1.0` | current pykokoro/kokorog2p frontend | real integration smoke test |
-| `v1.1-zh` | current pykokoro Chinese frontend | real integration smoke test |
-| `v1.2-de-martin` | current pykokoro German frontend | real integration smoke test |
-| `vi-contextbox` | `vig2p` | experimental until pykokoro has matching frontend |
-| `vi-anphunl` | `vig2p` | experimental until pykokoro has matching frontend |
-| `ar-nabra` | normalize → diacritize → Arabic espeak → Nabra cleanup, plus Nabra symbols/vocab | experimental until implemented |
-| `de-crane` | German IPA; training data used `espeak-ng` German IPA | useful smoke test, but model contract must also be checked |
-| `he-hebrew-nc` | Hebrew-specific G2P/config | experimental and restricted/non-commercial |
+| Profile          | Required/expected frontend                                                       | Current test meaning                                       |
+| ---------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `v1.0`           | current pykokoro/kokorog2p frontend                                              | real integration smoke test                                |
+| `v1.1-zh`        | current pykokoro Chinese frontend                                                | real integration smoke test                                |
+| `v1.2-de-martin` | current pykokoro German frontend                                                 | real integration smoke test                                |
+| `vi-contextbox`  | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
+| `vi-anphunl`     | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
+| `ar-nabra`       | normalize → diacritize → Arabic espeak → Nabra cleanup, plus Nabra symbols/vocab | experimental until implemented                             |
+| `de-crane`       | German IPA; training data used `espeak-ng` German IPA                            | useful smoke test, but model contract must also be checked |
+| `he-hebrew-nc`   | Hebrew-specific G2P/config                                                       | experimental and restricted/non-commercial                 |
 
 For unsupported frontends the harness refuses to synthesize ordinary text by
 default. `--allow-frontend-mismatch` enables an **experimental** espeak-backed

@@ -26,7 +26,10 @@ class MirrorAsset:
 
 
 def request_json(url: str) -> Any:
-    headers = {"Accept": "application/vnd.github+json", "User-Agent": "kokoro-onnx-models-mirror"}
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "kokoro-onnx-models-mirror",
+    }
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -44,8 +47,13 @@ def sha256(path: Path) -> str:
 
 
 def download(url: str, path: Path) -> None:
-    request = urllib.request.Request(url, headers={"User-Agent": "kokoro-onnx-models-mirror"})
-    with urllib.request.urlopen(request, timeout=120) as response, path.open("wb") as file:
+    request = urllib.request.Request(
+        url, headers={"User-Agent": "kokoro-onnx-models-mirror"}
+    )
+    with (
+        urllib.request.urlopen(request, timeout=120) as response,
+        path.open("wb") as file,
+    ):
         while True:
             chunk = response.read(1024 * 1024)
             if not chunk:
@@ -100,7 +108,11 @@ def asset_matches(path: Path, asset: MirrorAsset) -> bool:
 
 def stage_asset(url: str, target: Path, asset: MirrorAsset) -> Path:
     with tempfile.NamedTemporaryFile(
-        mode="wb", prefix=f".{target.name}.", suffix=".part", dir=target.parent, delete=False
+        mode="wb",
+        prefix=f".{target.name}.",
+        suffix=".part",
+        dir=target.parent,
+        delete=False,
     ) as file:
         temporary = Path(file.name)
 
@@ -113,7 +125,9 @@ def stage_asset(url: str, target: Path, asset: MirrorAsset) -> Path:
         raise
 
 
-def github_sources(spec: dict[str, Any], assets: list[MirrorAsset]) -> tuple[dict[str, str], dict[str, Any]]:
+def github_sources(
+    spec: dict[str, Any], assets: list[MirrorAsset]
+) -> tuple[dict[str, str], dict[str, Any]]:
     repository = spec["source_repository"]
     source_tag = spec["source_tag"]
     api = f"https://api.github.com/repos/{repository}/releases/tags/{source_tag}"
@@ -121,8 +135,12 @@ def github_sources(spec: dict[str, Any], assets: list[MirrorAsset]) -> tuple[dic
     by_name = {item["name"]: item for item in release.get("assets", [])}
     missing = [asset.source for asset in assets if asset.source not in by_name]
     if missing:
-        raise SystemExit("Upstream release is missing expected assets: " + ", ".join(missing))
-    urls = {asset.name: by_name[asset.source]["browser_download_url"] for asset in assets}
+        raise SystemExit(
+            "Upstream release is missing expected assets: " + ", ".join(missing)
+        )
+    urls = {
+        asset.name: by_name[asset.source]["browser_download_url"] for asset in assets
+    }
     source = {
         "type": "github-release",
         "repository": repository,
@@ -150,7 +168,9 @@ def huggingface_sources(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Mirror selected upstream model release assets")
+    parser = argparse.ArgumentParser(
+        description="Mirror selected upstream model release assets"
+    )
     parser.add_argument("release_key")
     parser.add_argument("--dist", type=Path, default=Path("dist"))
     args = parser.parse_args()
@@ -161,7 +181,9 @@ def main() -> int:
         raise SystemExit(f"Unknown release key: {args.release_key}")
     spec = releases[args.release_key]
     if spec.get("kind") != "mirror":
-        raise SystemExit(f"{args.release_key} is a build profile, not a mirrored release")
+        raise SystemExit(
+            f"{args.release_key} is a build profile, not a mirrored release"
+        )
 
     assets = normalize_assets(spec["assets"])
     source_type = spec.get("source_type", "github-release")
@@ -211,7 +233,9 @@ def main() -> int:
                     {
                         "role": "voices",
                         "format": (
-                            "numpy-npz" if zipfile.is_zipfile(out / asset.name) else "raw-float32-le"
+                            "numpy-npz"
+                            if zipfile.is_zipfile(out / asset.name)
+                            else "raw-float32-le"
                         ),
                     }
                     if "voice" in asset.name.lower()
