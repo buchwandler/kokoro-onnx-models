@@ -80,6 +80,7 @@ class LocalTestSpec:
     expected_speakers: tuple[str, ...] = ()
     frontend: str = "pykokoro-native"
     exact_pykokoro_expected: bool = True
+    required_files: tuple[str, ...] = ()
     notes: str = ""
 
 
@@ -169,14 +170,15 @@ SPECS: dict[str, LocalTestSpec] = {
         display_name="Nabra-82M Arabic",
         language="ar",
         model_source="github",
-        model_variant="v1.0",
+        model_variant="ar-nabra",
         expected_speakers=("af_msa",),
         frontend="diacritizer + Arabic espeak + Nabra cleanup required upstream",
-        exact_pykokoro_expected=False,
+        exact_pykokoro_expected=True,
+        required_files=("vocab.json",),
         notes=(
-            "Current pykokoro has no Nabra profile, Arabic vocabulary extension, "
-            "or Nabra cleanup. The sample text is already diacritized, but that is "
-            "not sufficient to claim frontend parity."
+            "Nabra uses the upstream pre-exported FP32 ONNX model and requires "
+            "its dedicated vocab.json before inference. The sample text is already "
+            "diacritized; this does not alone establish frontend parity."
         ),
     ),
     "de-crane": LocalTestSpec(
@@ -360,7 +362,7 @@ def _language_for_voice(spec: LocalTestSpec, voice: str) -> str:
 def _tokenizer_for(
     spec: LocalTestSpec, lang: str, allow_frontend_mismatch: bool
 ) -> TokenizerConfig:
-    native = {"en-us", "en-gb", "es", "fr-fr", "de", "it", "pt", "ja", "zh"}
+    native = {"en-us", "en-gb", "es", "fr-fr", "de", "it", "pt", "ja", "zh", "ar"}
     if lang in native:
         return TokenizerConfig()
     if not allow_frontend_mismatch:
@@ -396,6 +398,14 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
             f"Run: python local_test/prepare_local_assets.py {spec.key}"
         )
 
+    missing_required = [
+        filename for filename in spec.required_files if not (asset_dir / filename).is_file()
+    ]
+    if missing_required:
+        raise FileNotFoundError(
+            f"{spec.key}: missing required runtime asset(s): "
+            + ", ".join(missing_required)
+        )
     model_path = _find_one(asset_dir, ("model.onnx", "*.onnx"), "ONNX model")
     preferred_voices = asset_dir / "voices.npz"
     original_voices = (
@@ -437,6 +447,9 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         voice=selected[0],
         model_path=model_path,
         voices_path=voices_path,
+        model_config_path=(
+            asset_dir / "vocab.json" if "vocab.json" in spec.required_files else None
+        ),
         model_source=spec.model_source,
         model_variant=spec.model_variant,  # type: ignore[arg-type]
         model_quality="fp32",

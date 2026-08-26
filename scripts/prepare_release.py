@@ -53,8 +53,11 @@ def main() -> int:
             "format": "unknown",
         }
     ]
+    auxiliary_assets = release.get("auxiliary_assets") or []
     required = [src / "model.onnx", src / "bundle.json"] + [
         src / str(asset["source"]) for asset in voice_assets
+    ] + [
+        src / str(asset["source"]) for asset in auxiliary_assets
     ]
     missing = [str(p) for p in required if not p.is_file()]
     if missing:
@@ -70,6 +73,8 @@ def main() -> int:
     }
     for asset in voice_assets:
         mapping[src / str(asset["source"])] = out / str(asset["filename"])
+    for asset in auxiliary_assets:
+        mapping[src / str(asset["source"])] = out / str(asset["filename"])
     if (src / "config.json").is_file() and release.get("config_filename"):
         mapping[src / "config.json"] = out / release["config_filename"]
 
@@ -77,7 +82,22 @@ def main() -> int:
         shutil.copy2(source, target)
 
     assets = []
-    format_by_name = {str(asset["filename"]): asset for asset in voice_assets}
+    asset_metadata = {
+        str(asset["filename"]): {
+            "role": "voices",
+            "format": str(asset.get("format", "unknown")),
+        }
+        for asset in voice_assets
+    }
+    asset_metadata.update(
+        {
+            str(asset["filename"]): {
+                "role": str(asset.get("role", "auxiliary")),
+                "format": str(asset.get("format", "unknown")),
+            }
+            for asset in auxiliary_assets
+        }
+    )
     for path in sorted(out.iterdir()):
         if path.name == "release-manifest.json" or not path.is_file():
             continue
@@ -86,13 +106,8 @@ def main() -> int:
             "size": path.stat().st_size,
             "sha256": sha256(path),
         }
-        if path.name in format_by_name:
-            metadata.update(
-                {
-                    "role": "voices",
-                    "format": format_by_name[path.name].get("format", "unknown"),
-                }
-            )
+        if path.name in asset_metadata:
+            metadata.update(asset_metadata[path.name])
         assets.append(metadata)
 
     manifest = {

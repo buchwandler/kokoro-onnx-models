@@ -1,9 +1,19 @@
 from __future__ import annotations
 
+import importlib.util
 import json
+import sys
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
+PREPARE_PATH = ROOT / "scripts" / "prepare_release.py"
+PREPARE_SPEC = importlib.util.spec_from_file_location("prepare_release", PREPARE_PATH)
+assert PREPARE_SPEC is not None and PREPARE_SPEC.loader is not None
+prepare_release = importlib.util.module_from_spec(PREPARE_SPEC)
+PREPARE_SPEC.loader.exec_module(prepare_release)
+
 
 
 def test_catalog_target_repo() -> None:
@@ -11,6 +21,18 @@ def test_catalog_target_repo() -> None:
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
     assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
+
+
+def test_nabra_build_uses_prebuilt_onnx_source() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    profile = profiles["ar-nabra"]
+
+    assert profile["repo_id"] == "marwanelamami/Nabra-82M-v0.1-ONNX"
+    assert profile["model"]["kind"] == "onnx"
+    assert profile["model"]["path"] == "nabra_fp32.onnx"
+    assert "vocab.json" in profile["release"]["auxiliary_assets"][0]["source"]
 
 
 def test_hebrew_not_published_by_default() -> None:
@@ -32,6 +54,33 @@ def test_martin_is_mirrored_from_godelaune() -> None:
     assert by_name["kokoro-german-martin-v1.2.onnx"]["source"] == "kokoro-martin.onnx"
     assert by_name["voices-german-martin-v1.2.bin"]["source"] == "voices-martin.npz"
 
+
+
+def test_nabra_release_includes_vocabulary_metadata(tmp_path, monkeypatch) -> None:
+    build_dir = tmp_path / "build" / "ar-nabra"
+    build_dir.mkdir(parents=True)
+    (build_dir / "model.onnx").write_bytes(b"model")
+    np.savez(build_dir / "voices.npz", af_msa=np.zeros((510, 1, 256), dtype="<f4"))
+    (build_dir / "voices.raw.bin").write_bytes(b"\x00" * (510 * 256 * 4))
+    (build_dir / "bundle.json").write_text("{}\n", encoding="utf-8")
+    (build_dir / "vocab.json").write_text('{"ʕ": 7, "ħ": 8}\n', encoding="utf-8")
+    dist = tmp_path / "dist"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["prepare_release.py", "ar-nabra", "--build-root", str(tmp_path / "build"), "--dist", str(dist)],
+    )
+
+    assert prepare_release.main() == 0
+
+    manifest_path = dist / "model-files-arabic-nabra-v0.1" / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    vocab = next(
+        asset for asset in manifest["assets"] if asset["name"] == "vocab-arabic-nabra-v0.1.json"
+    )
+    assert vocab["role"] == "vocab"
+    assert vocab["format"] == "json"
+    assert vocab["size"] == (dist / "model-files-arabic-nabra-v0.1" / vocab["name"]).stat().st_size
 
 def test_german_v1_1_and_holgern_are_retired() -> None:
     paths = [

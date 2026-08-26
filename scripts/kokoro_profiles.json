@@ -99,22 +99,29 @@
   },
   "ar-nabra": {
     "display_name": "Nabra-82M Arabic",
-    "repo_id": "oddadmix/Nabra-82M-v0.1",
-    "revision": "main",
+    "repo_id": "marwanelamami/Nabra-82M-v0.1-ONNX",
+    "revision": "85065b0be8573aefb401f8f53e7edc37d6556186",
     "license": "Apache-2.0",
     "language": "ar",
     "sample_rate": 24000,
     "model": {
-      "kind": "checkpoint",
-      "path": "kokoro_arabic.pth",
-      "config": "config.json"
+      "kind": "onnx",
+      "path": "nabra_fp32.onnx"
     },
     "voices": {
       "kind": "fixed_pt",
       "items": {
-        "af_msa": "af_msa.pt"
+        "af_msa": "voices_af_msa.pt"
       }
     },
+    "auxiliary_files": [
+      {
+        "path": "vocab.json",
+        "output": "vocab.json",
+        "role": "vocab",
+        "format": "json"
+      }
+    ],
     "frontend": {
       "kind": "espeak_plus_preprocess",
       "name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
@@ -125,8 +132,6 @@
       "enabled": true,
       "tag": "model-files-arabic-nabra-v0.1",
       "model_filename": "kokoro-arabic-nabra-v0.1.onnx",
-      "voices_filename": "voices-arabic-nabra-v0.1.bin",
-      "config_filename": "config-arabic-nabra-v0.1.json",
       "voice_assets": [
         {
           "source": "voices.npz",
@@ -138,14 +143,26 @@
           "filename": "voices-arabic-nabra-v0.1.raw.bin",
           "format": "raw-float32-le"
         }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "vocab.json",
+          "filename": "vocab-arabic-nabra-v0.1.json",
+          "role": "vocab",
+          "format": "json"
+        }
       ]
     },
     "onnx_contract": {
       "inputs": {
-        "tokens": "int64",
-        "style": "float32",
+        "input_ids": "int64",
+        "ref_s": "float32",
         "speed": "float32"
-      }
+      },
+      "outputs": {
+        "audio": "float32"
+      },
+      "max_tokens": 510
     }
   },
   "de-crane": {

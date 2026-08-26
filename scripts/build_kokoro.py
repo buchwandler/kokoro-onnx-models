@@ -340,42 +340,100 @@ def resolve_model(
 
     raise BuildError(f"Unsupported model.kind={spec['kind']!r}")
 
+def resolve_auxiliary_files(
+    profile: dict[str, Any], cache_dir: Path, out_dir: Path) -> list[dict[str, str]]:
+    repo_id = profile["repo_id"]
+    revision = profile.get("revision", "main")
+    resolved: list[dict[str, str]] = []
+    for item in profile.get("auxiliary_files", []):
+        source = str(item["path"])
+        output = str(item.get("output") or Path(source).name)
+        local = hf_download(repo_id, source, revision, cache_dir)
+        target = out_dir / output
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(local, target)
+        resolved.append(
+            {
+                "path": output,
+                "role": str(item.get("role", "auxiliary")),
+                "format": str(item.get("format", "unknown")),
+            }
+        )
+    return resolved
+
 
 def _onnx_type_name(elem_type: int) -> str:
     import onnx
 
-    return onnx.TensorProto.DataType.Name(elem_type)
+    names = {
+        onnx.TensorProto.FLOAT: "float32",
+        onnx.TensorProto.FLOAT16: "float16",
+        onnx.TensorProto.DOUBLE: "float64",
+        onnx.TensorProto.INT64: "int64",
+        onnx.TensorProto.INT32: "int32",
+    }
+    return names.get(elem_type, onnx.TensorProto.DataType.Name(elem_type).lower())
 
 
-def validate_onnx_contract(path: Path) -> list[str]:
+def validate_onnx_contract(
+    path: Path, expected: dict[str, Any] | None = None
+) -> list[str]:
     import onnx
 
     model = onnx.load(str(path), load_external_data=True)
-    if len(model.graph.input) < 3:
-        raise BuildError(
-            f"{path} exposes only {len(model.graph.input)} inputs; expected 3"
-        )
-    token, style, speed = model.graph.input[:3]
     issues: list[str] = []
+    actual_inputs = {
+        value.name: _onnx_type_name(value.type.tensor_type.elem_type)
+        for value in model.graph.input
+    }
+    expected_inputs = (expected or {}).get("inputs")
+    if expected_inputs:
+        for name, expected_type in expected_inputs.items():
+            actual_type = actual_inputs.get(name)
+            if actual_type is None:
+                issues.append(f"missing input {name!r}")
+            elif actual_type != expected_type:
+                issues.append(
+                    f"input {name!r} is {actual_type}, expected {expected_type}"
+                )
+    else:
+        if len(model.graph.input) < 3:
+            raise BuildError(
+                f"{path} exposes only {len(model.graph.input)} inputs; expected 3"
+            )
+        positional = list(model.graph.input[:3])
+        expected_types = ["int64", "float32", "float32"]
+        labels = ["token", "style", "speed"]
+        for value, label, expected_type in zip(positional, labels, expected_types):
+            actual_type = _onnx_type_name(value.type.tensor_type.elem_type)
+            if actual_type != expected_type:
+                issues.append(
+                    f"{label} input {value.name!r} is {actual_type}, "
+                    f"expected {expected_type}"
+                )
 
-    token_type = token.type.tensor_type.elem_type
-    style_type = style.type.tensor_type.elem_type
-    speed_type = speed.type.tensor_type.elem_type
-    if token_type != onnx.TensorProto.INT64:
-        issues.append(
-            f"token input {token.name!r} is {_onnx_type_name(token_type)}, expected INT64"
-        )
-    if style_type != onnx.TensorProto.FLOAT:
-        issues.append(
-            f"style input {style.name!r} is {_onnx_type_name(style_type)}, expected FLOAT"
-        )
-    if speed_type != onnx.TensorProto.FLOAT:
-        issues.append(
-            f"speed input {speed.name!r} is {_onnx_type_name(speed_type)}, expected FLOAT"
-        )
-
-    if not model.graph.output:
+    actual_outputs = {
+        value.name: _onnx_type_name(value.type.tensor_type.elem_type)
+        for value in model.graph.output
+    }
+    expected_outputs = (expected or {}).get("outputs")
+    if expected_outputs:
+        for name, expected_type in expected_outputs.items():
+            actual_type = actual_outputs.get(name)
+            if actual_type is None:
+                issues.append(f"missing output {name!r}")
+            elif actual_type != expected_type:
+                issues.append(
+                    f"output {name!r} is {actual_type}, expected {expected_type}"
+                )
+    elif not actual_outputs:
         issues.append("model has no outputs")
+
+    if "sample_rate" in (expected or {}) and expected["sample_rate"] != 24000:
+        issues.append("sample_rate metadata must be 24000 Hz")
+    max_tokens = (expected or {}).get("max_tokens")
+    if max_tokens is not None and (not isinstance(max_tokens, int) or max_tokens <= 0):
+        issues.append("max_tokens metadata must be a positive integer")
     return issues
 
 
@@ -435,6 +493,7 @@ def write_bundle_manifest(
     style_shape: tuple[int, int, int],
     contract_issues: list[str],
     config_local: Path | None,
+    auxiliary_files: list[dict[str, str]],
 ) -> None:
     manifest = {
         "profile": profile_key,
@@ -448,6 +507,7 @@ def write_bundle_manifest(
             "pykokoro": {"path": "voices.npz", "format": "numpy-npz"},
             "sherpa": {"path": "voices.raw.bin", "format": "raw-float32-le"},
         },
+        "auxiliary_artifacts": auxiliary_files,
         "style_dim": list(style_shape),
         "frontend": profile["frontend"],
         "onnx_contract": profile.get("onnx_contract", {}),
@@ -488,7 +548,15 @@ def build_profile(
         seq_len=seq_len,
     )
 
-    contract_issues = validate_onnx_contract(out_dir / "model.onnx")
+
+    auxiliary_files = resolve_auxiliary_files(
+        profile, cache_dir, out_dir
+    )
+    contract = dict(profile.get("onnx_contract", {}))
+    contract["sample_rate"] = profile.get("sample_rate", 24000)
+    contract_issues = validate_onnx_contract(
+        out_dir / "model.onnx", contract
+    )
     if contract_issues:
         for issue in contract_issues:
             print(f"warning: {issue}", file=sys.stderr)
@@ -508,6 +576,7 @@ def build_profile(
         style_shape,
         contract_issues,
         config_local,
+        auxiliary_files,
     )
     shutil.rmtree(cache_dir, ignore_errors=True)
     return out_dir

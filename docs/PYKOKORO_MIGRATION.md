@@ -21,6 +21,13 @@ New planned tags:
 - `model-files-arabic-nabra-v0.1`
 - `model-files-german-kerstin-v1.0`
 
+
+The Nabra release additionally contains `vocab-arabic-nabra-v0.1.json` alongside
+the ONNX model and both named NPZ/raw voice assets. Its runtime contract is
+`input_ids` (int64), `ref_s` (float32), and `speed` (float32), with a 510-token
+maximum per inference call. The active artifact source is the pinned
+`marwanelamami/Nabra-82M-v0.1-ONNX` repository; `oddadmix/Nabra-82M-v0.1` is
+retained only as base-model provenance.
 Hebrew is not enabled for publication by default because its upstream model is
 non-commercial/restricted.
 

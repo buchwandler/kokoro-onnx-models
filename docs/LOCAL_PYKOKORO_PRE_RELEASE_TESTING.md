@@ -78,10 +78,11 @@ he-hebrew-nc
 ```
 
 The new profiles have release metadata and can be selected with explicit local
-model, named voice archive, and config or release-manifest paths. They remain
-experimental until their required frontends and golden phoneme fixtures pass.
-The local scripts continue to use `v1.0` as an integration shim for unsupported
-frontends, so those runs are not evidence of automatic profile compatibility.
+model, named voice archive, and config or release-manifest paths. Nabra now has a
+native Arabic frontend contract and dedicated vocabulary/runtime asset requirement;
+its release gate still includes the Arabic golden phoneme and acoustic checks. The
+remaining unsupported profiles stay experimental and use `v1.0` only as an explicit
+integration shim, not as evidence of automatic profile compatibility.
 
 ### 3. Frontend compatibility is separate from ONNX compatibility
 
@@ -95,7 +96,7 @@ not erase that distinction.
 | `v1.2-de-martin` | current pykokoro German frontend                                                 | real integration smoke test                                |
 | `vi-contextbox`  | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
 | `vi-anphunl`     | `vig2p`                                                                          | experimental until pykokoro has matching frontend          |
-| `ar-nabra`       | normalize → diacritize → Arabic espeak → Nabra cleanup, plus Nabra symbols/vocab | experimental until implemented                             |
+| `ar-nabra`       | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
 | `de-crane`       | German IPA; training data used `espeak-ng` German IPA                            | useful smoke test, but model contract must also be checked |
 | `he-hebrew-nc`   | Hebrew-specific G2P/config                                                       | experimental and restricted/non-commercial                 |
 
@@ -106,10 +107,12 @@ training-time frontend parity.
 
 ### 4. ONNX input typing is model-driven
 
-The Crane Kerstin upstream ONNX uses `input_ids`, `style`, and float `speed`.
-`pykokoro.audio_generator.AudioGenerator` now inspects ONNX input metadata and
-constructs each input using the declared dtype. This avoids inferring a tensor type
-from `model_source` and is covered by unit tests for float and integer speed inputs.
+The Crane Kerstin upstream ONNX uses `input_ids`, `style`, and float `speed`. The
+Nabra ONNX uses `input_ids`, `ref_s`, and float `speed`; `style` is not a valid
+Nabra input name. `pykokoro.audio_generator.AudioGenerator` inspects ONNX input
+metadata and binds the declared names and dtypes. This avoids inferring a tensor
+type from `model_source`. Nabra also limits each inference call to 510 token/style
+rows, and its runtime must load the dedicated vocabulary containing `ʕ` and `ħ`.
 
 ### 5. Custom vocabulary/config needs an explicit local path or embedded-model path
 
@@ -306,9 +309,11 @@ python local_test/smoke_ar_nabra.py --strict-release-format
 ```
 
 The native-language sample is already diacritized to remove one variable from the
-smoke test, but upstream Nabra still requires its Arabic phoneme cleanup and
-custom symbols. Do not publish Nabra as pykokoro-compatible until those are
-represented in the pykokoro profile/frontend.
+smoke test. Nabra still requires Arabic phoneme cleanup, the `vocab.json` asset with
+dedicated `ʕ` and `ħ` entries, and `input_ids`/`ref_s`/`speed` binding. The model
+accepts at most 510 token/style rows per inference call. Validate both the strict
+release package and the Arabic frontend/golden phoneme behavior before claiming
+full pykokoro compatibility.
 
 Experimental only:
 
@@ -443,16 +448,20 @@ PipelineConfig(
 or a resolved release manifest path. Explicit local model paths should never
 silently trigger unrelated upstream config downloads.
 
-### E. Implement frontend adapters before enabling automatic profiles
+### E. Keep frontend adapters aligned before enabling automatic profiles
 
-Required minimum:
+Required minimum for profiles still marked experimental:
 
 ```text
 Vietnamese: vig2p-compatible adapter
-Arabic Nabra: normalization + diacritization + Arabic phonemization + Nabra cleanup
 German Kerstin: verified German IPA path
 Hebrew: model-specific Hebrew G2P/config
 ```
+
+Nabra's Arabic adapter is implemented in the current kokorog2p dependency and
+must retain its dedicated normalization, diacritization, phonemization, cleanup,
+and vocabulary golden tests.
+
 
 Add golden phoneme fixtures from each upstream implementation. Audio-only tests
 are insufficient because a wrong frontend can still produce non-empty audio.

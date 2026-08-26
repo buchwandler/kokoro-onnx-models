@@ -93,7 +93,7 @@
         "voices.npz",
         "voices.raw.bin",
         "bundle.json",
-        "config.json"
+        "vocab.json"
       ],
       "voice_formats": {
         "voices.npz": "numpy-npz",

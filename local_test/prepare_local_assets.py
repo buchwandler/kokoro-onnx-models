@@ -116,6 +116,7 @@ def prepare_build(key: str, spec: dict[str, Any]) -> None:
         ("voices.raw.bin", "voices.raw.bin"),
         ("bundle.json", "bundle.json"),
         ("config.json", "config.json"),
+        ("vocab.json", "vocab.json"),
     ):
         source = source_dir / source_name
         if source.is_file():

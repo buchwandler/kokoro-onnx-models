@@ -52,9 +52,14 @@ Supported build profiles:
 |---|---|---|---|
 | `vi-contextbox` | Vietnamese | `contextboxai/Kokoro-Vietnamese` | yes |
 | `vi-anphunl` | Vietnamese | `anphunl/Kokoro-Vietnamese` | yes |
-| `ar-nabra` | Arabic | `oddadmix/Nabra-82M-v0.1` | yes |
+| `ar-nabra` | Arabic | `marwanelamami/Nabra-82M-v0.1-ONNX` | yes |
 | `de-crane` | German | `crane-local-ai/Kokoro-82M-v1.0-German-ONNX` | yes |
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
+
+Nabra uses the upstream pre-exported FP32 ONNX model. This repository repackages
+the `af_msa` voice table and retains the model-specific `vocab.json`; it does not
+re-export `kokoro_arabic.pth`. The original `oddadmix/Nabra-82M-v0.1` fine-tune
+remains part of the model lineage.
 
 `build_kokoro.py` validates voice tensor shape, writes raw little-endian float32
 speaker tables, validates the ONNX I/O types, preserves source ONNX metadata, and
