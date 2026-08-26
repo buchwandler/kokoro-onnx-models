@@ -35,6 +35,7 @@ Each command creates `dist/<release-tag>/` and a `release-manifest.json`. Upload
 those files to a release with the same tag in this repository. Keeping the tags
 and filenames unchanged makes the initial `pykokoro` migration small.
 
+The `v1.2-de-martin` command mirrors the Apache-2.0 German Martin artifacts from the pinned `Godelaune/Kokoro-82M-ONNX-German-Martin` Hugging Face revision. The ONNX and NPZ voice bytes are copied unchanged, then renamed to the established release filenames.
 ## New Kokoro-family profiles
 
 ```bash

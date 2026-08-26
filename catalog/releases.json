@@ -31,13 +31,25 @@
     },
     "v1.2-de-martin": {
       "kind": "mirror",
+      "source_type": "huggingface",
       "tag": "model-files-german-martin-v1.2",
-      "license": "See upstream model terms and release provenance",
-      "source_repository": "holgern/kokoro-onnx-model",
-      "source_tag": "model-files-german-martin-v1.2",
+      "license": "Apache-2.0",
+      "language": "de",
+      "source_repository": "Godelaune/Kokoro-82M-ONNX-German-Martin",
+      "source_revision": "a1cba7fbf0e72fbae38f0a3a48ce0dc8e6077804",
       "assets": [
-        "kokoro-german-martin-v1.2.onnx",
-        "voices-german-martin-v1.2.bin"
+        {
+          "source": "kokoro-martin.onnx",
+          "name": "kokoro-german-martin-v1.2.onnx",
+          "size": 325512630,
+          "sha256": "c302f1d8bc7adf40a842cb550e18c39a5026bdb1afdd29dbb700b501cb49276b"
+        },
+        {
+          "source": "voices-martin.npz",
+          "name": "voices-german-martin-v1.2.bin",
+          "size": 522506,
+          "sha256": "5b9c8553398d7abf67498ce500c186cefaa7b68fed3e3d415da5380670105acd"
+        }
       ]
     },
     "vi-contextbox": {"kind": "build", "profile": "vi-contextbox", "tag": "model-files-vietnamese-v1.0"},

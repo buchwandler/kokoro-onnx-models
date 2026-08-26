@@ -1,0 +1,18 @@
+schema_version = 3
+
+[project]
+uuid = "0730f9c3-8b14-49a3-93ae-2f308a51fcf6"
+name = "kokoro-onnx-models"
+
+[ledgers.taskledger.mounts.data]
+storage = "external"
+root = "../ledger"
+
+[ledgers.taskledger.mounts.runtime]
+storage = "user-data"
+
+[ledgers.taskledger.mounts.logs]
+storage = "user-data"
+
+[ledgers.taskledger.mounts.indexes]
+storage = "cache"

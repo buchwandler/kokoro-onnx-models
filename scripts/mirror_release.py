@@ -5,12 +5,23 @@ import argparse
 import hashlib
 import json
 import os
+import tempfile
+import urllib.parse
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "catalog" / "releases.json"
+
+
+@dataclass(frozen=True)
+class MirrorAsset:
+    source: str
+    name: str
+    sha256: str | None = None
+    size: int | None = None
 
 
 def request_json(url: str) -> Any:
@@ -19,34 +30,129 @@ def request_json(url: str) -> Any:
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+    with urllib.request.urlopen(req, timeout=60) as response:
+        return json.load(response)
 
 
 def sha256(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def download(url: str, path: Path) -> None:
-    headers = {"User-Agent": "kokoro-onnx-models-mirror"}
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as r, path.open("wb") as f:
+    request = urllib.request.Request(url, headers={"User-Agent": "kokoro-onnx-models-mirror"})
+    with urllib.request.urlopen(request, timeout=120) as response, path.open("wb") as file:
         while True:
-            chunk = r.read(1024 * 1024)
+            chunk = response.read(1024 * 1024)
             if not chunk:
                 break
-            f.write(chunk)
+            file.write(chunk)
+
+
+def normalize_assets(items: list[str | dict[str, Any]]) -> list[MirrorAsset]:
+    assets = []
+    for item in items:
+        if isinstance(item, str):
+            assets.append(MirrorAsset(source=item, name=item))
+            continue
+        if isinstance(item, dict):
+            source = item["source"]
+            assets.append(
+                MirrorAsset(
+                    source=source,
+                    name=item.get("name", source),
+                    sha256=item.get("sha256"),
+                    size=item.get("size"),
+                )
+            )
+            continue
+        raise SystemExit(f"Invalid mirror asset entry: {item!r}")
+    return assets
+
+
+def verify_asset(path: Path, asset: MirrorAsset) -> None:
+    actual_size = path.stat().st_size
+    if asset.size is not None and actual_size != asset.size:
+        raise SystemExit(
+            f"Size mismatch for {asset.name}: expected {asset.size}, got {actual_size}"
+        )
+
+    actual_sha256 = sha256(path)
+    if asset.sha256 is not None and actual_sha256 != asset.sha256:
+        raise SystemExit(
+            f"SHA-256 mismatch for {asset.name}: expected {asset.sha256}, got {actual_sha256}"
+        )
+
+
+def asset_matches(path: Path, asset: MirrorAsset) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        verify_asset(path, asset)
+    except (OSError, SystemExit):
+        return False
+    return True
+
+
+def stage_asset(url: str, target: Path, asset: MirrorAsset) -> Path:
+    with tempfile.NamedTemporaryFile(
+        mode="wb", prefix=f".{target.name}.", suffix=".part", dir=target.parent, delete=False
+    ) as file:
+        temporary = Path(file.name)
+
+    try:
+        download(url, temporary)
+        verify_asset(temporary, asset)
+        return temporary
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def github_sources(spec: dict[str, Any], assets: list[MirrorAsset]) -> tuple[dict[str, str], dict[str, Any]]:
+    repository = spec["source_repository"]
+    source_tag = spec["source_tag"]
+    api = f"https://api.github.com/repos/{repository}/releases/tags/{source_tag}"
+    release = request_json(api)
+    by_name = {item["name"]: item for item in release.get("assets", [])}
+    missing = [asset.source for asset in assets if asset.source not in by_name]
+    if missing:
+        raise SystemExit("Upstream release is missing expected assets: " + ", ".join(missing))
+    urls = {asset.name: by_name[asset.source]["browser_download_url"] for asset in assets}
+    source = {
+        "type": "github-release",
+        "repository": repository,
+        "tag": source_tag,
+        "url": release.get("html_url"),
+    }
+    return urls, source
+
+
+def huggingface_sources(
+    spec: dict[str, Any], assets: list[MirrorAsset]
+) -> tuple[dict[str, str], dict[str, Any]]:
+    repository = spec["source_repository"]
+    revision = spec["source_revision"]
+    urls = {
+        asset.name: (
+            f"https://huggingface.co/{repository}/resolve/"
+            f"{urllib.parse.quote(revision, safe='')}/"
+            f"{urllib.parse.quote(asset.source, safe='/')}?download=true"
+        )
+        for asset in assets
+    }
+    source = {"type": "huggingface", "repository": repository, "revision": revision}
+    return urls, source
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Mirror selected assets from an upstream public GitHub release")
-    ap.add_argument("release_key")
-    ap.add_argument("--dist", type=Path, default=Path("dist"))
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser(description="Mirror selected upstream model release assets")
+    parser.add_argument("release_key")
+    parser.add_argument("--dist", type=Path, default=Path("dist"))
+    args = parser.parse_args()
 
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     releases = catalog["releases"]
@@ -56,37 +162,51 @@ def main() -> int:
     if spec.get("kind") != "mirror":
         raise SystemExit(f"{args.release_key} is a build profile, not a mirrored release")
 
-    repo = spec["source_repository"]
-    source_tag = spec["source_tag"]
-    api = f"https://api.github.com/repos/{repo}/releases/tags/{source_tag}"
-    release = request_json(api)
-    by_name = {item["name"]: item for item in release.get("assets", [])}
-    missing = [name for name in spec["assets"] if name not in by_name]
-    if missing:
-        raise SystemExit("Upstream release is missing expected assets: " + ", ".join(missing))
+    assets = normalize_assets(spec["assets"])
+    source_type = spec.get("source_type", "github-release")
+    if source_type == "github-release":
+        urls, source = github_sources(spec, assets)
+    elif source_type == "huggingface":
+        urls, source = huggingface_sources(spec, assets)
+    else:
+        raise SystemExit(f"Unsupported mirror source type: {source_type}")
 
     out = args.dist / spec["tag"]
     out.mkdir(parents=True, exist_ok=True)
-    assets = []
-    for name in spec["assets"]:
-        target = out / name
-        if not target.is_file():
-            print(f"Downloading {name}")
-            download(by_name[name]["browser_download_url"], target)
-        assets.append({"name": name, "size": target.stat().st_size, "sha256": sha256(target)})
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for asset in assets:
+            target = out / asset.name
+            if asset_matches(target, asset):
+                print(f"Using existing {asset.name}")
+                continue
+            print(f"Downloading {asset.name}")
+            staged.append((stage_asset(urls[asset.name], target, asset), target))
+
+        for temporary, target in staged:
+            temporary.replace(target)
+    except BaseException:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
+        raise
 
     manifest = {
         "schema": 1,
         "repository": catalog["target_repository"],
         "tag": spec["tag"],
         "profile": args.release_key,
-        "source": {"type": "github-release", "repository": repo, "tag": source_tag, "url": release.get("html_url")},
+        "source": source,
         "license": spec["license"],
-        "language": None,
-        "frontend": None,
-        "assets": assets,
+        "language": spec.get("language"),
+        "frontend": spec.get("frontend"),
+        "assets": [
+            {"name": asset.name, "size": (out / asset.name).stat().st_size, "sha256": sha256(out / asset.name)}
+            for asset in assets
+        ],
     }
-    (out / "release-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (out / "release-manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
     print(out)
     return 0
 
