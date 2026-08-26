@@ -6,8 +6,15 @@
     "license": "Apache-2.0",
     "language": "vi",
     "sample_rate": 24000,
-    "model": {"kind": "checkpoint", "path": "kokoro_vi.pth", "config": "config.json"},
-    "voices": {"kind": "json_pt", "index": "voices.json"},
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro_vi.pth",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "json_pt",
+      "index": "voices.json"
+    },
     "frontend": {
       "kind": "external",
       "name": "vig2p",
@@ -19,7 +26,26 @@
       "tag": "model-files-vietnamese-v1.0",
       "model_filename": "kokoro-vietnamese-v1.0.onnx",
       "voices_filename": "voices-vietnamese-v1.0.bin",
-      "config_filename": "config-vietnamese-v1.0.json"
+      "config_filename": "config-vietnamese-v1.0.json",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-vietnamese-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-vietnamese-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      }
     }
   },
   "vi-anphunl": {
@@ -29,8 +55,15 @@
     "license": "Apache-2.0",
     "language": "vi",
     "sample_rate": 24000,
-    "model": {"kind": "checkpoint", "path": "kokoro_vi.pth", "config": "config.json"},
-    "voices": {"kind": "json_pt", "index": "voices.json"},
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro_vi.pth",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "json_pt",
+      "index": "voices.json"
+    },
     "frontend": {
       "kind": "external",
       "name": "vig2p",
@@ -42,7 +75,26 @@
       "tag": "model-files-vietnamese-anphunl-v1.0",
       "model_filename": "kokoro-vietnamese-anphunl-v1.0.onnx",
       "voices_filename": "voices-vietnamese-anphunl-v1.0.bin",
-      "config_filename": "config-vietnamese-anphunl-v1.0.json"
+      "config_filename": "config-vietnamese-anphunl-v1.0.json",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-vietnamese-anphunl-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-vietnamese-anphunl-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      }
     }
   },
   "ar-nabra": {
@@ -52,8 +104,17 @@
     "license": "Apache-2.0",
     "language": "ar",
     "sample_rate": 24000,
-    "model": {"kind": "checkpoint", "path": "kokoro_arabic.pth", "config": "config.json"},
-    "voices": {"kind": "fixed_pt", "items": {"af_msa": "af_msa.pt"}},
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro_arabic.pth",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "af_msa": "af_msa.pt"
+      }
+    },
     "frontend": {
       "kind": "espeak_plus_preprocess",
       "name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
@@ -65,7 +126,26 @@
       "tag": "model-files-arabic-nabra-v0.1",
       "model_filename": "kokoro-arabic-nabra-v0.1.onnx",
       "voices_filename": "voices-arabic-nabra-v0.1.bin",
-      "config_filename": "config-arabic-nabra-v0.1.json"
+      "config_filename": "config-arabic-nabra-v0.1.json",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-arabic-nabra-v0.1.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-arabic-nabra-v0.1.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      }
     }
   },
   "de-crane": {
@@ -75,8 +155,18 @@
     "license": "Apache-2.0",
     "language": "de",
     "sample_rate": 24000,
-    "model": {"kind": "onnx", "path": "onnx/model.onnx", "config": "config.json"},
-    "voices": {"kind": "raw", "path": "voices/df_kerstin.bin", "names": ["df_kerstin"]},
+    "model": {
+      "kind": "onnx",
+      "path": "onnx/model.onnx",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "raw",
+      "path": "voices/df_kerstin.bin",
+      "names": [
+        "df_kerstin"
+      ]
+    },
     "frontend": {
       "kind": "espeak",
       "name": "German IPA compatible frontend",
@@ -88,7 +178,26 @@
       "tag": "model-files-german-kerstin-v1.0",
       "model_filename": "kokoro-german-kerstin-v1.0.onnx",
       "voices_filename": "voices-german-kerstin-v1.0.bin",
-      "config_filename": "config-german-kerstin-v1.0.json"
+      "config_filename": "config-german-kerstin-v1.0.json",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-german-kerstin-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-german-kerstin-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "input_ids": "int64",
+        "style": "float32",
+        "speed": "float32"
+      }
     }
   },
   "he-hebrew-nc": {
@@ -98,8 +207,18 @@
     "license": "Non-commercial; original gated model/dataset terms apply",
     "language": "he",
     "sample_rate": 24000,
-    "model": {"kind": "onnx", "path": "kokoro.onnx", "config": "config.json"},
-    "voices": {"kind": "archive_or_raw", "path": "voices-hebrew.bin", "names": ["he_shaul"]},
+    "model": {
+      "kind": "onnx",
+      "path": "kokoro.onnx",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "archive_or_raw",
+      "path": "voices-hebrew.bin",
+      "names": [
+        "he_shaul"
+      ]
+    },
     "frontend": {
       "kind": "external",
       "name": "Hebrew-specific G2P",
@@ -111,7 +230,26 @@
       "tag": "model-files-hebrew-nc-v1.0",
       "model_filename": "kokoro-hebrew-nc-v1.0.onnx",
       "voices_filename": "voices-hebrew-nc-v1.0.bin",
-      "config_filename": "config-hebrew-nc-v1.0.json"
+      "config_filename": "config-hebrew-nc-v1.0.json",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-hebrew-nc-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-hebrew-nc-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      }
     }
   }
 }

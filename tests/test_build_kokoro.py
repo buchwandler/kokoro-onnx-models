@@ -39,6 +39,18 @@ def test_raw_round_trip_multiple_speakers() -> None:
         np.testing.assert_array_equal(reread["a"], a)
         np.testing.assert_array_equal(reread["b"], b)
 
+def test_named_numpy_archive_round_trip_multiple_speakers() -> None:
+    a = np.arange(12 * 256, dtype=np.float32).reshape(12, 1, 256)
+    b = np.full((12, 1, 256), 7.0, dtype=np.float32)
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "voices.npz"
+        shape = build_kokoro.write_numpy_voice_archive({"a": a, "b": b}, path)
+        assert shape == (12, 1, 256)
+        with np.load(path, allow_pickle=False) as archive:
+            assert archive.files == ["a", "b"]
+            np.testing.assert_array_equal(archive["a"], a)
+            np.testing.assert_array_equal(archive["b"], b)
+
 
 def test_expected_profiles_exist() -> None:
     profiles = build_kokoro.load_profiles()

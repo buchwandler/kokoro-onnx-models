@@ -44,7 +44,12 @@ def main() -> int:
         )
 
     src = args.build_root / args.profile
-    required = [src / "model.onnx", src / "voices.bin", src / "bundle.json"]
+    voice_assets = release.get("voice_assets") or [
+        {"source": "voices.bin", "filename": release["voices_filename"], "format": "unknown"}
+    ]
+    required = [src / "model.onnx", src / "bundle.json"] + [
+        src / str(asset["source"]) for asset in voice_assets
+    ]
     missing = [str(p) for p in required if not p.is_file()]
     if missing:
         raise SystemExit("Missing build artifacts: " + ", ".join(missing))
@@ -55,9 +60,10 @@ def main() -> int:
 
     mapping = {
         src / "model.onnx": out / release["model_filename"],
-        src / "voices.bin": out / release["voices_filename"],
         src / "bundle.json": out / "bundle.json",
     }
+    for asset in voice_assets:
+        mapping[src / str(asset["source"])] = out / str(asset["filename"])
     if (src / "config.json").is_file() and release.get("config_filename"):
         mapping[src / "config.json"] = out / release["config_filename"]
 
@@ -65,10 +71,17 @@ def main() -> int:
         shutil.copy2(source, target)
 
     assets = []
+    format_by_name = {str(asset["filename"]): asset for asset in voice_assets}
     for path in sorted(out.iterdir()):
         if path.name == "release-manifest.json" or not path.is_file():
             continue
-        assets.append({"name": path.name, "size": path.stat().st_size, "sha256": sha256(path)})
+        metadata = {"name": path.name, "size": path.stat().st_size, "sha256": sha256(path)}
+        if path.name in format_by_name:
+            metadata.update({
+                "role": "voices",
+                "format": format_by_name[path.name].get("format", "unknown"),
+            })
+        assets.append(metadata)
 
     manifest = {
         "schema": 1,
@@ -78,7 +91,10 @@ def main() -> int:
         "source": {"type": "huggingface", "repository": profile["repo_id"], "revision": profile.get("revision", "main")},
         "license": profile["license"],
         "language": profile.get("language"),
+        "sample_rate": profile.get("sample_rate", 24000),
         "frontend": profile.get("frontend"),
+        "onnx_contract": profile.get("onnx_contract", {}),
+        "publication": release,
         "assets": assets,
     }
     (out / "release-manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

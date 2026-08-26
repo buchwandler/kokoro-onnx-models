@@ -52,10 +52,86 @@
         }
       ]
     },
-    "vi-contextbox": {"kind": "build", "profile": "vi-contextbox", "tag": "model-files-vietnamese-v1.0"},
-    "vi-anphunl": {"kind": "build", "profile": "vi-anphunl", "tag": "model-files-vietnamese-anphunl-v1.0"},
-    "ar-nabra": {"kind": "build", "profile": "ar-nabra", "tag": "model-files-arabic-nabra-v0.1"},
-    "de-crane": {"kind": "build", "profile": "de-crane", "tag": "model-files-german-kerstin-v1.0"},
-    "he-hebrew-nc": {"kind": "build", "profile": "he-hebrew-nc", "tag": "model-files-hebrew-nc-v1.0", "publish": false}
+    "vi-contextbox": {
+      "kind": "build",
+      "profile": "vi-contextbox",
+      "tag": "model-files-vietnamese-v1.0",
+      "assets": [
+        "model.onnx",
+        "voices.npz",
+        "voices.raw.bin",
+        "bundle.json",
+        "config.json"
+      ],
+      "voice_formats": {
+        "voices.npz": "numpy-npz",
+        "voices.raw.bin": "raw-float32-le"
+      }
+    },
+    "vi-anphunl": {
+      "kind": "build",
+      "profile": "vi-anphunl",
+      "tag": "model-files-vietnamese-anphunl-v1.0",
+      "assets": [
+        "model.onnx",
+        "voices.npz",
+        "voices.raw.bin",
+        "bundle.json",
+        "config.json"
+      ],
+      "voice_formats": {
+        "voices.npz": "numpy-npz",
+        "voices.raw.bin": "raw-float32-le"
+      }
+    },
+    "ar-nabra": {
+      "kind": "build",
+      "profile": "ar-nabra",
+      "tag": "model-files-arabic-nabra-v0.1",
+      "assets": [
+        "model.onnx",
+        "voices.npz",
+        "voices.raw.bin",
+        "bundle.json",
+        "config.json"
+      ],
+      "voice_formats": {
+        "voices.npz": "numpy-npz",
+        "voices.raw.bin": "raw-float32-le"
+      }
+    },
+    "de-crane": {
+      "kind": "build",
+      "profile": "de-crane",
+      "tag": "model-files-german-kerstin-v1.0",
+      "assets": [
+        "model.onnx",
+        "voices.npz",
+        "voices.raw.bin",
+        "bundle.json",
+        "config.json"
+      ],
+      "voice_formats": {
+        "voices.npz": "numpy-npz",
+        "voices.raw.bin": "raw-float32-le"
+      }
+    },
+    "he-hebrew-nc": {
+      "kind": "build",
+      "profile": "he-hebrew-nc",
+      "tag": "model-files-hebrew-nc-v1.0",
+      "publish": false,
+      "assets": [
+        "model.onnx",
+        "voices.npz",
+        "voices.raw.bin",
+        "bundle.json",
+        "config.json"
+      ],
+      "voice_formats": {
+        "voices.npz": "numpy-npz",
+        "voices.raw.bin": "raw-float32-le"
+      }
+    }
   }
 }

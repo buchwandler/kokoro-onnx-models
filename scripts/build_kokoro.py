@@ -216,6 +216,15 @@ def write_sherpa_voices_bin(voices: Mapping[str, np.ndarray], out_path: Path) ->
         raise BuildError(f"Voice pack size mismatch: expected {expected}, got {actual}")
     return shape
 
+def write_numpy_voice_archive(voices: Mapping[str, np.ndarray], out_path: Path) -> tuple[int, int, int]:
+    """Write a named NumPy archive for pykokoro consumers."""
+    shape = _validate_same_shape(voices)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(out_path, **{name: arr for name, arr in voices.items()})
+    if not zipfile.is_zipfile(out_path):
+        raise BuildError(f"Voice archive {out_path} is not a NumPy zip archive")
+    return shape
+
 
 def _waveform_only_wrapper(model_for_onnx: Any) -> Any:
     import torch
@@ -415,9 +424,15 @@ def write_bundle_manifest(
         "language": profile["language"],
         "sample_rate": profile.get("sample_rate", 24000),
         "speakers": [{"sid": i, "name": name} for i, name in enumerate(voices.keys())],
+        "voice_artifacts": {
+            "pykokoro": {"path": "voices.npz", "format": "numpy-npz"},
+            "sherpa": {"path": "voices.raw.bin", "format": "raw-float32-le"},
+        },
         "style_dim": list(style_shape),
         "frontend": profile["frontend"],
+        "onnx_contract": profile.get("onnx_contract", {}),
         "onnx_contract_issues": contract_issues,
+        "publication": profile.get("release", {}),
     }
     with (out_dir / "bundle.json").open("w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
@@ -441,7 +456,8 @@ def build_profile(
 
     print(f"[{profile_key}] resolving voices", file=sys.stderr)
     voices = resolve_voices(profile, cache_dir)
-    style_shape = write_sherpa_voices_bin(voices, out_dir / "voices.bin")
+    style_shape = write_sherpa_voices_bin(voices, out_dir / "voices.raw.bin")
+    write_numpy_voice_archive(voices, out_dir / "voices.npz")
 
     print(f"[{profile_key}] resolving model", file=sys.stderr)
     config_local = resolve_model(

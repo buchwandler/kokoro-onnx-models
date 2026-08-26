@@ -8,6 +8,7 @@ import os
 import tempfile
 import urllib.parse
 import urllib.request
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -199,8 +200,24 @@ def main() -> int:
         "license": spec["license"],
         "language": spec.get("language"),
         "frontend": spec.get("frontend"),
+        "sample_rate": spec.get("sample_rate", 24000),
+        "publication": {"enabled": spec.get("publish", True)},
         "assets": [
-            {"name": asset.name, "size": (out / asset.name).stat().st_size, "sha256": sha256(out / asset.name)}
+            {
+                "name": asset.name,
+                "size": (out / asset.name).stat().st_size,
+                "sha256": sha256(out / asset.name),
+                **(
+                    {
+                        "role": "voices",
+                        "format": (
+                            "numpy-npz" if zipfile.is_zipfile(out / asset.name) else "raw-float32-le"
+                        ),
+                    }
+                    if "voice" in asset.name.lower()
+                    else {}
+                ),
+            }
             for asset in assets
         ],
     }

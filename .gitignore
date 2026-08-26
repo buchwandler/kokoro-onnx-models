@@ -13,3 +13,6 @@ dist/
 .hf/
 .DS_Store
 context_kokoro_onnx_models*.*
+# Local pre-release model/voice/audio smoke-test data
+.local-test/
+*.wav

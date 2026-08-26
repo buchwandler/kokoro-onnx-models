@@ -12,7 +12,10 @@
     "source": {"type": "object"},
     "license": {"type": "string"},
     "language": {"type": ["string", "null"]},
+    "sample_rate": {"type": "integer", "minimum": 1},
     "frontend": {"type": ["object", "null"]},
+    "onnx_contract": {"type": ["object", "null"]},
+    "publication": {"type": ["object", "null"]},
     "assets": {
       "type": "array",
       "items": {
@@ -21,9 +24,13 @@
         "properties": {
           "name": {"type": "string"},
           "size": {"type": "integer", "minimum": 0},
-          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
-        }
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "role": {"type": "string"},
+          "format": {"type": "string"}
+        },
+        "additionalProperties": false
       }
     }
-  }
+  },
+  "additionalProperties": false
 }
