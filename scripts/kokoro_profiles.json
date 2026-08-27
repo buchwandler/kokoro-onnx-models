@@ -50,8 +50,8 @@
   },
   "vi-anphunl": {
     "display_name": "Kokoro Vietnamese (anphunl mirror)",
-    "repo_id": "anphunl/Kokoro-Vietnamese",
-    "revision": "main",
+    "repo_id": "contextboxai/Kokoro-Vietnamese",
+    "revision": "9f210d622209fcc216fe2ac6159fed2ff381cb8a",
     "license": "Apache-2.0",
     "language": "vi",
     "sample_rate": 24000,

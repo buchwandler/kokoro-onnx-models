@@ -64,6 +64,7 @@ jobs:
         env:
           KIND: ${{ needs.prepare.outputs.kind }}
           PROFILE: ${{ needs.prepare.outputs.profile }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           RELEASE_KEY: ${{ inputs.release_key }}
           ALLOW_RESTRICTED: ${{ inputs.allow_restricted }}
         run: |

@@ -47,6 +47,7 @@ jobs:
           RELEASE_KEY: ${{ matrix.release_key }}
           KIND: ${{ matrix.kind }}
           PROFILE: ${{ matrix.profile }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           if [ "$KIND" = "mirror" ]; then
             uv run --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
