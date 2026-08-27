@@ -50,7 +50,7 @@
           "source": "voices-v1.0.bin",
           "name": "voices-v1.0.bin",
           "role": "voices",
-          "format": "raw-float32-le"
+          "format": "numpy-npz"
         }
       ]
     },

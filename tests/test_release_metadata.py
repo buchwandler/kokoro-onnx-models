@@ -22,6 +22,17 @@ def test_catalog_target_repo() -> None:
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
+def test_v1_0_voice_asset_is_numpy_archive() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    voices = next(
+        asset
+        for asset in data["releases"]["v1.0"]["assets"]
+        if asset["name"] == "voices-v1.0.bin"
+    )
+
+    assert voices["format"] == "numpy-npz"
+
+
 def test_swedish_and_thorsten_release_metadata() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
