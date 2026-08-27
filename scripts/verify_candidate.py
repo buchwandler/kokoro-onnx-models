@@ -51,7 +51,43 @@ def _validate_json_asset(path: Path, role: str) -> None:
         )
 
 
-def _validate_onnx_asset(path: Path, contract: dict[str, Any]) -> None:
+def _onnx_type_name(onnx: Any, elem_type: int) -> str:
+    names = {
+        onnx.TensorProto.FLOAT: "float32",
+        onnx.TensorProto.FLOAT16: "float16",
+        onnx.TensorProto.DOUBLE: "float64",
+        onnx.TensorProto.INT64: "int64",
+        onnx.TensorProto.INT32: "int32",
+    }
+    return names.get(elem_type, onnx.TensorProto.DataType.Name(elem_type).lower())
+
+
+def _validate_tensor_contract(
+    path: Path, label: str, expected: Any, actual: dict[str, str]
+) -> None:
+    if isinstance(expected, dict):
+        for name, expected_type in expected.items():
+            _require(
+                name in actual, f"ONNX model {path.name} is missing {label} {name!r}"
+            )
+            _require(
+                actual[name] == expected_type,
+                f"ONNX model {path.name} {label} {name!r} is {actual[name]}, "
+                f"expected {expected_type}",
+            )
+    elif isinstance(expected, list):
+        missing = sorted(set(expected) - actual.keys())
+        _require(
+            not missing,
+            f"ONNX model {path.name} is missing {label}: {', '.join(missing)}",
+        )
+    else:
+        raise CandidateError(f"Invalid ONNX {label} contract in {path.name}")
+
+
+def _validate_onnx_asset(
+    path: Path, contract: dict[str, Any], component: str | None = None
+) -> None:
     try:
         import onnx
     except ImportError:
@@ -61,19 +97,21 @@ def _validate_onnx_asset(path: Path, contract: dict[str, Any]) -> None:
         onnx.checker.check_model(model)
     except Exception as exc:
         raise CandidateError(f"Invalid ONNX model {path.name}: {exc}") from exc
-    expected_inputs = contract.get("inputs", {})
-    actual_inputs = {value.name for value in model.graph.input}
-    missing = sorted(set(expected_inputs) - actual_inputs)
-    _require(
-        not missing, f"ONNX model {path.name} is missing inputs: {', '.join(missing)}"
+    component_contracts = contract.get("components") or {}
+    effective = component_contracts.get(component, contract) if component else contract
+    actual_inputs = {
+        value.name: _onnx_type_name(onnx, value.type.tensor_type.elem_type)
+        for value in model.graph.input
+    }
+    _validate_tensor_contract(path, "input", effective.get("inputs", {}), actual_inputs)
+    actual_outputs = {
+        value.name: _onnx_type_name(onnx, value.type.tensor_type.elem_type)
+        for value in model.graph.output
+    }
+    _validate_tensor_contract(
+        path, "output", effective.get("outputs", {}), actual_outputs
     )
-    expected_outputs = contract.get("outputs", {})
-    actual_outputs = {value.name for value in model.graph.output}
-    missing_outputs = sorted(set(expected_outputs) - actual_outputs)
-    _require(
-        not missing_outputs,
-        f"ONNX model {path.name} is missing outputs: {', '.join(missing_outputs)}",
-    )
+    _require(bool(actual_outputs), f"ONNX model {path.name} has no outputs")
 
 
 def _validate_voice_asset(
@@ -120,7 +158,7 @@ def _validate_asset_format(
     if asset["format"] == "json" or role in {"bundle", "config", "vocab"}:
         _validate_json_asset(path, role)
     elif role == "model" and asset["format"] == "onnx":
-        _validate_onnx_asset(path, manifest["onnx_contract"])
+        _validate_onnx_asset(path, manifest["onnx_contract"], asset.get("component"))
     elif role == "voices":
         _validate_voice_asset(path, asset, manifest["runtime"])
 
@@ -233,7 +271,8 @@ def verify_candidate(
         isinstance(assets, list) and assets, "Manifest assets must be a non-empty list"
     )
     names: set[str] = set()
-    slots: set[tuple[str, str, str | None]] = set()
+    slots: set[tuple[str, str, str | None, str | None]] = set()
+    model_components: set[str] = set()
     model_count = voice_count = 0
     for asset in assets:
         _require(isinstance(asset, dict), "Manifest asset must be an object")
@@ -264,8 +303,13 @@ def verify_candidate(
         )
         _require(sha256(asset_path) == asset["sha256"], f"SHA-256 mismatch for {name}")
         role = asset["role"]
-        slot = (role, asset["format"], asset.get("quality"))
-        if role != "voices":
+        slot = (
+            role,
+            asset["format"],
+            asset.get("quality"),
+            asset.get("component"),
+        )
+        if role == "model":
             _require(slot not in slots, f"Duplicate asset role/format slot: {slot}")
         slots.add(slot)
         if role == "model":
@@ -273,9 +317,27 @@ def verify_candidate(
             _require(
                 bool(asset.get("quality")), f"Model asset {name} is missing quality"
             )
+            component = asset.get("component")
+            if component is not None:
+                _require(
+                    isinstance(component, str) and bool(component),
+                    f"Model asset {name} has an invalid component",
+                )
+                model_components.add(component)
         elif role == "voices":
             voice_count += 1
         _validate_asset_format(asset_path, asset, manifest)
+    runtime = manifest["runtime"]
+    if runtime.get("layout") == "split-onnx-v1":
+        expected_components = set(
+            (manifest["onnx_contract"].get("components") or {}).keys()
+        )
+        _require(expected_components, "Split ONNX contract must declare components")
+        _require(
+            expected_components == model_components,
+            "Split ONNX components do not match contract: "
+            f"expected {sorted(expected_components)}, got {sorted(model_components)}",
+        )
 
     _require(model_count > 0, "Candidate must contain a model asset")
     _require(voice_count > 0, "Candidate must contain a voices asset")

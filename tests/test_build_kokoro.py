@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -65,8 +66,96 @@ def test_expected_profiles_exist() -> None:
         "ar-nabra",
         "de-crane",
         "he-hebrew-nc",
+        "sv-joakim",
+        "de-thorsten",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
+
+
+def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
+    profile = build_kokoro.load_profiles()["sv-joakim"]
+    assert profile["repo_id"] == "Joakim/kokoro-sv-voices"
+    assert profile["revision"] == "2c7968d59c2fda1667e9e3ff0dd9967150a53f74"
+    assert profile["model"] == {
+        "kind": "checkpoint",
+        "path": "kokoro_sv.pth",
+        "config": "config.json",
+    }
+    assert set(profile["voices"]["items"]) == {
+        "Alice",
+        "Anton",
+        "Björn",
+        "Ebba",
+        "Elsa",
+        "Greta",
+        "Lars",
+        "Nils",
+        "Oskar",
+        "Stina",
+    }
+    assert profile["postprocess"]["frequencies_hz"] == [2400, 4800, 7200, 9600]
+
+
+def test_thorsten_profile_uses_default_epoch5_alias() -> None:
+    profile = build_kokoro.load_profiles()["de-thorsten"]
+    assert profile["repo_id"] == "Thorsten-Voice/Kokoro"
+    assert profile["model"]["path"] == "model.pth"
+    assert profile["voices"]["items"] == {"thorsten": "voices/thorsten.pt"}
+    assert "model_ep10.pth" not in json.dumps(profile)
+
+
+def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
+    calls: list[tuple[str, str, str]] = []
+    config = tmp_path / "config.json"
+    checkpoint = tmp_path / "model.pth"
+    config.write_text("{}", encoding="utf-8")
+    checkpoint.write_bytes(b"checkpoint")
+
+    def fake_download(repo_id, filename, revision, cache_dir):
+        calls.append((repo_id, filename, revision))
+        return config if filename == "config.json" else checkpoint
+
+    def fake_export(checkpoint_path, config_path, output_path, *, opset, seq_len):
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_bytes(b"exported")
+
+    with (
+        patch.object(build_kokoro, "hf_download", side_effect=fake_download),
+        patch.object(
+            build_kokoro, "export_checkpoint_to_onnx", side_effect=fake_export
+        ),
+    ):
+        profiles = build_kokoro.load_profiles()
+        for key in ("sv-joakim", "de-thorsten"):
+            profile = profiles[key]
+            out = tmp_path / key / "model.onnx"
+            build_kokoro.resolve_model(
+                profile, tmp_path / key / "cache", out, opset=14, seq_len=64
+            )
+            assert out.read_bytes() == b"exported"
+
+    assert calls == [
+        (
+            "Joakim/kokoro-sv-voices",
+            "config.json",
+            "2c7968d59c2fda1667e9e3ff0dd9967150a53f74",
+        ),
+        (
+            "Joakim/kokoro-sv-voices",
+            "kokoro_sv.pth",
+            "2c7968d59c2fda1667e9e3ff0dd9967150a53f74",
+        ),
+        (
+            "Thorsten-Voice/Kokoro",
+            "config.json",
+            "734e593d320a3d876bede7020f773dfd481a0cc7",
+        ),
+        (
+            "Thorsten-Voice/Kokoro",
+            "model.pth",
+            "734e593d320a3d876bede7020f773dfd481a0cc7",
+        ),
+    ]
 
 
 def test_nabra_profile_uses_prebuilt_onnx_source() -> None:

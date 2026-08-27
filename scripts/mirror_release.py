@@ -25,6 +25,7 @@ class MirrorAsset:
     role: str = "metadata"
     format: str = "unknown"
     quality: str | None = None
+    component: str | None = None
     sha256: str | None = None
     size: int | None = None
 
@@ -76,6 +77,7 @@ def normalize_assets(items: list[str | dict[str, Any]]) -> list[MirrorAsset]:
                     role=str(item.get("role", "metadata")),
                     format=str(item.get("format", "unknown")),
                     quality=item.get("quality"),
+                    component=item.get("component"),
                     sha256=item.get("sha256"),
                     size=item.get("size"),
                 )
@@ -184,6 +186,7 @@ def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
         "max_tokens": int(spec.get("max_tokens", 510)),
         "default_voice": str(configured.get("default_voice", voices[0])),
         "voices": voices,
+        "layout": str(spec.get("runtime_layout", "single-onnx-v1")),
     }
 
 
@@ -266,6 +269,7 @@ def main() -> int:
             "role": asset.role,
             "format": asset.format,
             **({"quality": asset.quality} if asset.quality is not None else {}),
+            **({"component": asset.component} if asset.component is not None else {}),
             "size": (out / asset.name).stat().st_size,
             "sha256": sha256(out / asset.name),
         }

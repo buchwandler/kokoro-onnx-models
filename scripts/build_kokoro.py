@@ -515,6 +515,8 @@ def write_bundle_manifest(
         "onnx_contract": profile.get("onnx_contract", {}),
         "onnx_contract_issues": contract_issues,
         "publication": profile.get("release", {}),
+        "runtime_hints": profile.get("runtime_hints", {}),
+        "postprocess": profile.get("postprocess", {}),
     }
     with (out_dir / "bundle.json").open("w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)

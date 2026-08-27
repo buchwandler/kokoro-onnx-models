@@ -351,6 +351,26 @@ Experimental only:
 python local_test/smoke_he_hebrew_nc.py --allow-frontend-mismatch
 ```
 
+## Swedish, Thorsten, and Thai Wayu gates
+
+Swedish and Thorsten can be staged and tested with the standard builder and named voice archives:
+
+```bash
+python local_test/prepare_local_assets.py sv-joakim
+python local_test/smoke_sv_joakim.py --strict-release-format
+python local_test/prepare_local_assets.py de-thorsten
+python local_test/smoke_de_thorsten.py --strict-release-format
+```
+
+Thai is a runtime-layout-specific mirror and cannot use the current single-model `KokoroPipeline` harness:
+
+```bash
+python local_test/prepare_local_assets.py th-wayu
+python local_test/smoke_th_wayu.py
+```
+
+The Thai smoke test loads prosody, curves, and decoder sessions, the upstream manifest, source parameters, and named voicepacks. It runs the host-side alignment and harmonic-source/STFT steps, checks the exact embedded vocabulary and 510-token limit, and writes one finite 24 kHz WAV per speaker under `.local-test/wav/th-wayu/`. After assets are staged, the smoke tests make no network requests.
+
 ## Recommended coding-agent changes before new releases
 
 ### A. Decide one canonical pykokoro voice artifact format

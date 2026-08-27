@@ -108,8 +108,11 @@ def _runtime_metadata(
         "tokenizer_vocab_version": str(release.get("tokenizer_vocab_version", "1.0")),
         "vocabulary_source": str(release.get("vocabulary_source", "downloaded-config")),
         "max_tokens": int(contract["max_tokens"]),
-        "default_voice": fallback_voices[0],
+        "default_voice": str(release.get("default_voice", fallback_voices[0])),
         "voices": _bundle_voices(bundle_path, fallback_voices),
+        "layout": str(release.get("runtime_layout", "single-onnx-v1")),
+        "postprocess": profile.get("postprocess", {}),
+        "runtime_hints": profile.get("runtime_hints", {}),
     }
 
 

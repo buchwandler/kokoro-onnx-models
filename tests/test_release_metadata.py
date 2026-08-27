@@ -22,6 +22,61 @@ def test_catalog_target_repo() -> None:
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
+def test_swedish_and_thorsten_release_metadata() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    catalog = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    swedish = profiles["sv-joakim"]
+    thorsten = profiles["de-thorsten"]
+    assert swedish["license"] == "Apache-2.0"
+    assert swedish["voices"]["items"]["Björn"] == "voices/Björn.pt"
+    assert swedish["release"]["default_voice"] == "Alice"
+    assert swedish["postprocess"]["q"] == 35
+    assert thorsten["license"] == "Apache-2.0"
+    assert thorsten["model"]["path"] == "model.pth"
+    assert thorsten["voices"]["items"] == {"thorsten": "voices/thorsten.pt"}
+    assert thorsten["release"]["default_voice"] == "thorsten"
+    assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
+    assert (
+        catalog["releases"]["de-thorsten"]["tag"] == "model-files-german-thorsten-v1.0"
+    )
+
+
+def test_thai_wayu_is_pinned_split_mirror() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    spec = data["releases"]["th-wayu"]
+    assert spec["kind"] == "mirror"
+    assert spec["source_type"] == "huggingface"
+    assert spec["source_repository"] == "kunato/wayu-kokoro-thai-v1"
+    assert spec["source_revision"] == "50d7f60e41ac118e5bb92b0ba52c30bb7830103c"
+    assert spec["runtime_layout"] == "split-onnx-v1"
+    assert len(spec["runtime"]["voices"]) == 12
+    components = spec["onnx_contract"]["components"]
+    assert set(components) == {"prosody", "curves", "decoder"}
+    model_assets = [asset for asset in spec["assets"] if asset["role"] == "model"]
+    assert {asset["component"] for asset in model_assets} == set(components)
+    assert all(
+        asset["size"] > 0 and len(asset["sha256"]) == 64 for asset in spec["assets"]
+    )
+
+
+def test_runtime_metadata_preserves_default_and_postprocess(tmp_path: Path) -> None:
+    bundle = tmp_path / "bundle.json"
+    bundle.write_text(
+        json.dumps({"speakers": [{"name": "Alice"}, {"name": "Björn"}]}),
+        encoding="utf-8",
+    )
+    profile = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )["sv-joakim"]
+    runtime = prepare_release._runtime_metadata(profile, bundle, profile["release"])
+    assert runtime["default_voice"] == "Alice"
+    assert runtime["voices"] == ["Alice", "Björn"]
+    assert runtime["layout"] == "single-onnx-v1"
+    assert runtime["postprocess"]["kind"] == "notch_filters"
+
+
 def test_nabra_build_uses_prebuilt_onnx_source() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")

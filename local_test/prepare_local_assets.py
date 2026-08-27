@@ -84,10 +84,36 @@ def prepare_mirror(key: str, spec: dict[str, Any]) -> None:
     source_dir = DOWNLOADS / spec["tag"]
     target = ASSETS / key
     target.mkdir(parents=True, exist_ok=True)
-    model_name = _select_model_asset(spec["assets"])
-    voice_name = _select_voice_asset(spec["assets"])
-    _copy(source_dir / model_name, target / "model.onnx")
-    _copy(source_dir / voice_name, target / "voices.bin")
+    layout = str(spec.get("runtime_layout", "single-onnx-v1"))
+    if layout == "single-onnx-v1":
+        model_name = _select_model_asset(spec["assets"])
+        voice_name = _select_voice_asset(spec["assets"])
+        _copy(source_dir / model_name, target / "model.onnx")
+        _copy(source_dir / voice_name, target / "voices.bin")
+    elif layout == "split-onnx-v1":
+        for item in spec["assets"]:
+            name = _asset_name(item)
+            role = item.get("role") if isinstance(item, dict) else None
+            if role == "model":
+                component = str(item.get("component") or "")
+                if not component:
+                    raise RuntimeError(f"Split model asset has no component: {name}")
+                target_name = f"{component}.onnx"
+            elif role == "config":
+                target_name = "onnx_manifest.json"
+            elif role == "metadata":
+                source_name = Path(str(item.get("source") or name)).name
+                target_name = {
+                    "source_params.npz": "source_params.npz",
+                    "styles.npz": "styles.npz",
+                }.get(source_name, Path(name).name)
+            elif role == "voices":
+                target_name = "voices.npz"
+            else:
+                continue
+            _copy(source_dir / name, target / target_name)
+    else:
+        raise RuntimeError(f"Unsupported runtime layout: {layout}")
     manifest = source_dir / "release-manifest.json"
     if manifest.is_file():
         _copy(manifest, target / "release-manifest.json")

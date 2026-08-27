@@ -20,7 +20,23 @@ SPEC.loader.exec_module(verify_candidate)
 def _write_candidate(tmp_path: Path, *, enabled: bool = True) -> Path:
     candidate = tmp_path / "candidate"
     candidate.mkdir()
-    (candidate / "model.onnx").write_bytes(b"model")
+    model_path = candidate / "model.onnx"
+    try:
+        import onnx
+        from onnx import TensorProto, helper
+    except ImportError:
+        model_path.write_bytes(b"model")
+    else:
+        graph = helper.make_graph(
+            [helper.make_node("Identity", ["audio_input"], ["audio"])],
+            "test",
+            [
+                helper.make_tensor_value_info("tokens", TensorProto.INT64, [1, None]),
+                helper.make_tensor_value_info("audio_input", TensorProto.FLOAT, [None]),
+            ],
+            [helper.make_tensor_value_info("audio", TensorProto.FLOAT, [None])],
+        )
+        onnx.save(helper.make_model(graph), model_path)
     np.savez(candidate / "voices.npz", af=np.zeros((1, 1), dtype=np.float32))
     (candidate / "bundle.json").write_text(
         '{"speakers": [{"name": "af"}]}\n', encoding="utf-8"
@@ -134,4 +150,189 @@ def test_verify_candidate_rejects_duplicate_quality(tmp_path: Path) -> None:
     with pytest.raises(
         verify_candidate.CandidateError, match="Duplicate asset role/format slot"
     ):
+        verify_candidate.verify_candidate(candidate)
+
+
+def _write_split_candidate(tmp_path: Path) -> Path:
+    onnx = pytest.importorskip("onnx")
+    from onnx import TensorProto, helper
+
+    candidate = tmp_path / "split-candidate"
+    candidate.mkdir()
+    contracts = {
+        "prosody": {
+            "inputs": {
+                "input_ids": "int64",
+                "style_dur": "float32",
+                "speed": "float32",
+            },
+            "outputs": {"pred_dur": "float32", "d": "float32", "t_en": "float32"},
+        },
+        "curves": {
+            "inputs": {"en": "float32", "style_dur": "float32"},
+            "outputs": {"f0_curve": "float32", "n_curve": "float32"},
+        },
+        "decoder": {
+            "inputs": {
+                "asr": "float32",
+                "f0_curve": "float32",
+                "n_curve": "float32",
+                "style_acou": "float32",
+                "har": "float32",
+            },
+            "outputs": {"audio": "float32"},
+        },
+    }
+    for component, contract in contracts.items():
+        input_infos = [
+            helper.make_tensor_value_info(
+                name,
+                {"float32": TensorProto.FLOAT, "int64": TensorProto.INT64}[
+                    expected_type
+                ],
+                [1],
+            )
+            for name, expected_type in contract["inputs"].items()
+        ]
+        source = (
+            "style_dur" if component == "prosody" else next(iter(contract["inputs"]))
+        )
+        output_infos = [
+            helper.make_tensor_value_info(name, TensorProto.FLOAT, [1])
+            for name in contract["outputs"]
+        ]
+        nodes = [
+            helper.make_node("Identity", [source], [name])
+            for name in contract["outputs"]
+        ]
+        graph = helper.make_graph(nodes, component, input_infos, output_infos)
+        onnx.save(helper.make_model(graph), candidate / f"{component}.onnx")
+    np.savez(candidate / "voices.npz", f_young_clear=np.zeros((1, 1), dtype=np.float32))
+    assets = []
+    for path, role, quality, component in [
+        (candidate / "prosody.onnx", "model", "fp32", "prosody"),
+        (candidate / "curves.onnx", "model", "fp32", "curves"),
+        (candidate / "decoder.onnx", "model", "fp32", "decoder"),
+        (candidate / "voices.npz", "voices", None, None),
+    ]:
+        asset = {
+            "name": path.name,
+            "role": role,
+            "format": "onnx" if role == "model" else "numpy-npz",
+            "size": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+        if quality:
+            asset["quality"] = quality
+        if component:
+            asset["component"] = component
+        assets.append(asset)
+    manifest = {
+        "schema": 2,
+        "runtime_contract": 1,
+        "repository": "buchwandler/kokoro-onnx-models",
+        "tag": "model-files-split-test",
+        "profile": "split-test",
+        "model_version": "1.0",
+        "generated_at": "2026-01-01T00:00:00+00:00",
+        "source": {"type": "test", "repository": "source/repo", "revision": "rev"},
+        "license": "Apache-2.0",
+        "publication": {"enabled": True},
+        "runtime": {
+            "language_codes": ["th"],
+            "sample_rate": 24000,
+            "frontend": "test",
+            "frontend_experimental": False,
+            "max_tokens": 510,
+            "default_voice": "f_young_clear",
+            "voices": ["f_young_clear"],
+            "layout": "split-onnx-v1",
+        },
+        "onnx_contract": {
+            "inputs": {"input_ids": "int64"},
+            "outputs": {"audio": "float32"},
+            "max_tokens": 510,
+            "components": contracts,
+        },
+        "assets": assets,
+    }
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    (candidate / "SHA256SUMS").write_text(
+        "\n".join(f"{asset['sha256']}  {asset['name']}" for asset in assets) + "\n",
+        encoding="utf-8",
+    )
+    return candidate
+
+
+def _refresh_split_manifest(candidate: Path, manifest: dict) -> None:
+    for asset in manifest["assets"]:
+        path = candidate / asset["name"]
+        asset["size"] = path.stat().st_size
+        asset["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    (candidate / "release-manifest.json").write_text(json.dumps(manifest))
+    (candidate / "SHA256SUMS").write_text(
+        "\n".join(f"{asset['sha256']}  {asset['name']}" for asset in manifest["assets"])
+        + "\n"
+    )
+
+
+def test_verify_candidate_accepts_valid_split_model(tmp_path: Path) -> None:
+    candidate = _write_split_candidate(tmp_path)
+    result = verify_candidate.verify_candidate(candidate)
+    assert result["asset_count"] == 4
+    manifest = result["manifest"]
+    assert sum(asset["role"] == "model" for asset in manifest["assets"]) == 3
+    assert {
+        asset["component"] for asset in manifest["assets"] if asset["role"] == "model"
+    } == {"prosody", "curves", "decoder"}
+
+
+def test_verify_candidate_rejects_missing_split_graph(tmp_path: Path) -> None:
+    candidate = _write_split_candidate(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["assets"] = [
+        asset for asset in manifest["assets"] if asset.get("component") != "decoder"
+    ]
+    (candidate / "decoder.onnx").unlink()
+    _refresh_split_manifest(candidate, manifest)
+    with pytest.raises(verify_candidate.CandidateError, match="components"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_duplicate_split_component(tmp_path: Path) -> None:
+    candidate = _write_split_candidate(tmp_path)
+    extra = candidate / "prosody-copy.onnx"
+    extra.write_bytes((candidate / "prosody.onnx").read_bytes())
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    asset = next(
+        item for item in manifest["assets"] if item.get("component") == "prosody"
+    )
+    duplicate = dict(asset)
+    duplicate["name"] = extra.name
+    manifest["assets"].append(duplicate)
+    _refresh_split_manifest(candidate, manifest)
+    with pytest.raises(
+        verify_candidate.CandidateError, match="Duplicate asset role/format slot"
+    ):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_wrong_split_graph_contract(tmp_path: Path) -> None:
+    candidate = _write_split_candidate(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["assets"] = [
+        asset for asset in manifest["assets"] if asset.get("component") != "prosody"
+    ]
+    curves = next(
+        item for item in manifest["assets"] if item.get("component") == "curves"
+    )
+    curves["component"] = "prosody"
+    (candidate / "prosody.onnx").unlink()
+    _refresh_split_manifest(candidate, manifest)
+    with pytest.raises(verify_candidate.CandidateError, match="input_ids"):
         verify_candidate.verify_candidate(candidate)

@@ -44,7 +44,7 @@ SENTENCES = {
     "en-gb": "Good afternoon. This is a local pre-release voice test for the Kokoro model.",
     "es": "Hola. Esta es una prueba local de voz antes de publicar el modelo.",
     "fr-fr": "Bonjour. Ceci est un test vocal local avant la publication du modèle.",
-    "de": "Hallo. Dies ist ein lokaler Sprachtest vor der Veröffentlichung des Modells.",
+    "de": "Hallo. Die Brücke ist schön, und dies ist ein lokaler Sprachtest vor der Veröffentlichung des Modells.",
     "it": "Ciao. Questa è una prova vocale locale prima della pubblicazione del modello.",
     "pt": "Olá. Este é um teste local de voz antes da publicação do modelo.",
     "ja": "こんにちは。これはモデル公開前のローカル音声テストです。",
@@ -52,6 +52,8 @@ SENTENCES = {
     "hi": "नमस्ते। यह मॉडल जारी करने से पहले एक स्थानीय आवाज़ परीक्षण है।",
     "vi": "Xin chào. Đây là bài kiểm tra giọng nói cục bộ trước khi phát hành mô hình.",
     "ar": "مَرْحَبًا بِكَ. هَذَا اخْتِبَارٌ مَحَلِّيٌّ لِلصَّوْتِ قَبْلَ إِصْدَارِ النَّمُوذَجِ.",
+    "sv": "Hej. Det här är ett lokalt rösttest före publiceringen av modellen.",
+    "th": "สวัสดี นี่คือการทดสอบเสียงแบบภายในก่อนเผยแพร่โมเดล",
     "he": "שלום. זוהי בדיקת קול מקומית לפני פרסום המודל.",
 }
 
@@ -209,6 +211,39 @@ SPECS: dict[str, LocalTestSpec] = {
             "Non-commercial/restricted upstream terms apply. Current pykokoro has "
             "no Hebrew model profile/frontend and cannot consume the custom config directly."
         ),
+    ),
+    "sv-joakim": LocalTestSpec(
+        key="sv-joakim",
+        display_name="Kokoro Swedish (Joakim)",
+        language="sv",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=(
+            "Alice",
+            "Anton",
+            "Björn",
+            "Ebba",
+            "Elsa",
+            "Greta",
+            "Lars",
+            "Nils",
+            "Oskar",
+            "Stina",
+        ),
+        frontend="kokorog2p Swedish; validate parity with Joakim Swedish frontend",
+        exact_pykokoro_expected=False,
+        notes="Uses the current v1.0 pykokoro integration shim until sv-joakim is first-class.",
+    ),
+    "de-thorsten": LocalTestSpec(
+        key="de-thorsten",
+        display_name="Kokoro German Thorsten",
+        language="de",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=("thorsten",),
+        frontend="German Kokoro G2P with Thorsten ʏ -> y cleanup",
+        exact_pykokoro_expected=False,
+        notes="Uses the current v1.0 pykokoro integration shim until de-thorsten is first-class.",
     ),
 }
 

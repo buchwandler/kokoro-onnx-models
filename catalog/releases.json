@@ -329,6 +329,228 @@
           "format": "json"
         }
       ]
+    },
+    "sv-joakim": {
+      "kind": "build",
+      "profile": "sv-joakim",
+      "tag": "model-files-swedish-v1.0",
+      "model_version": "1.0",
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-swedish-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-swedish-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-swedish-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-swedish-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
+    },
+    "de-thorsten": {
+      "kind": "build",
+      "profile": "de-thorsten",
+      "tag": "model-files-german-thorsten-v1.0",
+      "model_version": "1.0",
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-german-thorsten-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-german-thorsten-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-german-thorsten-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-german-thorsten-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
+    },
+    "th-wayu": {
+      "kind": "mirror",
+      "profile": "th-wayu",
+      "source_type": "huggingface",
+      "tag": "model-files-thai-wayu-v1",
+      "model_version": "1",
+      "license": "Apache-2.0",
+      "language_codes": ["th"],
+      "sample_rate": 24000,
+      "frontend": "kokorog2p-th-wayu-v1",
+      "frontend_experimental": false,
+      "max_tokens": 510,
+      "runtime_layout": "split-onnx-v1",
+      "runtime": {
+        "default_voice": "f_young_clear",
+        "voices": [
+          "f_teen_bright",
+          "f_young_bright",
+          "f_young_clear",
+          "f_young_warm",
+          "f_mid_clear",
+          "f_mid_warm",
+          "f_elderly_soft",
+          "f_elderly_low",
+          "m_teen_bright",
+          "m_young_clear",
+          "m_mid_warm",
+          "m_elderly_deep"
+        ]
+      },
+      "source_repository": "kunato/wayu-kokoro-thai-v1",
+      "source_revision": "50d7f60e41ac118e5bb92b0ba52c30bb7830103c",
+      "onnx_contract": {
+        "inputs": {
+          "input_ids": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32"
+        },
+        "max_tokens": 510,
+        "components": {
+          "prosody": {
+            "inputs": {
+              "input_ids": "int64",
+              "style_dur": "float32",
+              "speed": "float32"
+            },
+            "outputs": {
+              "pred_dur": "int64",
+              "d": "float32",
+              "t_en": "float32"
+            }
+          },
+          "curves": {
+            "inputs": {
+              "en": "float32",
+              "style_dur": "float32"
+            },
+            "outputs": {
+              "f0_curve": "float32",
+              "n_curve": "float32"
+            }
+          },
+          "decoder": {
+            "inputs": {
+              "asr": "float32",
+              "f0_curve": "float32",
+              "n_curve": "float32",
+              "style_acou": "float32",
+              "har": "float32"
+            },
+            "outputs": {
+              "audio": "float32"
+            }
+          }
+        }
+      },
+      "assets": [
+        {
+          "source": "onnx/prosody_fp32.onnx",
+          "name": "kokoro-thai-wayu-v1-prosody-fp32.onnx",
+          "role": "model",
+          "component": "prosody",
+          "quality": "fp32",
+          "format": "onnx",
+          "size": 78259639,
+          "sha256": "cab0963ab960a43e12cb2b2a232fd712bd5c0b369e86ad0c18090b81aa4eee35"
+        },
+        {
+          "source": "onnx/curves_fp32.onnx",
+          "name": "kokoro-thai-wayu-v1-curves-fp32.onnx",
+          "role": "model",
+          "component": "curves",
+          "quality": "fp32",
+          "format": "onnx",
+          "size": 33721740,
+          "sha256": "bc7c0a7c4e1a44c301143f9d1d34686b9a73dff7e577284a8781b0e428b17d1d"
+        },
+        {
+          "source": "onnx/decoder_fp32.onnx",
+          "name": "kokoro-thai-wayu-v1-decoder-fp32.onnx",
+          "role": "model",
+          "component": "decoder",
+          "quality": "fp32",
+          "format": "onnx",
+          "size": 213445776,
+          "sha256": "e512c7e8cd05aefe1702b5f10581247a41b1c774a92c6a0d4538cad3a52d162b"
+        },
+        {
+          "source": "onnx/onnx_manifest.json",
+          "name": "onnx-manifest-thai-wayu-v1.json",
+          "role": "config",
+          "format": "json",
+          "size": 1309,
+          "sha256": "fe7b451284fe52449e45241c87b3306cd7a0f5169c58ac345e1eb6e912417910"
+        },
+        {
+          "source": "onnx/source_params.npz",
+          "name": "source-params-thai-wayu-v1.npz",
+          "role": "metadata",
+          "format": "numpy-npz",
+          "size": 870,
+          "sha256": "9e820cc13e81d378c47e55e87382e7cd5579b50f5d9bbdf19663e721b5b1f1cc"
+        },
+        {
+          "source": "onnx/styles.npz",
+          "name": "styles-thai-wayu-v1.npz",
+          "role": "metadata",
+          "format": "numpy-npz",
+          "size": 15122,
+          "sha256": "25eeaf8e886ac969c0b87b7be7f717e6f5a6a0fa42ad3dacbd379bfe310c495d"
+        },
+        {
+          "source": "onnx/voicepacks.npz",
+          "name": "voices-thai-wayu-v1.npz",
+          "role": "voices",
+          "format": "numpy-npz",
+          "size": 6294562,
+          "sha256": "4a75ac3a5f25d2cffdd5272192e898ea2f23da6b3895650f19d95abd8fe32c5f"
+        }
+      ]
     }
   }
 }

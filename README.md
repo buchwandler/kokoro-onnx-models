@@ -55,6 +55,15 @@ Supported build profiles:
 | `ar-nabra` | Arabic | `marwanelamami/Nabra-82M-v0.1-ONNX` | yes |
 | `de-crane` | German | `crane-local-ai/Kokoro-82M-v1.0-German-ONNX` | yes |
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
+| `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
+| `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
+| `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
+
+The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
+
+The Thorsten release converts upstream's default epoch-5 `model.pth` and matching `voices/thorsten.pt`. Its German frontend requires the training-time `ʏ -> y` normalization.
+
+Thai Wayu is a split ONNX serving bundle (prosody + curves + decoder), not a single KModelForONNX graph. The release contains all graph components, source parameters, the upstream ONNX manifest, and voice/style archives.
 
 Nabra uses the upstream pre-exported FP32 ONNX model. This repository repackages
 the `af_msa` voice table and retains the model-specific `vocab.json`; it does not

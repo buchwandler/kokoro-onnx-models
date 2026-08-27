@@ -21,6 +21,11 @@ New planned tags:
 - `model-files-arabic-nabra-v0.1`
 - `model-files-german-kerstin-v1.0`
 
+- `model-files-swedish-v1.0`
+- `model-files-german-thorsten-v1.0`
+- `model-files-thai-wayu-v1`
+
+Swedish and Thorsten use the standard model plus named NPZ voice pattern. Thai explicitly exposes `runtime.layout` as `split-onnx-v1` and must be dispatched to a Wayu split-runtime adapter. `pykokoro` must not infer that layout from filenames: `single-onnx-v1` uses the existing AudioGenerator path, while `split-onnx-v1` uses the Wayu prosody, curves, host alignment/source preparation, and decoder path.
 The Nabra release additionally contains `vocab-arabic-nabra-v0.1.json` alongside
 the ONNX model and both named NPZ/raw voice assets. Its runtime contract is
 `input_ids` (int64), `ref_s` (float32), and `speed` (float32), with a 510-token

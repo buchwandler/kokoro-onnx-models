@@ -174,3 +174,26 @@ def test_mismatch_is_rejected_before_any_asset_is_published(
     assert not (output / "good.bin").exists()
     assert not (output / "bad.bin").exists()
     assert not list(output.glob("*.part"))
+
+
+def test_normalize_assets_preserves_component() -> None:
+    assets = mirror_release.normalize_assets(
+        [
+            {
+                "source": "onnx/prosody_fp32.onnx",
+                "name": "prosody.onnx",
+                "role": "model",
+                "quality": "fp32",
+                "component": "prosody",
+            }
+        ]
+    )
+    assert assets == [
+        mirror_release.MirrorAsset(
+            source="onnx/prosody_fp32.onnx",
+            name="prosody.onnx",
+            role="model",
+            quality="fp32",
+            component="prosody",
+        )
+    ]

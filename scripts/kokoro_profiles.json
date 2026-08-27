@@ -264,5 +264,145 @@
         "speed": "float32"
       }
     }
+  },
+  "sv-joakim": {
+    "display_name": "Kokoro Swedish (Joakim multi-speaker)",
+    "repo_id": "Joakim/kokoro-sv-voices",
+    "revision": "2c7968d59c2fda1667e9e3ff0dd9967150a53f74",
+    "license": "Apache-2.0",
+    "language": "sv",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro_sv.pth",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "Alice": "voices/Alice.pt",
+        "Anton": "voices/Anton.pt",
+        "Björn": "voices/Björn.pt",
+        "Ebba": "voices/Ebba.pt",
+        "Elsa": "voices/Elsa.pt",
+        "Greta": "voices/Greta.pt",
+        "Lars": "voices/Lars.pt",
+        "Nils": "voices/Nils.pt",
+        "Oskar": "voices/Oskar.pt",
+        "Stina": "voices/Stina.pt"
+      }
+    },
+    "frontend": {
+      "kind": "kokorog2p",
+      "name": "kokorog2p Swedish",
+      "sherpa_text_compatible": false,
+      "note": "Swedish training requires frontend parity with the Joakim Swedish G2P; validate kokorog2p with golden phoneme fixtures before first publication."
+    },
+    "postprocess": {
+      "kind": "notch_filters",
+      "frequencies_hz": [2400, 4800, 7200, 9600],
+      "q": 35,
+      "optional": true
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-swedish-v1.0",
+      "model_version": "1.0",
+      "model_filename": "kokoro-swedish-v1.0.onnx",
+      "config_filename": "config-swedish-v1.0.json",
+      "voices": [
+        "Alice",
+        "Anton",
+        "Björn",
+        "Ebba",
+        "Elsa",
+        "Greta",
+        "Lars",
+        "Nils",
+        "Oskar",
+        "Stina"
+      ],
+      "default_voice": "Alice",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-swedish-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-swedish-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32"
+      },
+      "max_tokens": 510
+    }
+  },
+  "de-thorsten": {
+    "display_name": "Kokoro German Thorsten",
+    "repo_id": "Thorsten-Voice/Kokoro",
+    "revision": "734e593d320a3d876bede7020f773dfd481a0cc7",
+    "license": "Apache-2.0",
+    "language": "de",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "model.pth",
+      "config": "config.json"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "thorsten": "voices/thorsten.pt"
+      }
+    },
+    "frontend": {
+      "kind": "kokorog2p",
+      "name": "German Kokoro G2P + Thorsten short-ü normalization",
+      "sherpa_text_compatible": false,
+      "note": "Apply the upstream training-time ʏ -> y substitution after German phonemization."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-german-thorsten-v1.0",
+      "model_version": "1.0",
+      "model_filename": "kokoro-german-thorsten-v1.0.onnx",
+      "config_filename": "config-german-thorsten-v1.0.json",
+      "voices": ["thorsten"],
+      "default_voice": "thorsten",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-german-thorsten-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-german-thorsten-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32"
+      },
+      "max_tokens": 510
+    }
   }
 }

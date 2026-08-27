@@ -96,6 +96,18 @@
       "properties": {
         "inputs": { "type": "object", "minProperties": 1 },
         "outputs": { "type": "object", "minProperties": 1 },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["inputs", "outputs"],
+            "properties": {
+              "inputs": {},
+              "outputs": {}
+            },
+            "additionalProperties": true
+          }
+        },
         "max_tokens": { "type": "integer", "minimum": 1 }
       },
       "additionalProperties": true
@@ -121,6 +133,7 @@
             ]
           },
           "quality": { "type": "string", "minLength": 1 },
+          "component": { "type": "string", "minLength": 1 },
           "format": { "type": "string", "minLength": 1 },
           "size": { "type": "integer", "minimum": 1 },
           "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
