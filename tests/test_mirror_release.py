@@ -63,6 +63,47 @@ def test_huggingface_sources_use_pinned_revision_and_source_paths() -> None:
     }
 
 
+def test_github_sources_use_pinned_revision_and_source_paths(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assets = [mirror_release.MirrorAsset("model.onnx", "model.onnx")]
+    requests: list[str] = []
+    release = {
+        "html_url": "https://github.com/source/repo/releases/tag/model-files-v1.0",
+        "assets": [
+            {
+                "name": "model.onnx",
+                "browser_download_url": "https://example.test/model.onnx",
+            }
+        ],
+    }
+    monkeypatch.setattr(
+        mirror_release,
+        "request_json",
+        lambda url: requests.append(url) or release,
+    )
+
+    urls, source = mirror_release.github_sources(
+        {
+            "source_repository": "source/repo",
+            "source_revision": "model-files-v1.0",
+        },
+        assets,
+    )
+
+    assert requests == [
+        "https://api.github.com/repos/source/repo/releases/tags/model-files-v1.0"
+    ]
+    assert urls == {"model.onnx": "https://example.test/model.onnx"}
+    assert source == {
+        "type": "github-release",
+        "repository": "source/repo",
+        "revision": "model-files-v1.0",
+        "tag": "model-files-v1.0",
+        "url": "https://github.com/source/repo/releases/tag/model-files-v1.0",
+    }
+
+
 def test_main_preserves_bytes_when_mapping_source_to_target(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

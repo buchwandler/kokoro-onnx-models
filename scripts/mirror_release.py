@@ -132,7 +132,7 @@ def github_sources(
     spec: dict[str, Any], assets: list[MirrorAsset]
 ) -> tuple[dict[str, str], dict[str, Any]]:
     repository = spec["source_repository"]
-    source_tag = spec["source_tag"]
+    source_tag = spec["source_revision"]
     release = request_json(
         f"https://api.github.com/repos/{repository}/releases/tags/{source_tag}"
     )
