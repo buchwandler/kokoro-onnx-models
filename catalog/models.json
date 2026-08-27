@@ -1099,7 +1099,7 @@
               "local_name": "kokoro-german-thorsten-v1.0.onnx",
               "format": "onnx",
               "size": 325662836,
-              "sha256": "6b10f1ca4ed0b8214997912cf2fc1d9d095768b56a341ec320248988cc0e2751",
+              "sha256": "bcad626c04798380d7d1b3ea1ac7fadad0c5c4f649cf9f9bd9c3095e79970414",
               "quality": "fp32"
             },
             {
