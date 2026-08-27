@@ -1,0 +1,42 @@
+[
+  {
+    "text": "за́мок",
+    "expected": "ˈzamək",
+    "coverage": "explicit lexical stress"
+  },
+  {
+    "text": "замо́к",
+    "expected": "zɐˈmok",
+    "coverage": "stress-sensitive homograph"
+  },
+  {
+    "text": "дела́",
+    "expected": "dʲɪˈla",
+    "coverage": "explicit stress and vowel reduction"
+  },
+  {
+    "text": "мука",
+    "expected": "mʊˈka",
+    "coverage": "homograph requiring reference frontend behavior"
+  },
+  {
+    "text": "ёлка",
+    "expected": "ˈjɵlkə",
+    "coverage": "ё restoration"
+  },
+  {
+    "text": "большо́го",
+    "expected": "bɐlʲˈʂovə",
+    "coverage": "-ого orthoepy"
+  },
+  {
+    "text": "здравствуй",
+    "expected": "ˈzdrastvuj",
+    "coverage": "silent consonant cluster"
+  },
+  {
+    "text": "Здравствуйте! Как ваши дела?",
+    "expected": "ˈzdrastvujtʲe! kak ˈvaʂɨ dʲɪˈla?",
+    "coverage": "punctuation and native smoke text"
+  }
+]

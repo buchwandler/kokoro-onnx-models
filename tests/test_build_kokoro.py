@@ -68,6 +68,9 @@ def test_expected_profiles_exist() -> None:
         "he-hebrew-nc",
         "sv-joakim",
         "de-thorsten",
+        "ru-zaakirio-base",
+        "ru-zaakirio-dima",
+        "kk-anuarsv",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
 
@@ -126,14 +129,13 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         ),
     ):
         profiles = build_kokoro.load_profiles()
-        for key in ("sv-joakim", "de-thorsten"):
+        for key in ("sv-joakim", "de-thorsten", "kk-anuarsv"):
             profile = profiles[key]
             out = tmp_path / key / "model.onnx"
             build_kokoro.resolve_model(
                 profile, tmp_path / key / "cache", out, opset=14, seq_len=64
             )
             assert out.read_bytes() == b"exported"
-
     assert calls == [
         (
             "Joakim/kokoro-sv-voices",
@@ -154,6 +156,16 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
             "Thorsten-Voice/Kokoro",
             "model.pth",
             "734e593d320a3d876bede7020f773dfd481a0cc7",
+        ),
+        (
+            "AnuarSv/kokoro-tts-kazakh",
+            "config.json",
+            "90a9283ed61d76c9181a7643819ef1c48b41031d",
+        ),
+        (
+            "AnuarSv/kokoro-tts-kazakh",
+            "kokoro_kazakh.pth",
+            "90a9283ed61d76c9181a7643819ef1c48b41031d",
         ),
     ]
 
@@ -259,3 +271,75 @@ def test_validate_nabra_named_onnx_contract(tmp_path: Path) -> None:
         )
         == []
     )
+
+def test_russian_profiles_use_prebuilt_onnx_sources(tmp_path: Path) -> None:
+    profiles = build_kokoro.load_profiles()
+    sources = {
+        "onnx/model.onnx": b"base-onnx",
+        "onnx/model_dima.onnx": b"dima-onnx",
+    }
+    downloaded: list[tuple[str, str, str]] = []
+
+    def fake_download(repo_id, filename, revision, cache_dir):
+        downloaded.append((repo_id, filename, revision))
+        if filename == "config.json":
+            path = tmp_path / "config.json"
+            path.write_text("{}", encoding="utf-8")
+            return path
+        path = tmp_path / Path(filename).name
+        path.write_bytes(sources[filename])
+        return path
+
+    with (
+        patch.object(build_kokoro, "hf_download", side_effect=fake_download),
+        patch.object(
+            build_kokoro,
+            "export_checkpoint_to_onnx",
+            side_effect=AssertionError("Russian ONNX must not be re-exported"),
+        ),
+    ):
+        for key, source_name in (
+            ("ru-zaakirio-base", "onnx/model.onnx"),
+            ("ru-zaakirio-dima", "onnx/model_dima.onnx"),
+        ):
+            out = tmp_path / key / "model.onnx"
+            build_kokoro.resolve_model(
+                profiles[key], tmp_path / key / "cache", out, opset=14, seq_len=64
+            )
+            assert out.read_bytes() == sources[source_name]
+
+    assert downloaded == [
+        (
+            "zaakirio/kokoro-ru",
+            "config.json",
+            "d649c57b239b18c4c384378127cbf01dba039bc1",
+        ),
+        (
+            "zaakirio/kokoro-ru",
+            "onnx/model.onnx",
+            "d649c57b239b18c4c384378127cbf01dba039bc1",
+        ),
+        (
+            "zaakirio/kokoro-ru",
+            "config.json",
+            "d649c57b239b18c4c384378127cbf01dba039bc1",
+        ),
+        (
+            "zaakirio/kokoro-ru",
+            "onnx/model_dima.onnx",
+            "d649c57b239b18c4c384378127cbf01dba039bc1",
+        ),
+    ]
+
+
+def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:
+    profile = build_kokoro.load_profiles()["kk-anuarsv"]
+    assert profile["repo_id"] == "AnuarSv/kokoro-tts-kazakh"
+    assert profile["revision"] == "90a9283ed61d76c9181a7643819ef1c48b41031d"
+    assert profile["model"] == {
+        "kind": "checkpoint",
+        "path": "kokoro_kazakh.pth",
+        "config": "config.json",
+    }
+    assert profile["voices"]["items"] == {"km_m1": "km_m1.pt"}
+    assert profile["language"] == "kk"

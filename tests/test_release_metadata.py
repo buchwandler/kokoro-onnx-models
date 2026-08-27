@@ -160,3 +160,53 @@ def test_german_v1_1_and_holgern_are_retired() -> None:
 
     assert "v1.1-de" not in text
     assert "holgern/kokoro-onnx-model" not in text
+
+def test_russian_and_kazakh_release_metadata() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    catalog = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )
+
+    base = profiles["ru-zaakirio-base"]
+    dima = profiles["ru-zaakirio-dima"]
+    kk = profiles["kk-anuarsv"]
+
+    assert base["language"] == "ru"
+    assert base["voices"]["items"] == {
+        "sveta": "voices/sveta.pt",
+        "masha": "voices/masha.pt",
+    }
+    assert base["model"]["path"] == "onnx/model.onnx"
+    assert base["release"]["enabled"] is False
+
+    assert dima["language"] == "ru"
+    assert dima["voices"]["items"] == {"dima": "voices/dima.pt"}
+    assert dima["model"]["path"] == "onnx/model_dima.onnx"
+    assert dima["release"]["enabled"] is False
+    assert base["model"]["path"] != dima["model"]["path"]
+
+    assert kk["language"] == "kk"
+    assert kk["language"] != "ka"
+    assert kk["license"] == "Apache-2.0"
+    assert kk["release"]["default_voice"] == "km_m1"
+    assert kk["release"]["enabled"] is True
+
+    assert catalog["releases"]["ru-zaakirio-base"]["publish"] is False
+    assert catalog["releases"]["ru-zaakirio-dima"]["publish"] is False
+    assert catalog["releases"]["kk-anuarsv"]["publish"] is True
+    assert catalog["releases"]["kk-anuarsv"]["tag"] == (
+        "model-files-kazakh-anuarsv-v1"
+    )
+    assert "ka" not in catalog["releases"]["kk-anuarsv"]["language_codes"]
+
+    assert base["source_artifacts"]["onnx/model.onnx"]["sha256"] == (
+        "2b784920660089011888fe88f2f48339c01334ad627c91cc0f88d947bc64fcf3"
+    )
+    assert dima["source_artifacts"]["onnx/model_dima.onnx"]["sha256"] == (
+        "326bc6d2764263c11a8f5cbcfdcf0a072e441bd0d2dcb4875fa3c25724b201c6"
+    )
+    assert kk["source_artifacts"]["kokoro_kazakh.pth"]["sha256"] == (
+        "92816054059a63d8c0e5997a1993c0cb3f2e903d4ea9150cd446570974c466da"
+    )

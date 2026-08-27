@@ -1,0 +1,22 @@
+[
+  {
+    "text": "Сәлем!",
+    "expected": "sælˈem!",
+    "coverage": "greeting and punctuation"
+  },
+  {
+    "text": "Бұл қазақ тіліндегі сөйлеу синтезі.",
+    "expected": "bˈʊɫ qɑzˈɑq tɪlɪndeɡˈɪ sɵjlˈew səjntezɪ.",
+    "coverage": "native Kazakh sentence"
+  },
+  {
+    "text": "Қазақстан",
+    "expected": "qɑzɑqstˈɑn",
+    "coverage": "Kazakhstan"
+  },
+  {
+    "text": "тәуелсіздік",
+    "expected": "tæweɫsɪzdˈɪk",
+    "coverage": "independence"
+  }
+]

@@ -58,6 +58,9 @@ Supported build profiles:
 | `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
+| `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | **no**: pending exact OpenRAIL weight review |
+| `ru-zaakirio-dima` | Russian | `zaakirio/kokoro-ru` | **no**: pending exact OpenRAIL weight review |
+| `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
 
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
 
@@ -70,6 +73,14 @@ the `af_msa` voice table and retains the model-specific `vocab.json`; it does no
 re-export `kokoro_arabic.pth`. The original `oddadmix/Nabra-82M-v0.1` fine-tune
 remains part of the model lineage.
 
+
+The Zaakirio Russian source has two acoustic checkpoints. Sveta and Masha use the
+base checkpoint, while Dima uses a dedicated checkpoint. They are intentionally
+released as separate profiles so each release has a single unambiguous
+model-to-voice mapping.
+
+Kazakh uses language code `kk`. It is not published under `ka`, which is the
+Georgian language code.
 `build_kokoro.py` validates voice tensor shape, writes raw little-endian float32
 speaker tables, validates the ONNX I/O types, preserves source ONNX metadata, and
 adds speaker/source/frontend metadata.
@@ -85,6 +96,9 @@ works for every language. The profile records the expected G2P path:
   against the model's expected phoneme distribution.
 - Hebrew uses a Hebrew-specific frontend and has restricted terms.
 
+- Zaakirio Russian requires stress-aware `ru_g2p.py` behavior, including `ё`,
+  homographs, vowel reduction, and Russian orthoepy.
+- AnuarSv Kazakh uses `kk` espeak-ng IPA through the Kazakh frontend.
 These requirements should ultimately be consumed by `pykokoro` from release
 metadata rather than scattered hard-coded branches.
 

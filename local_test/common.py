@@ -55,6 +55,8 @@ SENTENCES = {
     "sv": "Hej. Det här är ett lokalt rösttest före publiceringen av modellen.",
     "th": "สวัสดี นี่คือการทดสอบเสียงแบบภายในก่อนเผยแพร่โมเดล",
     "he": "שלום. זוהי בדיקת קול מקומית לפני פרסום המודל.",
+    "ru": "Здравствуйте! Это локальная проверка русского голоса перед публикацией модели.",
+    "kk": "Сәлем! Бұл модельді жарияламас бұрын қазақ тіліндегі жергілікті дауыс сынағы.",
 }
 
 VOICE_PREFIX_LANGUAGE = {
@@ -245,6 +247,49 @@ SPECS: dict[str, LocalTestSpec] = {
         exact_pykokoro_expected=False,
         notes="Uses the current v1.0 pykokoro integration shim until de-thorsten is first-class.",
     ),
+    "ru-zaakirio-base": LocalTestSpec(
+        key="ru-zaakirio-base",
+        display_name="Kokoro Russian (Zaakirio base)",
+        language="ru",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=("sveta", "masha"),
+        frontend="kokorog2p Russian; preserve upstream stress and orthoepy behavior",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Uses the v1.0 local integration shim until pykokoro has a "
+            "first-class ru-zaakirio-base profile. The actual ONNX contract is "
+            "input_ids/style/speed -> waveform."
+        ),
+    ),
+    "ru-zaakirio-dima": LocalTestSpec(
+        key="ru-zaakirio-dima",
+        display_name="Kokoro Russian (Zaakirio Dima)",
+        language="ru",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=("dima",),
+        frontend="kokorog2p Russian; preserve upstream stress and orthoepy behavior",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Dima requires the dedicated model_dima checkpoint. Never test "
+            "dima with the base Russian model."
+        ),
+    ),
+    "kk-anuarsv": LocalTestSpec(
+        key="kk-anuarsv",
+        display_name="Kokoro Kazakh (AnuarSv km_m1)",
+        language="kk",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=("km_m1",),
+        frontend="kokorog2p Kazakh (kk); parity target is misaki espeak kk",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Uses the v1.0 local integration shim until pykokoro has a "
+            "first-class kk-anuarsv profile."
+        ),
+    ),
 }
 
 
@@ -397,7 +442,20 @@ def _language_for_voice(spec: LocalTestSpec, voice: str) -> str:
 def _tokenizer_for(
     spec: LocalTestSpec, lang: str, allow_frontend_mismatch: bool
 ) -> TokenizerConfig:
-    native = {"en-us", "en-gb", "es", "fr-fr", "de", "it", "pt", "ja", "zh", "ar"}
+    native = {
+        "en-us",
+        "en-gb",
+        "es",
+        "fr-fr",
+        "de",
+        "it",
+        "pt",
+        "ja",
+        "zh",
+        "ar",
+        "ru",
+        "kk",
+    }
     if lang in native:
         return TokenizerConfig()
     if not allow_frontend_mismatch:

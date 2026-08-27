@@ -20,7 +20,10 @@ local_test/
 ├── smoke_vi_anphunl.py
 ├── smoke_ar_nabra.py
 ├── smoke_de_crane.py
-└── smoke_he_hebrew_nc.py
+├── smoke_he_hebrew_nc.py
+├── smoke_ru_zaakirio_base.py
+├── smoke_ru_zaakirio_dima.py
+└── smoke_kk_anuarsv.py
 ```
 
 All large/runtime artifacts go here:
@@ -75,6 +78,9 @@ vi-anphunl
 ar-nabra
 de-crane
 he-hebrew-nc
+ru-zaakirio-base
+ru-zaakirio-dima
+kk-anuarsv
 ```
 
 The new profiles have release metadata and can be selected with explicit local
@@ -99,6 +105,9 @@ not erase that distinction.
 | `ar-nabra`       | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
 | `de-crane`       | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
 | `he-hebrew-nc`   | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
+| `ru-zaakirio-base` | stress-aware Zaakirio Russian `ru_g2p.py` | explicit local v1.0 shim; frontend golden gate required |
+| `ru-zaakirio-dima` | stress-aware Zaakirio Russian `ru_g2p.py` | explicit local v1.0 shim; dedicated Dima model required |
+| `kk-anuarsv` | Kazakh `kk` espeak-ng IPA via misaki | explicit local v1.0 shim; Kazakh parity gate required |
 
 For unsupported frontends the harness refuses to synthesize ordinary text by
 default. `--allow-frontend-mismatch` enables an **experimental** espeak-backed
@@ -167,6 +176,9 @@ Prepare one profile:
 python local_test/prepare_local_assets.py v1.2-de-martin
 python local_test/prepare_local_assets.py vi-contextbox
 ```
+python local_test/prepare_local_assets.py ru-zaakirio-base
+python local_test/prepare_local_assets.py ru-zaakirio-dima
+python local_test/prepare_local_assets.py kk-anuarsv
 
 The Martin preparation command follows the catalog's Hugging Face mirror entry and downloads the exact
 Godelaune `kokoro-martin.onnx` and `voices-martin.npz` source files.
@@ -251,6 +263,32 @@ Do not write WAV:
 python local_test/smoke_v1_0.py --no-write
 ```
 
+## Russian and Kazakh pre-release gates
+
+Prepare and smoke-test the three new profiles with release-format checks:
+
+```bash
+python local_test/prepare_local_assets.py ru-zaakirio-base
+python local_test/prepare_local_assets.py ru-zaakirio-dima
+python local_test/prepare_local_assets.py kk-anuarsv
+
+python local_test/smoke_ru_zaakirio_base.py --strict-release-format
+python local_test/smoke_ru_zaakirio_dima.py --strict-release-format
+python local_test/smoke_kk_anuarsv.py --strict-release-format
+```
+
+Expected speakers are `sveta` and `masha` for the base profile, `dima` for the
+Dima profile, and `km_m1` for Kazakh. Every run must produce finite, non-empty
+audio at 24 kHz, use the intended acoustic model, and use the intended `ru` or
+`kk` frontend. The Russian profiles remain disabled for publication until the
+exact OpenRAIL weight license is reviewed. The local `v1.0` model variant is an
+experimental acoustic/frontend diagnostic until pykokoro gains first-class
+variants for these profiles. It is not an automatic-release integration pass.
+
+Frontend golden fixtures are maintained separately from audio smoke tests. They
+cover Russian stress-sensitive words, `ё`, homographs, orthoepy, and Kazakh
+`kk` parity against the pinned upstream frontend. Do not regenerate them from
+the network during CI.
 ## Run the new-profile diagnostic tests
 
 ### Vietnamese ContextBoxAI

@@ -24,6 +24,18 @@ New planned tags:
 - `model-files-swedish-v1.0`
 - `model-files-german-thorsten-v1.0`
 - `model-files-thai-wayu-v1`
+- `model-files-russian-zaakirio-base-v2`
+- `model-files-russian-zaakirio-dima-v2`
+- `model-files-kazakh-anuarsv-v1`
+
+Planned first-class `pykokoro` variants:
+`ru-zaakirio-base`, `ru-zaakirio-dima`, and `kk-anuarsv`. Route voices as follows:
+`sveta` and `masha` to `ru-zaakirio-base`, `dima` to `ru-zaakirio-dima`, and
+`km_m1` to `kk-anuarsv`. Russian acoustic model selection must not use only
+`language == "ru"`, because the two Russian voices use different checkpoints.
+Until this relationship is data-driven from the release catalog or manifest, keep
+the explicit voice-to-profile mapping in the integration layer. Kazakh routing
+must use canonical language code `kk`, never `ka`.
 
 Swedish and Thorsten use the standard model plus named NPZ voice pattern. Thai explicitly exposes `runtime.layout` as `split-onnx-v1` and must be dispatched to a Wayu split-runtime adapter. `pykokoro` must not infer that layout from filenames: `single-onnx-v1` uses the existing AudioGenerator path, while `split-onnx-v1` uses the Wayu prosody, curves, host alignment/source preparation, and decoder path.
 The Nabra release additionally contains `vocab-arabic-nabra-v0.1.json` alongside

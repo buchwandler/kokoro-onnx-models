@@ -551,6 +551,171 @@
           "sha256": "4a75ac3a5f25d2cffdd5272192e898ea2f23da6b3895650f19d95abd8fe32c5f"
         }
       ]
+    },
+    "ru-zaakirio-base": {
+      "kind": "build",
+      "profile": "ru-zaakirio-base",
+      "tag": "model-files-russian-zaakirio-base-v2",
+      "model_version": "2",
+      "publish": false,
+      "license": "OpenRAIL; exact upstream model-weight license review required",
+      "language_codes": ["ru"],
+      "frontend": "kokorog2p Russian",
+      "runtime": {
+        "default_voice": "sveta",
+        "voices": ["sveta", "masha"]
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-russian-zaakirio-base-v2.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-russian-zaakirio-base-v2.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-russian-zaakirio-base-v2.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-russian-zaakirio-base-v2.json",
+          "role": "config",
+          "format": "json"
+        },
+        {
+          "source": "UPSTREAM_README.md",
+          "name": "UPSTREAM_README.md",
+          "role": "attribution",
+          "format": "markdown"
+        }
+      ]
+    },
+    "ru-zaakirio-dima": {
+      "kind": "build",
+      "profile": "ru-zaakirio-dima",
+      "tag": "model-files-russian-zaakirio-dima-v2",
+      "model_version": "2",
+      "publish": false,
+      "license": "OpenRAIL; exact upstream model-weight license review required",
+      "language_codes": ["ru"],
+      "frontend": "kokorog2p Russian",
+      "runtime": {
+        "default_voice": "dima",
+        "voices": ["dima"]
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-russian-zaakirio-dima-v2.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-russian-zaakirio-dima-v2.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-russian-zaakirio-dima-v2.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-russian-zaakirio-dima-v2.json",
+          "role": "config",
+          "format": "json"
+        },
+        {
+          "source": "UPSTREAM_README.md",
+          "name": "UPSTREAM_README.md",
+          "role": "attribution",
+          "format": "markdown"
+        }
+      ]
+    },
+    "kk-anuarsv": {
+      "kind": "build",
+      "profile": "kk-anuarsv",
+      "tag": "model-files-kazakh-anuarsv-v1",
+      "model_version": "1",
+      "publish": true,
+      "license": "Apache-2.0",
+      "language_codes": ["kk"],
+      "frontend": "kokorog2p Kazakh",
+      "runtime": {
+        "default_voice": "km_m1",
+        "voices": ["km_m1"]
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-kazakh-anuarsv-v1.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-kazakh-anuarsv-v1.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-kazakh-anuarsv-v1.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-kazakh-anuarsv-v1.json",
+          "role": "config",
+          "format": "json"
+        },
+        {
+          "source": "UPSTREAM_LICENSE",
+          "name": "UPSTREAM_LICENSE",
+          "role": "license",
+          "format": "text"
+        },
+        {
+          "source": "UPSTREAM_README.md",
+          "name": "UPSTREAM_README.md",
+          "role": "attribution",
+          "format": "markdown"
+        }
+      ]
     }
   }
 }
