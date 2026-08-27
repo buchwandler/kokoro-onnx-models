@@ -11,48 +11,489 @@
       "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "frontend": "pykokoro-native-v1",
       "runtime": {
-        "default_voice": "af",
-        "voices": ["af"]
+        "default_voice": "af_heart",
+        "voices": [
+          "af_alloy",
+          "af_aoede",
+          "af_bella",
+          "af_heart",
+          "af_jessica",
+          "af_kore",
+          "af_nicole",
+          "af_nova",
+          "af_river",
+          "af_sarah",
+          "af_sky",
+          "am_adam",
+          "am_echo",
+          "am_eric",
+          "am_fenrir",
+          "am_liam",
+          "am_michael",
+          "am_onyx",
+          "am_puck",
+          "am_santa",
+          "bf_alice",
+          "bf_emma",
+          "bf_isabella",
+          "bf_lily",
+          "bm_daniel",
+          "bm_fable",
+          "bm_george",
+          "bm_lewis",
+          "ef_dora",
+          "em_alex",
+          "em_santa",
+          "ff_siwis",
+          "hf_alpha",
+          "hf_beta",
+          "hm_omega",
+          "hm_psi",
+          "if_sara",
+          "im_nicola",
+          "jf_alpha",
+          "jf_gongitsune",
+          "jf_nezumi",
+          "jf_tebukuro",
+          "jm_kumo",
+          "pf_dora",
+          "pm_alex",
+          "pm_santa",
+          "zf_xiaobei",
+          "zf_xiaoni",
+          "zf_xiaoxiao",
+          "zf_xiaoyi",
+          "zm_yunjian",
+          "zm_yunxi",
+          "zm_yunxia",
+          "zm_yunyang"
+        ]
       },
-      "source_repository": "thewh1teagle/kokoro-onnx",
-      "source_revision": "model-files-v1.0",
-      "source_type": "github-release",
+      "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX",
+      "source_revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+      "source_type": "huggingface",
       "assets": [
         {
-          "source": "kokoro-v1.0.onnx",
+          "source": "onnx/model.onnx",
           "name": "kokoro-v1.0.onnx",
           "role": "model",
           "quality": "fp32",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 325532232,
+          "sha256": "8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb"
         },
         {
-          "source": "kokoro-v1.0.fp16.onnx",
+          "source": "onnx/model_fp16.onnx",
           "name": "kokoro-v1.0.fp16.onnx",
           "role": "model",
           "quality": "fp16",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 163234740,
+          "sha256": "ba4527a874b42b21e35f468c10d326fdff3c7fc8cac1f85e9eb6c0dfc35c334a"
         },
         {
-          "source": "kokoro-v1.0.fp16-gpu.onnx",
-          "name": "kokoro-v1.0.fp16-gpu.onnx",
+          "source": "onnx/model_quantized.onnx",
+          "name": "kokoro-v1.0.q8.onnx",
           "role": "model",
-          "quality": "fp16-gpu",
-          "format": "onnx"
+          "quality": "q8",
+          "format": "onnx",
+          "size": 92361116,
+          "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478"
         },
         {
-          "source": "kokoro-v1.0.int8.onnx",
-          "name": "kokoro-v1.0.int8.onnx",
+          "source": "onnx/model_q8f16.onnx",
+          "name": "kokoro-v1.0.q8f16.onnx",
           "role": "model",
-          "quality": "int8",
-          "format": "onnx"
+          "quality": "q8f16",
+          "format": "onnx",
+          "size": 86033585,
+          "sha256": "04c658aec1b6008857c2ad10f8c589d4180d0ec427e7e6118ceb487e215c3cd0"
         },
         {
-          "source": "voices-v1.0.bin",
-          "name": "voices-v1.0.bin",
-          "role": "voices",
-          "format": "numpy-npz"
+          "source": "onnx/model_q4.onnx",
+          "name": "kokoro-v1.0.q4.onnx",
+          "role": "model",
+          "quality": "q4",
+          "format": "onnx",
+          "size": 305215966,
+          "sha256": "04cf570cf9c4153694f76347ed4b9a48c1b59ff1de0999e6605d123966b197c7"
+        },
+        {
+          "source": "onnx/model_q4f16.onnx",
+          "name": "kokoro-v1.0.q4f16.onnx",
+          "role": "model",
+          "quality": "q4f16",
+          "format": "onnx",
+          "size": 154586422,
+          "sha256": "d1a508a6a29671ead84fac99c7401fbd3c21a583fc6ed1406d1ec974d53bf45f"
+        },
+        {
+          "source": "onnx/model_uint8.onnx",
+          "name": "kokoro-v1.0.uint8.onnx",
+          "role": "model",
+          "quality": "uint8",
+          "format": "onnx",
+          "size": 177464632,
+          "sha256": "6607a397d77b8514065420b7c1e7320117f7aabfdb45ce15f0050c5b0fe75aea"
+        },
+        {
+          "source": "onnx/model_uint8f16.onnx",
+          "name": "kokoro-v1.0.uint8f16.onnx",
+          "role": "model",
+          "quality": "uint8f16",
+          "format": "onnx",
+          "size": 114209226,
+          "sha256": "883333e03c597584b532eebea0f8310f25f0c9ade58fe864792c12d969944a9a"
+        },
+        {
+          "source": "tokenizer.json",
+          "name": "vocab-v1.0.json",
+          "role": "vocab",
+          "format": "json",
+          "transform": "vocabulary",
+          "source_size": 3497,
+          "source_sha256": "77a02c8e164413299b4b4c403b14f8e0e1c1b727db4d46a09d6327b861060a34",
+          "size": 1385,
+          "sha256": "f7fbd75b0e0a176525e3f233a8d21fa9a45f3bbc9dda6205c58a97c9fa0d5b3a"
         }
-      ]
+      ],
+      "voice_pack": {
+        "source_prefix": "voices/",
+        "source_suffix": ".bin",
+        "source_format": "raw-float32-le",
+        "target": "voices-v1.0.npz",
+        "target_format": "numpy-npz",
+        "voices_from_runtime": true,
+        "expected_count": 54,
+        "dtype": "float32",
+        "style_width": 256,
+        "source_assets": [
+          {
+            "name": "af_alloy",
+            "path": "voices/af_alloy.bin",
+            "size": 522240,
+            "sha256": "c4a6b876047fd7fb472edf4ebd63cfac7c3b958a7cae7c106e8f038ca6308c45"
+          },
+          {
+            "name": "af_aoede",
+            "path": "voices/af_aoede.bin",
+            "size": 522240,
+            "sha256": "4a004c33430762e2461eedb2013fad808ef4ab3121f5300f554476caf58d8361"
+          },
+          {
+            "name": "af_bella",
+            "path": "voices/af_bella.bin",
+            "size": 522240,
+            "sha256": "f69d836209b78eb8c66e75e3cda491e26ea838a3674257e9d4e5703cbaf55c8b"
+          },
+          {
+            "name": "af_heart",
+            "path": "voices/af_heart.bin",
+            "size": 522240,
+            "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b"
+          },
+          {
+            "name": "af_jessica",
+            "path": "voices/af_jessica.bin",
+            "size": 522240,
+            "sha256": "a240a5e3c15b43563d6e923bdca8ef5613a23471d9b77653694012435df23bd8"
+          },
+          {
+            "name": "af_kore",
+            "path": "voices/af_kore.bin",
+            "size": 522240,
+            "sha256": "9be5221b6a941c04b561959b8ff0b06e809444dcc4ab7e75a7b23606f691819e"
+          },
+          {
+            "name": "af_nicole",
+            "path": "voices/af_nicole.bin",
+            "size": 522240,
+            "sha256": "cd2191ab31b914ed7b318416b0e4440fdf392ddad9106a060819aa600a64f59a"
+          },
+          {
+            "name": "af_nova",
+            "path": "voices/af_nova.bin",
+            "size": 522240,
+            "sha256": "18778272caa0d0eebaea251c35fd635f038434f9eee5e691d02a174bd328414f"
+          },
+          {
+            "name": "af_river",
+            "path": "voices/af_river.bin",
+            "size": 522240,
+            "sha256": "00a2bcf82b1d86e8f19902ede58c65ccf6c0e43b44b7d74fad54e5d8933c9c30"
+          },
+          {
+            "name": "af_sarah",
+            "path": "voices/af_sarah.bin",
+            "size": 522240,
+            "sha256": "4409fbc125afabacc615d94db5398d847006a737b0247d6892b7a9a0007a2f0a"
+          },
+          {
+            "name": "af_sky",
+            "path": "voices/af_sky.bin",
+            "size": 522240,
+            "sha256": "4435255c9744f3f31659e0d714ab7689bf65d9e77ec1cce060f083912614f0b9"
+          },
+          {
+            "name": "am_adam",
+            "path": "voices/am_adam.bin",
+            "size": 522240,
+            "sha256": "162b035ed91cfc48b6046982184c645f72edcdd1b82843347f605d7bf7b15716"
+          },
+          {
+            "name": "am_echo",
+            "path": "voices/am_echo.bin",
+            "size": 522240,
+            "sha256": "3968b92c3c4cd1c4416dbded36c13eaa388a90d5788d02a13e4d781f5f8cf3c3"
+          },
+          {
+            "name": "am_eric",
+            "path": "voices/am_eric.bin",
+            "size": 522240,
+            "sha256": "e8b5be17edd1e3636901ce7598baafe2dc8dd8ff707a0c23bf9e461add7e2832"
+          },
+          {
+            "name": "am_fenrir",
+            "path": "voices/am_fenrir.bin",
+            "size": 522240,
+            "sha256": "c27989f741f7ee34d273a39d8a595cc0837d35f5ced9a29b7cc162614616df43"
+          },
+          {
+            "name": "am_liam",
+            "path": "voices/am_liam.bin",
+            "size": 522240,
+            "sha256": "52403be32fd047c6a44517cb0bcd6b134f2a18baa73e70ef41651e0eab921ade"
+          },
+          {
+            "name": "am_michael",
+            "path": "voices/am_michael.bin",
+            "size": 522240,
+            "sha256": "1d1f21dd8da39c30705cd4c75d039d265e9bc4a2a93ed09bc9e1b1225eb95ba1"
+          },
+          {
+            "name": "am_onyx",
+            "path": "voices/am_onyx.bin",
+            "size": 522240,
+            "sha256": "da5d135b424164916d75a68ffb4c2abce3d7d5ccc82dd1ee6cf447ce286145e6"
+          },
+          {
+            "name": "am_puck",
+            "path": "voices/am_puck.bin",
+            "size": 522240,
+            "sha256": "fcf73c989033e9233e0b98713eca600c8c74dcc1614b37009d5450ff4a2274a0"
+          },
+          {
+            "name": "am_santa",
+            "path": "voices/am_santa.bin",
+            "size": 522240,
+            "sha256": "61150cf726ab6c5ed7a99f90a304f91f5a72c00c592e89ec94e5df11c319227a"
+          },
+          {
+            "name": "bf_alice",
+            "path": "voices/bf_alice.bin",
+            "size": 522240,
+            "sha256": "08afa6ba24da61ea5e8efa139e5aadc938d83f0a6da5a900adaf763ac1da5573"
+          },
+          {
+            "name": "bf_emma",
+            "path": "voices/bf_emma.bin",
+            "size": 522240,
+            "sha256": "669fe0647f9dd04fcab92f1439a40eeb4c8b4ab1f82e4996fe3d918ce4a63b73"
+          },
+          {
+            "name": "bf_isabella",
+            "path": "voices/bf_isabella.bin",
+            "size": 522240,
+            "sha256": "3754352c4aaa46d17f27654ab7518d65b62ad6163a0f55a5f4330c2da2c4e94f"
+          },
+          {
+            "name": "bf_lily",
+            "path": "voices/bf_lily.bin",
+            "size": 522240,
+            "sha256": "5e0ee32ebe64a467124976b14e69590746f1c4ce41a12b587a50c862edfea335"
+          },
+          {
+            "name": "bm_daniel",
+            "path": "voices/bm_daniel.bin",
+            "size": 522240,
+            "sha256": "6b3194bbceffb746733cbc22c8f593dd44e401a71d53895a2dca891bc595a1e8"
+          },
+          {
+            "name": "bm_fable",
+            "path": "voices/bm_fable.bin",
+            "size": 522240,
+            "sha256": "f889083196807b4adb15e9204252165f503b8d33d3982e681c52443c49d798f1"
+          },
+          {
+            "name": "bm_george",
+            "path": "voices/bm_george.bin",
+            "size": 522240,
+            "sha256": "c4b235a4c1f2cd3b939fed08b899ce9385638b763f7b73a59616c4fc9bd6c9bc"
+          },
+          {
+            "name": "bm_lewis",
+            "path": "voices/bm_lewis.bin",
+            "size": 522240,
+            "sha256": "b8f671cef828c30e66fdf0b0756a76bba58f6bb3398cbbf27058642acbcedb97"
+          },
+          {
+            "name": "ef_dora",
+            "path": "voices/ef_dora.bin",
+            "size": 522240,
+            "sha256": "f66ec66bd295acb18372e37008533a9a3228483ccd294e7538d5d9294ac9a532"
+          },
+          {
+            "name": "em_alex",
+            "path": "voices/em_alex.bin",
+            "size": 522240,
+            "sha256": "27809e9eafdcbcfff90a3016c697568676531de2a2c39cee29c96c7bd6b83e95"
+          },
+          {
+            "name": "em_santa",
+            "path": "voices/em_santa.bin",
+            "size": 522240,
+            "sha256": "ad43b774e1ca24d05c6161297d8aeb770ac3d29bb95daf516727af5f7d543683"
+          },
+          {
+            "name": "ff_siwis",
+            "path": "voices/ff_siwis.bin",
+            "size": 522240,
+            "sha256": "a35f5675ad08948e326ae75fd0ea16ba5d0042e4f76b5f3d1df77d0a48c54861"
+          },
+          {
+            "name": "hf_alpha",
+            "path": "voices/hf_alpha.bin",
+            "size": 522240,
+            "sha256": "040be6a4425411cc01fda5fd06693c76bfa78572632852bc8cda9c99232ffb56"
+          },
+          {
+            "name": "hf_beta",
+            "path": "voices/hf_beta.bin",
+            "size": 522240,
+            "sha256": "cd83ae0bb9b2e4e4fb92b4973bd8d1822ca0036d3c498bf4fc89aa8e33917cc7"
+          },
+          {
+            "name": "hm_omega",
+            "path": "voices/hm_omega.bin",
+            "size": 522240,
+            "sha256": "b02d9222d9ed00ce26b302173a862c2c93f96cc40b5c422b8d14910b9ff34137"
+          },
+          {
+            "name": "hm_psi",
+            "path": "voices/hm_psi.bin",
+            "size": 522240,
+            "sha256": "644daf88ba8aeb7bd08950bbdcd4453bb280864e49dc4df93fabc6be32e03f37"
+          },
+          {
+            "name": "if_sara",
+            "path": "voices/if_sara.bin",
+            "size": 522240,
+            "sha256": "409b69248798fcdc2542330c76953d230710f19b057e59cb82fdc3c4cf71265c"
+          },
+          {
+            "name": "im_nicola",
+            "path": "voices/im_nicola.bin",
+            "size": 522240,
+            "sha256": "bc578e510d52a96d6940d46f12e96d7b3df00905dbea075113226d100e6e1ab0"
+          },
+          {
+            "name": "jf_alpha",
+            "path": "voices/jf_alpha.bin",
+            "size": 522240,
+            "sha256": "56b479360aad9f367aeb8cef908f9201cf48b4555e488c5f4590c9dfcd978bb6"
+          },
+          {
+            "name": "jf_gongitsune",
+            "path": "voices/jf_gongitsune.bin",
+            "size": 522240,
+            "sha256": "0f1181f3772d27b7c12aaf4bcd71e31b186c4146e330d074a3dc64ee392af396"
+          },
+          {
+            "name": "jf_nezumi",
+            "path": "voices/jf_nezumi.bin",
+            "size": 522240,
+            "sha256": "13cb71eebb0b48739d444558322aa35a8c9a489b80e1e631f14d2e6aea93026b"
+          },
+          {
+            "name": "jf_tebukuro",
+            "path": "voices/jf_tebukuro.bin",
+            "size": 522240,
+            "sha256": "29c6c0561b4288d59639677bebe7533c919743d5ea68d0d2ae992644beea6696"
+          },
+          {
+            "name": "jm_kumo",
+            "path": "voices/jm_kumo.bin",
+            "size": 522240,
+            "sha256": "09e959d239724c734d65661f06f14cdabcddfd476bfaaad905a937099ae9e64f"
+          },
+          {
+            "name": "pf_dora",
+            "path": "voices/pf_dora.bin",
+            "size": 522240,
+            "sha256": "3da7b5b2d91847ebf5646f57631af6ececae3c29a89cd300f06edf9aa6cfe9ee"
+          },
+          {
+            "name": "pm_alex",
+            "path": "voices/pm_alex.bin",
+            "size": 522240,
+            "sha256": "0175c753f59c54e7fd5a995bedef0c5ff2fb67e0043dd3dcb2ae74ec2acbeb2a"
+          },
+          {
+            "name": "pm_santa",
+            "path": "voices/pm_santa.bin",
+            "size": 522240,
+            "sha256": "8b012db3185778afe2e45a62cbad69db73021774fe68dda634bcc748a982eede"
+          },
+          {
+            "name": "zf_xiaobei",
+            "path": "voices/zf_xiaobei.bin",
+            "size": 522240,
+            "sha256": "5dde6e1c9c4f12c8b327bc29c0cee361a23b52b952c04636858ba637ec66e640"
+          },
+          {
+            "name": "zf_xiaoni",
+            "path": "voices/zf_xiaoni.bin",
+            "size": 522240,
+            "sha256": "08892b62a39af0a615cd0581238db7e19e44c578e8fa0bfd0e586e93327d9cba"
+          },
+          {
+            "name": "zf_xiaoxiao",
+            "path": "voices/zf_xiaoxiao.bin",
+            "size": 522240,
+            "sha256": "03adb5d5e3ddd88b047954e974e651cb0a4b524c985057e5d872e962c7be1169"
+          },
+          {
+            "name": "zf_xiaoyi",
+            "path": "voices/zf_xiaoyi.bin",
+            "size": 522240,
+            "sha256": "bc1555c5c486099196ac254bae5e0bb543c121952a3092f50b7d8724f1bc36b3"
+          },
+          {
+            "name": "zm_yunjian",
+            "path": "voices/zm_yunjian.bin",
+            "size": 522240,
+            "sha256": "de48a00bdbf3649f07162269a2b6e0513604389bfac8a2e6c75cb34b323ad6fa"
+          },
+          {
+            "name": "zm_yunxi",
+            "path": "voices/zm_yunxi.bin",
+            "size": 522240,
+            "sha256": "7243892fb4e560d47014090ddf010f8b8b790f3c6b029ff82b2ac06aa4e27c8b"
+          },
+          {
+            "name": "zm_yunxia",
+            "path": "voices/zm_yunxia.bin",
+            "size": 522240,
+            "sha256": "6b2b8fc15b3df19a368daebe5c581c7fabf433ee5b8a17ffd6b3d723cff8936d"
+          },
+          {
+            "name": "zm_yunyang",
+            "path": "voices/zm_yunyang.bin",
+            "size": 522240,
+            "sha256": "261e2c89470534dbbcb8fd98b8fdc495ec94063d9bb6c8277f7be43cccba3f42"
+          }
+        ]
+      }
     },
     "v1.1-zh": {
       "kind": "mirror",
@@ -64,40 +505,831 @@
       "frontend": "pykokoro-native-v1",
       "runtime": {
         "default_voice": "af_maple",
-        "voices": ["af_maple"]
+        "voices": [
+          "af_maple",
+          "af_sol",
+          "bf_vale",
+          "zf_001",
+          "zf_002",
+          "zf_003",
+          "zf_004",
+          "zf_005",
+          "zf_006",
+          "zf_007",
+          "zf_008",
+          "zf_017",
+          "zf_018",
+          "zf_019",
+          "zf_021",
+          "zf_022",
+          "zf_023",
+          "zf_024",
+          "zf_026",
+          "zf_027",
+          "zf_028",
+          "zf_032",
+          "zf_036",
+          "zf_038",
+          "zf_039",
+          "zf_040",
+          "zf_042",
+          "zf_043",
+          "zf_044",
+          "zf_046",
+          "zf_047",
+          "zf_048",
+          "zf_049",
+          "zf_051",
+          "zf_059",
+          "zf_060",
+          "zf_067",
+          "zf_070",
+          "zf_071",
+          "zf_072",
+          "zf_073",
+          "zf_074",
+          "zf_075",
+          "zf_076",
+          "zf_077",
+          "zf_078",
+          "zf_079",
+          "zf_083",
+          "zf_084",
+          "zf_085",
+          "zf_086",
+          "zf_087",
+          "zf_088",
+          "zf_090",
+          "zf_092",
+          "zf_093",
+          "zf_094",
+          "zf_099",
+          "zm_009",
+          "zm_010",
+          "zm_011",
+          "zm_012",
+          "zm_013",
+          "zm_014",
+          "zm_015",
+          "zm_016",
+          "zm_020",
+          "zm_025",
+          "zm_029",
+          "zm_030",
+          "zm_031",
+          "zm_033",
+          "zm_034",
+          "zm_035",
+          "zm_037",
+          "zm_041",
+          "zm_045",
+          "zm_050",
+          "zm_052",
+          "zm_053",
+          "zm_054",
+          "zm_055",
+          "zm_056",
+          "zm_057",
+          "zm_058",
+          "zm_061",
+          "zm_062",
+          "zm_063",
+          "zm_064",
+          "zm_065",
+          "zm_066",
+          "zm_068",
+          "zm_069",
+          "zm_080",
+          "zm_081",
+          "zm_082",
+          "zm_089",
+          "zm_091",
+          "zm_095",
+          "zm_096",
+          "zm_097",
+          "zm_098",
+          "zm_100"
+        ]
       },
-      "source_repository": "thewh1teagle/kokoro-onnx",
-      "source_revision": "model-files-v1.1",
-      "source_type": "github-release",
+      "source_repository": "onnx-community/Kokoro-82M-v1.1-zh-ONNX",
+      "source_revision": "6cc0f0d2ebe369a68b0df87c2b65c1af8c0ac3e3",
+      "source_type": "huggingface",
       "assets": [
         {
-          "source": "kokoro-v1.1-zh.onnx",
+          "source": "onnx/model.onnx",
           "name": "kokoro-v1.1-zh.onnx",
           "role": "model",
           "quality": "fp32",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 339369442,
+          "sha256": "94b973941b1852754f979be5d5e20be666d5c81d9bb886b88ae1dc85c9b895ca"
         },
         {
-          "source": "kokoro-v1.1-zh.fp16.onnx",
+          "source": "onnx/model_fp16.onnx",
           "name": "kokoro-v1.1-zh.fp16.onnx",
           "role": "model",
           "quality": "fp16",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 163630554,
+          "sha256": "d59cb626c885c91acb7ecf7250f26f9915ad0af99b770572000d90b598c3dfbc"
         },
         {
-          "source": "kokoro-v1.1-zh.int8.onnx",
+          "source": "onnx/model_quantized.onnx",
+          "name": "kokoro-v1.1-zh.q8.onnx",
+          "role": "model",
+          "quality": "q8",
+          "format": "onnx",
+          "size": 127356597,
+          "sha256": "a39469be791eeaa3089c1ed5e58b8731d1f2462ea0e7dae2bc44388e58f973d8"
+        },
+        {
+          "source": "onnx/model_int8.onnx",
           "name": "kokoro-v1.1-zh.int8.onnx",
           "role": "model",
           "quality": "int8",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 127356504,
+          "sha256": "58b9b997faeaf42b427bac24c8a6246b236b0561311f6b118318cd9d2f47acb1"
         },
         {
-          "source": "voices-v1.1-zh.bin",
-          "name": "voices-v1.1-zh.bin",
-          "role": "voices",
-          "format": "raw-float32-le"
+          "source": "onnx/model_q4.onnx",
+          "name": "kokoro-v1.1-zh.q4.onnx",
+          "role": "model",
+          "quality": "q4",
+          "format": "onnx",
+          "size": 341021906,
+          "sha256": "dbf3e5a505c4e453303de84d941d51271f5b460956d9b911dea310a90c88b7c2"
+        },
+        {
+          "source": "onnx/model_q4f16.onnx",
+          "name": "kokoro-v1.1-zh.q4f16.onnx",
+          "role": "model",
+          "quality": "q4f16",
+          "format": "onnx",
+          "size": 165976977,
+          "sha256": "9ee7ca1ace506c7dc983d0c9a20c7edfcb08c2027645ae4450afa3dbbd8a57ef"
+        },
+        {
+          "source": "onnx/model_uint8.onnx",
+          "name": "kokoro-v1.1-zh.uint8.onnx",
+          "role": "model",
+          "quality": "uint8",
+          "format": "onnx",
+          "size": 127356597,
+          "sha256": "a39469be791eeaa3089c1ed5e58b8731d1f2462ea0e7dae2bc44388e58f973d8"
+        },
+        {
+          "source": "onnx/model_bnb4.onnx",
+          "name": "kokoro-v1.1-zh.bnb4.onnx",
+          "role": "model",
+          "quality": "bnb4",
+          "format": "onnx",
+          "size": 340645586,
+          "sha256": "71d417643add4820933a7ae552074eb3dc646e622cf022bcd69dbbfea4332338"
+        },
+        {
+          "source": "tokenizer.json",
+          "name": "vocab-v1.1-zh.json",
+          "role": "vocab",
+          "format": "json",
+          "transform": "vocabulary",
+          "source_size": 4944,
+          "source_sha256": "5715a60b09d5e4b9074435d68c6ccd5675b9d48b220e109fdea3cda681e23d15",
+          "size": 2151,
+          "sha256": "354cbcb7d2d0e184291229dd0d7656256ec3edc004b53e9605ab973a507edd19"
         }
-      ]
+      ],
+      "voice_pack": {
+        "source_prefix": "voices/",
+        "source_suffix": ".bin",
+        "source_format": "raw-float32-le",
+        "target": "voices-v1.1-zh.npz",
+        "target_format": "numpy-npz",
+        "voices_from_runtime": true,
+        "expected_count": 103,
+        "dtype": "float32",
+        "style_width": 256,
+        "source_assets": [
+          {
+            "name": "af_maple",
+            "path": "voices/af_maple.bin",
+            "size": 522240,
+            "sha256": "bd5b230b916ea98c67a3a7a833a3ce43e535ce56a81503f4166ee9390b9ddeeb"
+          },
+          {
+            "name": "af_sol",
+            "path": "voices/af_sol.bin",
+            "size": 522240,
+            "sha256": "87c1d6d6a3f13f89ed54a6a67cc1ff75b926aebc3a2aac3086e6dd109a8147e6"
+          },
+          {
+            "name": "bf_vale",
+            "path": "voices/bf_vale.bin",
+            "size": 522240,
+            "sha256": "2536f7922d31d96e994135ac2bb73f5a3c01326476200513c57d988822c6ca4d"
+          },
+          {
+            "name": "zf_001",
+            "path": "voices/zf_001.bin",
+            "size": 522240,
+            "sha256": "0a89ec12bb93fb9c74077924daf02568baad64e1f869389f5aaee01a386035f8"
+          },
+          {
+            "name": "zf_002",
+            "path": "voices/zf_002.bin",
+            "size": 522240,
+            "sha256": "452f96e1e3c20b14b228b5336a8d7e833b105f837d98ef53b4ddfce18eed39bf"
+          },
+          {
+            "name": "zf_003",
+            "path": "voices/zf_003.bin",
+            "size": 522240,
+            "sha256": "a70654663d013a700f8afe42d57d1ce03ff49af8bdedbbb56c7e3da6e820b788"
+          },
+          {
+            "name": "zf_004",
+            "path": "voices/zf_004.bin",
+            "size": 522240,
+            "sha256": "81fe28be1c496ccffa73078d5c2e6d9cc5e5f91e354d6ae0f494a9c28a42064d"
+          },
+          {
+            "name": "zf_005",
+            "path": "voices/zf_005.bin",
+            "size": 522240,
+            "sha256": "a91d2c2adecbb7c191dac4fa35e213e8d370e0c733a9bf36797f513924dcb84c"
+          },
+          {
+            "name": "zf_006",
+            "path": "voices/zf_006.bin",
+            "size": 522240,
+            "sha256": "52dee405a0e609d6d2869eef05984745db435a73aea49db7418494d5cb53bf9d"
+          },
+          {
+            "name": "zf_007",
+            "path": "voices/zf_007.bin",
+            "size": 522240,
+            "sha256": "23b6c4312208de7f195e4e78eef0ec9e498cd52907b1678ecb7a0a1996a51573"
+          },
+          {
+            "name": "zf_008",
+            "path": "voices/zf_008.bin",
+            "size": 522240,
+            "sha256": "23e20843a71fb8c5f6b984c8d4e74dd590251aeb8f620cb07a57e1485d726b0c"
+          },
+          {
+            "name": "zf_017",
+            "path": "voices/zf_017.bin",
+            "size": 522240,
+            "sha256": "9c6513e77a8efb7172a4e4ebeb48b3b010152d8cd6a0f2fa1adb353248fd91ed"
+          },
+          {
+            "name": "zf_018",
+            "path": "voices/zf_018.bin",
+            "size": 522240,
+            "sha256": "a9ee6566c7500ce90cbd177f1d6f6cae533356e5f0e37edf3adbd0a8f2d44020"
+          },
+          {
+            "name": "zf_019",
+            "path": "voices/zf_019.bin",
+            "size": 522240,
+            "sha256": "ab5906846335ac1227c47fd04be8b7b10a47c3ee77729296cc4c0f3f8fe79073"
+          },
+          {
+            "name": "zf_021",
+            "path": "voices/zf_021.bin",
+            "size": 522240,
+            "sha256": "c16f939c566f786150be3e3cb6a61f7fd8d4214a26a46d3e80e1d61de06d54ec"
+          },
+          {
+            "name": "zf_022",
+            "path": "voices/zf_022.bin",
+            "size": 522240,
+            "sha256": "c1cde40b2fd522355d2ae152d06d1033b04ad3528b7273cf25dd68f28a5563db"
+          },
+          {
+            "name": "zf_023",
+            "path": "voices/zf_023.bin",
+            "size": 522240,
+            "sha256": "d02846dc3b8a89b4f81634b407ce8dd30d80db40fc952d54f05853a8e26a2190"
+          },
+          {
+            "name": "zf_024",
+            "path": "voices/zf_024.bin",
+            "size": 522240,
+            "sha256": "2d0f2df7b25482f6870cfbe8e83c7d1e74ed8ef8ae72df749207ea9cec7c9102"
+          },
+          {
+            "name": "zf_026",
+            "path": "voices/zf_026.bin",
+            "size": 522240,
+            "sha256": "2a2434fed129796276c61947fc65bf7dadd569468ea4edaca81f3d59802bdc32"
+          },
+          {
+            "name": "zf_027",
+            "path": "voices/zf_027.bin",
+            "size": 522240,
+            "sha256": "9301e7a0b80eedff7f314076e07f9eb74b687afb7fcb2c64ca94168469858aae"
+          },
+          {
+            "name": "zf_028",
+            "path": "voices/zf_028.bin",
+            "size": 522240,
+            "sha256": "8d15e55ad315708010c1528c633828e3179d5cbf0bfcd2db0fec27f63001eaec"
+          },
+          {
+            "name": "zf_032",
+            "path": "voices/zf_032.bin",
+            "size": 522240,
+            "sha256": "2ab0b9b1fe2f1e4cfa08b0126581df3316c12aadeadc51136c826255debd2058"
+          },
+          {
+            "name": "zf_036",
+            "path": "voices/zf_036.bin",
+            "size": 522240,
+            "sha256": "b72873066ef9d57d4ea0605d32a82b2655010af51edbaecd6f926250d84efa4e"
+          },
+          {
+            "name": "zf_038",
+            "path": "voices/zf_038.bin",
+            "size": 522240,
+            "sha256": "569bb54ebf05c00c89eaf56218992474a8a0494d8f94a14e933ae6a5ea9f7e31"
+          },
+          {
+            "name": "zf_039",
+            "path": "voices/zf_039.bin",
+            "size": 522240,
+            "sha256": "92ad68f36d16860dcf125fdf87a4572c7ab6d7efbe6a7197d6772242a2cbbb56"
+          },
+          {
+            "name": "zf_040",
+            "path": "voices/zf_040.bin",
+            "size": 522240,
+            "sha256": "bae25bd2c4dd717ce65effa2350b28a55a73f53a0bcc2cca5876a15e984eaa2d"
+          },
+          {
+            "name": "zf_042",
+            "path": "voices/zf_042.bin",
+            "size": 522240,
+            "sha256": "713160091b44d962ab73e3bf66f0c2f0b9677aaf0c2f0e62faa94ed451540d1e"
+          },
+          {
+            "name": "zf_043",
+            "path": "voices/zf_043.bin",
+            "size": 522240,
+            "sha256": "7d257954b651436e354712738b22e8365ed908923a5d0f154690188b2c73ea78"
+          },
+          {
+            "name": "zf_044",
+            "path": "voices/zf_044.bin",
+            "size": 522240,
+            "sha256": "e166c8b2a680d3f51f1765cedc4ed7a29308ea40081b03347d5cd95f52119cc0"
+          },
+          {
+            "name": "zf_046",
+            "path": "voices/zf_046.bin",
+            "size": 522240,
+            "sha256": "73e8881e76670cfe803c8ab0ccc6b5daae22efdc3a67f8e0e80658a4be21d3af"
+          },
+          {
+            "name": "zf_047",
+            "path": "voices/zf_047.bin",
+            "size": 522240,
+            "sha256": "620f92a680c5a28bd8eb601738721047b73008bdf5b880f34075181afbfdcb62"
+          },
+          {
+            "name": "zf_048",
+            "path": "voices/zf_048.bin",
+            "size": 522240,
+            "sha256": "24e0aa66d1cb264e86adac5ea143f7fb0a9672a8b237ba1ad017aacc1fb0290a"
+          },
+          {
+            "name": "zf_049",
+            "path": "voices/zf_049.bin",
+            "size": 522240,
+            "sha256": "4808ba6dfc1c13af9921bb5072faf875b69bc54777281eb549592b1aa7e8a4bc"
+          },
+          {
+            "name": "zf_051",
+            "path": "voices/zf_051.bin",
+            "size": 522240,
+            "sha256": "64df55d707d3c28dec15c5c9051653b6a6cbbbf85c52e56183d3922e53415e76"
+          },
+          {
+            "name": "zf_059",
+            "path": "voices/zf_059.bin",
+            "size": 522240,
+            "sha256": "f12fd6e34f602445173f930c4f41b4d064e1a981b39b664591ad2476fb7425cc"
+          },
+          {
+            "name": "zf_060",
+            "path": "voices/zf_060.bin",
+            "size": 522240,
+            "sha256": "429ad8ffb6fc8b68d3b77f2ccafba5be50e4ec31d25f890d739a16449ca01748"
+          },
+          {
+            "name": "zf_067",
+            "path": "voices/zf_067.bin",
+            "size": 522240,
+            "sha256": "5669caef309a3746a47588d893d58fa61c721a94ca07e431c732ea9a2b4abc6a"
+          },
+          {
+            "name": "zf_070",
+            "path": "voices/zf_070.bin",
+            "size": 522240,
+            "sha256": "f225305611865b09dc8cb36439143c02a404299b00508e00676655bb117342e2"
+          },
+          {
+            "name": "zf_071",
+            "path": "voices/zf_071.bin",
+            "size": 522240,
+            "sha256": "454cd5aaa9458f3b028e973d19902a002eb59fc743eb94fb3c7c9d5d7a190a07"
+          },
+          {
+            "name": "zf_072",
+            "path": "voices/zf_072.bin",
+            "size": 522240,
+            "sha256": "2274b572b44723e80eee422a914c96b37ee42bf9b5ca60e7f656bede7860a1d3"
+          },
+          {
+            "name": "zf_073",
+            "path": "voices/zf_073.bin",
+            "size": 522240,
+            "sha256": "b8ecf6945ae7bb2a0353422b7af32d3b928c5fdccf3ea553bc61227a57bf4a2c"
+          },
+          {
+            "name": "zf_074",
+            "path": "voices/zf_074.bin",
+            "size": 522240,
+            "sha256": "8e6726977c7494dfd567c580963630834c0971f66111e06c9467e6f7d912ea1e"
+          },
+          {
+            "name": "zf_075",
+            "path": "voices/zf_075.bin",
+            "size": 522240,
+            "sha256": "84e70ca9aac5178ceaeb1eae95dd77278d71e60cfacaf9af99852922b4355560"
+          },
+          {
+            "name": "zf_076",
+            "path": "voices/zf_076.bin",
+            "size": 522240,
+            "sha256": "58351a1be5aa04f874bea0e5228fc0e0047dc2ee801e915d4f59513ca60a3194"
+          },
+          {
+            "name": "zf_077",
+            "path": "voices/zf_077.bin",
+            "size": 522240,
+            "sha256": "e2fd07f3b62e204cd6632696e2a975678e7e6aa5a9b2cb4927f94d875c113625"
+          },
+          {
+            "name": "zf_078",
+            "path": "voices/zf_078.bin",
+            "size": 522240,
+            "sha256": "82d591700a9ecb3cb14d3d05ec5aab18bd7a482d677bf6522cf96ed4c064b23b"
+          },
+          {
+            "name": "zf_079",
+            "path": "voices/zf_079.bin",
+            "size": 522240,
+            "sha256": "2df9a9fbbd39a54077a2c5073c04c7e685ce0342b34f22fc85c25a1f7a3954c7"
+          },
+          {
+            "name": "zf_083",
+            "path": "voices/zf_083.bin",
+            "size": 522240,
+            "sha256": "5557cbc381e0f2cd2a29759fdda25eca664492f1cfa3fcc241e7adeaf4164661"
+          },
+          {
+            "name": "zf_084",
+            "path": "voices/zf_084.bin",
+            "size": 522240,
+            "sha256": "2b2d4fdefa9a6c3d9f472d91600308be8b827a929955ec66afe81aca50c99968"
+          },
+          {
+            "name": "zf_085",
+            "path": "voices/zf_085.bin",
+            "size": 522240,
+            "sha256": "2451d63f576c9ffbe91acd11f2720b6e76dc75b293d7350a9620a28c23da9ef8"
+          },
+          {
+            "name": "zf_086",
+            "path": "voices/zf_086.bin",
+            "size": 522240,
+            "sha256": "c228ba018bf56d5de1339bde10dcbea7700797b85351e4d57ee5307ac7d3ee99"
+          },
+          {
+            "name": "zf_087",
+            "path": "voices/zf_087.bin",
+            "size": 522240,
+            "sha256": "e0347f1430b80781d910bf1499cf64d231c34b70d6e46f30f3598254d5114d44"
+          },
+          {
+            "name": "zf_088",
+            "path": "voices/zf_088.bin",
+            "size": 522240,
+            "sha256": "ee1e80cdeaffb55e1f6c41005c4966b8979b16bb808fa451739e06953d343c13"
+          },
+          {
+            "name": "zf_090",
+            "path": "voices/zf_090.bin",
+            "size": 522240,
+            "sha256": "fe90b3e651c3741edf6bc08a543c531c798ec53fab1fd944ab537e9257270c68"
+          },
+          {
+            "name": "zf_092",
+            "path": "voices/zf_092.bin",
+            "size": 522240,
+            "sha256": "ffd200defd2867f79886eb0e45540d53ed0dc00ceb222c5fa692f004958d3e11"
+          },
+          {
+            "name": "zf_093",
+            "path": "voices/zf_093.bin",
+            "size": 522240,
+            "sha256": "d736ac1738c5ba567f8e5e9bfac8d9a774e9e3a3d001b5976a5d005c9179f811"
+          },
+          {
+            "name": "zf_094",
+            "path": "voices/zf_094.bin",
+            "size": 522240,
+            "sha256": "b37b96e3c51d12f152c9476cae42396ac38cdab76f09cc935f2fbcd8fa012f42"
+          },
+          {
+            "name": "zf_099",
+            "path": "voices/zf_099.bin",
+            "size": 522240,
+            "sha256": "9582b2ffb5027c695f6775161a8856108fa68530c6c1e29d2354d455d9eaa937"
+          },
+          {
+            "name": "zm_009",
+            "path": "voices/zm_009.bin",
+            "size": 522240,
+            "sha256": "7b74d6ed22f201e2fa28758e78ce6197082779f2b80e69ea1bf877908609514a"
+          },
+          {
+            "name": "zm_010",
+            "path": "voices/zm_010.bin",
+            "size": 522240,
+            "sha256": "73b088f7e0dc47adca4d6a642ee68843df90ff56ec2800c29d96609989d6de0a"
+          },
+          {
+            "name": "zm_011",
+            "path": "voices/zm_011.bin",
+            "size": 522240,
+            "sha256": "ec4d7d934b9aa47e0e98e6ec802bb7b0a221be6f1b67d923d33b7082d9bbfe9f"
+          },
+          {
+            "name": "zm_012",
+            "path": "voices/zm_012.bin",
+            "size": 522240,
+            "sha256": "50d1986f71ea1a2b3ab1bfc0c95bedc59e8de45e650bc5bde87fd99ceb83cdfb"
+          },
+          {
+            "name": "zm_013",
+            "path": "voices/zm_013.bin",
+            "size": 522240,
+            "sha256": "2caa23e98910fb232a2bf6aab563666588a82bc37c99b67963ab304c5be66dff"
+          },
+          {
+            "name": "zm_014",
+            "path": "voices/zm_014.bin",
+            "size": 522240,
+            "sha256": "565aa48a99d8a196ebdd1c72f4a0e5760fed65aa95992c887385d3aad9e1d2f8"
+          },
+          {
+            "name": "zm_015",
+            "path": "voices/zm_015.bin",
+            "size": 522240,
+            "sha256": "e695c8d72b3eb4a864f4735db7f4f93de100ff62704e619edfddbebfafb07312"
+          },
+          {
+            "name": "zm_016",
+            "path": "voices/zm_016.bin",
+            "size": 522240,
+            "sha256": "4dc408a11f1e8925ff8bca40c885e7596d08be63c2c61571234b96170f8e6d1b"
+          },
+          {
+            "name": "zm_020",
+            "path": "voices/zm_020.bin",
+            "size": 522240,
+            "sha256": "2a25ca83ddfd003c0b82d97899ff38734db8faf48e5e4076d68c69aea17705c8"
+          },
+          {
+            "name": "zm_025",
+            "path": "voices/zm_025.bin",
+            "size": 522240,
+            "sha256": "cbb4cd1df85b5dde4cf742c61d9b93e179574935c1162d06604bc4be6a8e990d"
+          },
+          {
+            "name": "zm_029",
+            "path": "voices/zm_029.bin",
+            "size": 522240,
+            "sha256": "ff78cb9f64d43fe6179c9479257775bea94dc31eade9362b0c630749025d8ecd"
+          },
+          {
+            "name": "zm_030",
+            "path": "voices/zm_030.bin",
+            "size": 522240,
+            "sha256": "32f8fe4d5f626dfb67adb73499690fd4f5952763746efbcadcf2daad4a3560a6"
+          },
+          {
+            "name": "zm_031",
+            "path": "voices/zm_031.bin",
+            "size": 522240,
+            "sha256": "a5974232ed634be2ae40526101ee7c653120fdb354b1584f2bb38ed4fae4a39e"
+          },
+          {
+            "name": "zm_033",
+            "path": "voices/zm_033.bin",
+            "size": 522240,
+            "sha256": "758e64c15efad492beebf575eb96951e0500da980bf5e8a3850d078d0430dda1"
+          },
+          {
+            "name": "zm_034",
+            "path": "voices/zm_034.bin",
+            "size": 522240,
+            "sha256": "b371bef26b75c826de15c836103da3e037a44f605ffe744d68ad485d17e370ab"
+          },
+          {
+            "name": "zm_035",
+            "path": "voices/zm_035.bin",
+            "size": 522240,
+            "sha256": "8b1c603f6e1eae300ac1a6f1199a5bb1ce9814d3e1e61f7536d21b564d680476"
+          },
+          {
+            "name": "zm_037",
+            "path": "voices/zm_037.bin",
+            "size": 522240,
+            "sha256": "535ec47cb6ed66c203f61ace51eddbc7a13ecaca2458c1d8d5a928fb3db4b315"
+          },
+          {
+            "name": "zm_041",
+            "path": "voices/zm_041.bin",
+            "size": 522240,
+            "sha256": "8b7bd5649a00c62e87a6099eb31d683664bfb0fd55bcd5211da62e95b3b78ffc"
+          },
+          {
+            "name": "zm_045",
+            "path": "voices/zm_045.bin",
+            "size": 522240,
+            "sha256": "68d5e7f3415811a076326178c2d9f5d3aa168cf27deb6ae3f0395ab97ad45225"
+          },
+          {
+            "name": "zm_050",
+            "path": "voices/zm_050.bin",
+            "size": 522240,
+            "sha256": "7869f25a5e71ea9b67a1893777e375ac411bdbfb75feff5efe25fad2fc766c8d"
+          },
+          {
+            "name": "zm_052",
+            "path": "voices/zm_052.bin",
+            "size": 522240,
+            "sha256": "e775a71cd74c5462d5a6c3f0ff7681f04419053043ad2dcbabaa13d0c6de0b08"
+          },
+          {
+            "name": "zm_053",
+            "path": "voices/zm_053.bin",
+            "size": 522240,
+            "sha256": "a549dcf0456b2ba1515455e0a30d111b00d24e748880e03da1965cd4ff10baf7"
+          },
+          {
+            "name": "zm_054",
+            "path": "voices/zm_054.bin",
+            "size": 522240,
+            "sha256": "4f7aeb1627fa1d406bcc1a83e4eeb8b014509dca492dec0ae7dd4d0d1cdbe8b3"
+          },
+          {
+            "name": "zm_055",
+            "path": "voices/zm_055.bin",
+            "size": 522240,
+            "sha256": "3cf77a37899053b5a7c224f51a22371dc37d30667d87e1b481e760ac0f8f0da8"
+          },
+          {
+            "name": "zm_056",
+            "path": "voices/zm_056.bin",
+            "size": 522240,
+            "sha256": "d5f48143152f376a940182741589fb1f588387e09f1a9263760981f8702af816"
+          },
+          {
+            "name": "zm_057",
+            "path": "voices/zm_057.bin",
+            "size": 522240,
+            "sha256": "29cb23f82add956f25c7b663db2027d5a50abb7035c7cb15ee608e193a412f51"
+          },
+          {
+            "name": "zm_058",
+            "path": "voices/zm_058.bin",
+            "size": 522240,
+            "sha256": "0cafc2ef83710c4ce55b384107426cfdcb23aabf5699e106ff392f9571b4d4f3"
+          },
+          {
+            "name": "zm_061",
+            "path": "voices/zm_061.bin",
+            "size": 522240,
+            "sha256": "d57141bd480e7a4f1a3b5d3365ce53ac04cfe6dd9d0f2d3a052213f80657046d"
+          },
+          {
+            "name": "zm_062",
+            "path": "voices/zm_062.bin",
+            "size": 522240,
+            "sha256": "171d8811bfeb198714b0d3733ed740eb56be0aa3e6d2bd7b127904116a199f93"
+          },
+          {
+            "name": "zm_063",
+            "path": "voices/zm_063.bin",
+            "size": 522240,
+            "sha256": "6fbe326e5852cd9dbac7eb7e9c9989a604e51074d251a8ff8365e050c83b2a6e"
+          },
+          {
+            "name": "zm_064",
+            "path": "voices/zm_064.bin",
+            "size": 522240,
+            "sha256": "6e712d18758f2d8654c97fb274c23b5148dbafc1027ee6539446d4c8aff308cd"
+          },
+          {
+            "name": "zm_065",
+            "path": "voices/zm_065.bin",
+            "size": 522240,
+            "sha256": "77918a32b75bf7902a6cee310cd22fb16de7ecbb9aa438a05039ebec73f9e0e8"
+          },
+          {
+            "name": "zm_066",
+            "path": "voices/zm_066.bin",
+            "size": 522240,
+            "sha256": "fcdd1d4c8b2808c4456418c76ed2321910b3f1b5c2646365af4ee0e8c6c53c4d"
+          },
+          {
+            "name": "zm_068",
+            "path": "voices/zm_068.bin",
+            "size": 522240,
+            "sha256": "ae265665e29656ea0d151f3315c649d892ecf053391c3c3bec5f10bf18531a58"
+          },
+          {
+            "name": "zm_069",
+            "path": "voices/zm_069.bin",
+            "size": 522240,
+            "sha256": "54ac2dc25ee5d1dfa72f777ff538faf69033705019a9e15f3138deb79a965774"
+          },
+          {
+            "name": "zm_080",
+            "path": "voices/zm_080.bin",
+            "size": 522240,
+            "sha256": "cbbcae6bfd6c2f3875b2163fffc8851aeae1b8bad2f1006a94ea4e6f9b44ae9e"
+          },
+          {
+            "name": "zm_081",
+            "path": "voices/zm_081.bin",
+            "size": 522240,
+            "sha256": "ffc1341f044c95ad8ef598079df9e3a85d81d093268ae8422848a9b81d386fd2"
+          },
+          {
+            "name": "zm_082",
+            "path": "voices/zm_082.bin",
+            "size": 522240,
+            "sha256": "7351d7652d97ec5fcb7632b317d7c4e062fff3cf4ed0246167d3d15e97046c01"
+          },
+          {
+            "name": "zm_089",
+            "path": "voices/zm_089.bin",
+            "size": 522240,
+            "sha256": "f4315ceab376b4082cc9cdd8028d37f9aa7d43ad67ddb85902a247df0913ca89"
+          },
+          {
+            "name": "zm_091",
+            "path": "voices/zm_091.bin",
+            "size": 522240,
+            "sha256": "6ab4a21b702ec57161f48e350de3fa0b0bd1d13a890657398cfa21452d85a9b3"
+          },
+          {
+            "name": "zm_095",
+            "path": "voices/zm_095.bin",
+            "size": 522240,
+            "sha256": "4d4dac7245ea4c4c4740137fca229932055e376aed2b1ad7cd0e3e3859a13b75"
+          },
+          {
+            "name": "zm_096",
+            "path": "voices/zm_096.bin",
+            "size": 522240,
+            "sha256": "e6b76d86ca459d8ce87d2a41c812319b11e9563ecf1ba80a4e86a368d6c02fbc"
+          },
+          {
+            "name": "zm_097",
+            "path": "voices/zm_097.bin",
+            "size": 522240,
+            "sha256": "e60ec05738261c2eb13c43f7429ece6b32e0992223b0a6336a9fcdec90fb8da4"
+          },
+          {
+            "name": "zm_098",
+            "path": "voices/zm_098.bin",
+            "size": 522240,
+            "sha256": "7dd142334e863af31c7e0d0fbe491b8d54083ff5322441d550fcfc5e4111480d"
+          },
+          {
+            "name": "zm_100",
+            "path": "voices/zm_100.bin",
+            "size": 522240,
+            "sha256": "112de52f1aab3b370fd01f4e2e1d8bb37fee2725e77e14b81c802d50687e0e6e"
+          }
+        ]
+      }
     },
     "v1.2-de-martin": {
       "kind": "mirror",

@@ -135,6 +135,17 @@ def _validate_voice_asset(
                         bool(np.isfinite(values).all()),
                         f"Voice archive {path.name} contains non-finite values",
                     )
+                    _require(
+                        values.dtype == np.float32,
+                        f"Voice archive {path.name} voice {name} must use float32",
+                    )
+                    handling = asset.get("handling") or {}
+                    if "style_width" in handling:
+                        width = handling["style_width"]
+                        _require(
+                            values.ndim in {2, 3} and values.shape[-1] == width,
+                            f"Voice archive {path.name} voice {name} must have style width {width}",
+                        )
         except ImportError:
             import zipfile
 

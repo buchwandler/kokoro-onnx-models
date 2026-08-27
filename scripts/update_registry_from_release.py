@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate or check a registry GitHub distribution from a release manifest."""
+
 from __future__ import annotations
 
 import argparse
@@ -29,7 +30,9 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 def distribution_from_manifest(
-    manifest: dict[str, Any], release: dict[str, Any], existing: dict[str, Any] | None = None
+    manifest: dict[str, Any],
+    release: dict[str, Any],
+    existing: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     tag = str(manifest["tag"])
     old_artifacts = {item["id"]: item for item in (existing or {}).get("artifacts", [])}
@@ -59,12 +62,24 @@ def distribution_from_manifest(
         "release_key": str(manifest["profile"]),
         "release_tag": tag,
         "runtime_ready": True,
-        "artifacts": artifacts,
+        "provenance": {
+            "source_repository": release.get("source_repository"),
+            "source_revision": release.get("source_revision"),
+            "transform": manifest.get("transform"),
+            "source_manifest": "source-assets.json"
+            if manifest.get("transform")
+            else None,
+        },
     }
 
 
 def sync_release(
-    candidate: Path, *, profile: str | None, registry_path: Path, releases_path: Path, update: bool
+    candidate: Path,
+    *,
+    profile: str | None,
+    registry_path: Path,
+    releases_path: Path,
+    update: bool,
 ) -> None:
     manifest = _load(candidate / "release-manifest.json")
     registry = _load(registry_path)
@@ -76,9 +91,14 @@ def sync_release(
     if release is None:
         raise RegistryReleaseError(f"Profile {model_id} has no release catalog entry")
     if manifest.get("tag") != release.get("tag"):
-        raise RegistryReleaseError(f"Manifest tag {manifest.get('tag')!r} does not match catalog tag {release.get('tag')!r}")
+        raise RegistryReleaseError(
+            f"Manifest tag {manifest.get('tag')!r} does not match catalog tag {release.get('tag')!r}"
+        )
     model = registry["models"][model_id]
-    existing = next((d for d in model["distributions"] if d.get("provider") == "github-release"), None)
+    existing = next(
+        (d for d in model["distributions"] if d.get("provider") == "github-release"),
+        None,
+    )
     generated = distribution_from_manifest(manifest, release, existing)
     if update:
         model["distributions"] = [
@@ -86,16 +106,22 @@ def sync_release(
         ]
         model["distributions"].append(generated)
         model["runtime_available"] = True
-        registry_path.write_text(json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        registry_path.write_text(
+            json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
         print(f"updated {registry_path} for {model_id}")
     elif existing != generated:
-        raise RegistryReleaseError(f"Registry GitHub distribution differs from {candidate / 'release-manifest.json'}")
+        raise RegistryReleaseError(
+            f"Registry GitHub distribution differs from {candidate / 'release-manifest.json'}"
+        )
     else:
         print(f"registry GitHub distribution matches {candidate}")
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Sync registry metadata from release-manifest.json")
+    parser = argparse.ArgumentParser(
+        description="Sync registry metadata from release-manifest.json"
+    )
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--profile")
     parser.add_argument("--update", action="store_true")
@@ -103,7 +129,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--releases", type=Path, default=RELEASES)
     args = parser.parse_args(argv)
     try:
-        sync_release(args.candidate, profile=args.profile, registry_path=args.registry, releases_path=args.releases, update=args.update)
+        sync_release(
+            args.candidate,
+            profile=args.profile,
+            registry_path=args.registry,
+            releases_path=args.releases,
+            update=args.update,
+        )
     except RegistryReleaseError as exc:
         print(f"registry release update failed: {exc}", file=sys.stderr)
         return 1

@@ -1,4 +1,5 @@
 """Download and validate one complete runtime registry distribution."""
+
 from __future__ import annotations
 
 import hashlib
@@ -29,7 +30,8 @@ def select_distribution(
     except KeyError as exc:
         raise ValueError(f"Unknown registry profile: {profile}") from exc
     distributions = [
-        item for item in model.get("distributions", [])
+        item
+        for item in model.get("distributions", [])
         if provider is None or item["provider"] == provider
     ]
     if not distributions:
@@ -62,27 +64,38 @@ def _validate_format(path: Path, artifact: dict[str, Any]) -> None:
         shape = handling.get("shape")
         count = int(handling.get("voice_count", 1))
         if shape and path.stat().st_size != shape[0] * shape[1] * 4 * count:
-            raise ValueError(f"{artifact['id']}: raw voice size does not match its shape")
+            raise ValueError(
+                f"{artifact['id']}: raw voice size does not match its shape"
+            )
 
 
 def _download(artifact: dict[str, Any], target: Path) -> None:
     request = urllib.request.Request(
         artifact["url"], headers={"User-Agent": "kokoro-onnx-models-local-test"}
     )
-    with urllib.request.urlopen(request, timeout=120) as response, target.open("wb") as output:
+    with (
+        urllib.request.urlopen(request, timeout=120) as response,
+        target.open("wb") as output,
+    ):
         while chunk := response.read(1024 * 1024):
             output.write(chunk)
     if target.stat().st_size != artifact["size"]:
         raise ValueError(f"{artifact['id']}: downloaded size does not match registry")
     if _sha256(target) != artifact["sha256"]:
-        raise ValueError(f"{artifact['id']}: downloaded SHA-256 does not match registry")
+        raise ValueError(
+            f"{artifact['id']}: downloaded SHA-256 does not match registry"
+        )
     _validate_format(target, artifact)
 
 
 def _target_name(artifact: dict[str, Any], layout: str) -> str:
     role = artifact["role"]
     if role == "model":
-        return f"{artifact['component']}.onnx" if layout == "split-onnx-v1" else "model.onnx"
+        return (
+            f"{artifact['component']}.onnx"
+            if layout == "split-onnx-v1"
+            else "model.onnx"
+        )
     if role == "voice":
         return artifact["local_name"]
     if role == "voices":
@@ -103,7 +116,9 @@ def download_distribution(
     provider: str | None = None,
     registry_path: Path = REGISTRY_PATH,
 ) -> dict[str, Any]:
-    model, distribution = select_distribution(profile, provider=provider, path=registry_path)
+    model, distribution = select_distribution(
+        profile, provider=provider, path=registry_path
+    )
     target.mkdir(parents=True, exist_ok=True)
     layout = model["runtime"]["layout"]
     with tempfile.TemporaryDirectory(prefix="kokoro-registry-download-") as temporary:
@@ -125,12 +140,8 @@ def download_distribution(
         ):
             arrays = {}
             for artifact in voice_artifacts:
-                values = np.fromfile(
-                    target / artifact["local_name"], dtype="<f4"
-                )
-                rows, width = (artifact.get("handling") or {}).get(
-                    "shape", [0, 256]
-                )
+                values = np.fromfile(target / artifact["local_name"], dtype="<f4")
+                rows, width = (artifact.get("handling") or {}).get("shape", [0, 256])
                 if not rows or values.size != rows * width:
                     raise ValueError(f"{artifact['id']}: raw voice shape is invalid")
                 arrays[artifact["voice"]] = values.reshape(rows, 1, width)

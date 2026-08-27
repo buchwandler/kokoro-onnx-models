@@ -24,13 +24,31 @@ def test_catalog_target_repo() -> None:
 
 def test_v1_0_voice_asset_is_numpy_archive() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    spec = data["releases"]["v1.0"]
     voices = next(
-        asset
-        for asset in data["releases"]["v1.0"]["assets"]
-        if asset["name"] == "voices-v1.0.bin"
+        asset for asset in spec["assets"] if asset["name"] == "kokoro-v1.0.onnx"
     )
 
-    assert voices["format"] == "numpy-npz"
+    assert voices["format"] == "onnx"
+    assert spec["source_repository"] == "onnx-community/Kokoro-82M-v1.0-ONNX"
+    assert len(spec["runtime"]["voices"]) == 54
+    assert spec["runtime"]["default_voice"] == "af_heart"
+    assert spec["voice_pack"]["target"] == "voices-v1.0.npz"
+    assert spec["voice_pack"]["expected_count"] == 54
+
+
+def test_v1_1_zh_has_distinct_quality_matrix_and_voice_inventory() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    spec = data["releases"]["v1.1-zh"]
+    qualities = {
+        asset["quality"] for asset in spec["assets"] if asset["role"] == "model"
+    }
+
+    assert spec["source_repository"] == "onnx-community/Kokoro-82M-v1.1-zh-ONNX"
+    assert len(spec["source_revision"]) == 40
+    assert len(spec["runtime"]["voices"]) == 103
+    assert qualities == {"fp32", "fp16", "q8", "int8", "q4", "q4f16", "uint8", "bnb4"}
+    assert not {"q8f16", "uint8f16"} & qualities
 
 
 def test_swedish_and_thorsten_release_metadata() -> None:
@@ -172,9 +190,39 @@ def test_german_v1_1_and_holgern_are_retired() -> None:
     assert "v1.1-de" not in text
     assert "holgern/kokoro-onnx-model" not in text
 
+
 def test_release_catalog_excludes_upstream_only_russian_profiles() -> None:
-    catalog = json.loads((ROOT / "catalog" / "releases.json").read_text(encoding="utf-8"))
+    catalog = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )
     assert "ru-zaakirio-base" not in catalog["releases"]
     assert "ru-zaakirio-dima" not in catalog["releases"]
     assert catalog["releases"]["kk-anuarsv"]["publish"] is True
     assert catalog["releases"]["kk-anuarsv"]["language_codes"] == ["kk"]
+
+
+def test_v1_sources_and_registry_provenance_are_current() -> None:
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    models = json.loads((ROOT / "catalog" / "models.json").read_text())
+
+    for key, repository, revision in (
+        (
+            "v1.0",
+            "onnx-community/Kokoro-82M-v1.0-ONNX",
+            "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+        ),
+        (
+            "v1.1-zh",
+            "onnx-community/Kokoro-82M-v1.1-zh-ONNX",
+            "6cc0f0d2ebe369a68b0df87c2b65c1af8c0ac3e3",
+        ),
+    ):
+        assert releases["releases"][key]["source_repository"] == repository
+        assert releases["releases"][key]["source_revision"] == revision
+        assert models["models"][key]["license"]["source_repository"] == repository
+        provenance = models["models"][key]["distributions"][0]["provenance"]
+        assert provenance["source_repository"] == repository
+        assert provenance["source_revision"] == revision
+
+    text = (ROOT / "catalog" / "models.json").read_text()
+    assert "thewh1teagle/kokoro-onnx" not in text

@@ -106,29 +106,22 @@ metadata rather than scattered hard-coded branches.
 
 ## Release workflow
 
-For a mirrored release:
+The runtime inventory is `catalog/models.json`. Kokoro v1.0 and v1.1-zh are mirrored from pinned ONNX Community revisions and published as separate immutable profile releases.
+
+For a local candidate build and verification, see [`docs/LOCAL_RELEASE_TESTING.md`](docs/LOCAL_RELEASE_TESTING.md). Maintainers can build every publishable catalog entry through GitHub Actions using **Actions > release-all > Run workflow**. The workflow builds the complete candidate matrix before its protected `publish-all` job publishes independent release tags.
+
+For a single local mirror candidate:
 
 ```bash
 python scripts/mirror_release.py v1.0
-gh release create model-files-v1.0 dist/model-files-v1.0/* \
-  --repo buchwandler/kokoro-onnx-models \
-  --title "Kokoro model files v1.0"
+python scripts/verify_candidate.py dist/model-files-v1.0 \
+  --expected-tag model-files-v1.0 \
+  --expected-profile v1.0
 ```
 
-For a newly built model:
+The normal workflow never deletes or overwrites an existing release. A missing tag is published, an equivalent tag is skipped, and a differing tag fails. The one-time replacement of old v1.0/v1.1 releases is a separate maintainer operation.
 
-```bash
-uv run scripts/build_kokoro.py build ar-nabra --out build
-uv run scripts/prepare_release.py ar-nabra
-gh release create model-files-arabic-nabra-v0.1 \
-  dist/model-files-arabic-nabra-v0.1/* \
-  --repo buchwandler/kokoro-onnx-models \
-  --title "Kokoro Arabic Nabra v0.1"
-```
-
-Review `MODEL_LICENSES.md` before every first publication of an upstream model.
-Do not use `--allow-restricted` for Hebrew unless you have independently verified
-that redistribution is permitted by the original gated model/dataset terms.
+Review `MODEL_LICENSES.md` before every first publication of an upstream model. Do not use `--allow-restricted` for Hebrew unless you have independently verified that redistribution is permitted by the original gated model and dataset terms.
 
 ## Licensing
 

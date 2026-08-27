@@ -32,7 +32,11 @@ def test_russian_is_upstream_only_and_uses_separate_models() -> None:
     assert dima["distributions"][0]["provider"] == "huggingface"
     assert base["distributions"][0]["artifacts"][0]["local_name"] == "model.onnx"
     assert dima["distributions"][0]["artifacts"][0]["local_name"] == "model_dima.onnx"
-    assert {a["format"] for a in base["distributions"][0]["artifacts"] if a["role"] == "voice"} == {"raw-float32-le"}
+    assert {
+        a["format"]
+        for a in base["distributions"][0]["artifacts"]
+        if a["role"] == "voice"
+    } == {"raw-float32-le"}
 
 
 def test_all_runtime_artifacts_have_pinned_metadata() -> None:
@@ -59,9 +63,11 @@ def test_raw_voice_declares_shape() -> None:
 
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
     registry = load_registry()
-    registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0]["url"] = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0]["url"].replace(
-        "/d649c57b239b18c4c384378127cbf01dba039bc1/", "/main/"
-    )
+    registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
+        "url"
+    ] = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
+        "url"
+    ].replace("/d649c57b239b18c4c384378127cbf01dba039bc1/", "/main/")
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(RegistryError, match="pinned|main"):
@@ -72,7 +78,9 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
     from scripts import collect_runtime_metadata
 
     registry = load_registry()
-    artifact = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0]
+    artifact = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][
+        0
+    ]
     artifact.pop("size")
     artifact.pop("sha256")
     registry_path = tmp_path / "models.json"
@@ -82,12 +90,21 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
         target.write_bytes(b"registry-test")
         return 13, "0" * 64
 
-    monkeypatch.setattr(collect_runtime_metadata, "_validate_format", lambda path, artifact: None)
+    monkeypatch.setattr(
+        collect_runtime_metadata, "_validate_format", lambda path, artifact: None
+    )
     monkeypatch.setattr(collect_runtime_metadata, "_download", fake_download)
     collect_runtime_metadata.REGISTRY = registry_path
-    assert collect_runtime_metadata._collect(registry, "ru-zaakirio-base", "model-fp32", True) == 0
+    assert (
+        collect_runtime_metadata._collect(
+            registry, "ru-zaakirio-base", "model-fp32", True
+        )
+        == 0
+    )
     updated = json.loads(registry_path.read_text(encoding="utf-8"))
-    collected = updated["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0]
+    collected = updated["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][
+        0
+    ]
     assert collected["size"] == 13
     assert collected["sha256"] == "0" * 64
 
@@ -95,7 +112,11 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
 def test_thai_split_components_remain_explicit() -> None:
     thai = load_registry()["models"]["th-wayu"]
     assert thai["runtime"]["layout"] == "split-onnx-v1"
-    assert {a["component"] for a in thai["distributions"][0]["artifacts"] if a["role"] == "model"} == {
+    assert {
+        a["component"]
+        for a in thai["distributions"][0]["artifacts"]
+        if a["role"] == "model"
+    } == {
         "prosody",
         "curves",
         "decoder",

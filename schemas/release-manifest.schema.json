@@ -112,6 +112,16 @@
       },
       "additionalProperties": true
     },
+    "transform": {
+      "type": "object",
+      "required": ["type", "version", "source_manifest"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "source_manifest": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
     "assets": {
       "type": "array",
       "minItems": 1,
@@ -135,6 +145,8 @@
           "quality": { "type": "string", "minLength": 1 },
           "component": { "type": "string", "minLength": 1 },
           "format": { "type": "string", "minLength": 1 },
+          "handling": { "type": "object", "additionalProperties": true },
+          "provenance": { "type": "string", "minLength": 1 },
           "size": { "type": "integer", "minimum": 1 },
           "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
         },

@@ -7,7 +7,6 @@ artifacts with the current `pykokoro` checkout. The test data must stay local:
 model weights, voice packs, temporary compatibility archives, Hugging Face cache
 data, and generated WAV files must never be committed.
 
-
 The preparation path now reads `catalog/models.json`, selects one atomic runtime distribution, downloads each exact HTTPS URL, and verifies its size and SHA-256 before staging. This applies to upstream-only Russian distributions as well as GitHub mirrors. The preparation code uses `local_test/registry.py` and does not use `huggingface_hub` for direct registry downloads.
 The tracked test harness is:
 
@@ -97,19 +96,19 @@ integration shim, not as evidence of automatic profile compatibility.
 The repository profile metadata already records this, and the local tests must
 not erase that distinction.
 
-| Profile          | Required/expected frontend                                           | Current test meaning                                       |
-| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `v1.0`           | current pykokoro/kokorog2p frontend                                  | real integration smoke test                                |
-| `v1.1-zh`        | current pykokoro Chinese frontend                                    | real integration smoke test                                |
-| `v1.2-de-martin` | current pykokoro German frontend                                     | real integration smoke test                                |
-| `vi-contextbox`  | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
-| `vi-anphunl`     | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
-| `ar-nabra`       | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
-| `de-crane`       | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
-| `he-hebrew-nc`   | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
-| `ru-zaakirio-base` | stress-aware Zaakirio Russian `ru_g2p.py` | explicit local v1.0 shim; frontend golden gate required |
-| `ru-zaakirio-dima` | stress-aware Zaakirio Russian `ru_g2p.py` | explicit local v1.0 shim; dedicated Dima model required |
-| `kk-anuarsv` | Kazakh `kk` espeak-ng IPA via misaki | explicit local v1.0 shim; Kazakh parity gate required |
+| Profile            | Required/expected frontend                                           | Current test meaning                                       |
+| ------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `v1.0`             | current pykokoro/kokorog2p frontend                                  | real integration smoke test                                |
+| `v1.1-zh`          | current pykokoro Chinese frontend                                    | real integration smoke test                                |
+| `v1.2-de-martin`   | current pykokoro German frontend                                     | real integration smoke test                                |
+| `vi-contextbox`    | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
+| `vi-anphunl`       | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
+| `ar-nabra`         | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
+| `de-crane`         | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
+| `he-hebrew-nc`     | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
+| `ru-zaakirio-base` | stress-aware Zaakirio Russian `ru_g2p.py`                            | explicit local v1.0 shim; frontend golden gate required    |
+| `ru-zaakirio-dima` | stress-aware Zaakirio Russian `ru_g2p.py`                            | explicit local v1.0 shim; dedicated Dima model required    |
+| `kk-anuarsv`       | Kazakh `kk` espeak-ng IPA via misaki                                 | explicit local v1.0 shim; Kazakh parity gate required      |
 
 For unsupported frontends the harness refuses to synthesize ordinary text by
 default. `--allow-frontend-mismatch` enables an **experimental** espeak-backed
@@ -178,6 +177,7 @@ Prepare one profile:
 python local_test/prepare_local_assets.py v1.2-de-martin
 python local_test/prepare_local_assets.py vi-contextbox
 ```
+
 python local_test/prepare_local_assets.py ru-zaakirio-base
 python local_test/prepare_local_assets.py ru-zaakirio-dima
 python local_test/prepare_local_assets.py kk-anuarsv
@@ -291,6 +291,7 @@ Frontend golden fixtures are maintained separately from audio smoke tests. They
 cover Russian stress-sensitive words, `ё`, homographs, orthoepy, and Kazakh
 `kk` parity against the pinned upstream frontend. Do not regenerate them from
 the network during CI.
+
 ## Run the new-profile diagnostic tests
 
 ### Vietnamese ContextBoxAI

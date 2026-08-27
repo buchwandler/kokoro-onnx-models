@@ -238,3 +238,44 @@ def test_normalize_assets_preserves_component() -> None:
             component="prosody",
         )
     ]
+
+
+def test_pack_voice_archive_is_deterministic_and_named(tmp_path: Path) -> None:
+    import numpy as np
+
+    sources = []
+    for name, values in (("voice_b", [1.0, 2.0]), ("voice_a", [3.0, 4.0])):
+        path = tmp_path / f"{name}.bin"
+        np.asarray(values * 4, dtype="<f4").tofile(path)
+        sources.append((mirror_release.VoiceSource(name, f"voices/{name}.bin"), path))
+
+    first = tmp_path / "first.npz"
+    second = tmp_path / "second.npz"
+    provenance_first = mirror_release.pack_voice_archive(sources, first, style_width=4)
+    provenance_second = mirror_release.pack_voice_archive(
+        sources, second, style_width=4
+    )
+
+    assert first.read_bytes() == second.read_bytes()
+    assert [item["target_member"] for item in provenance_first] == [
+        "voice_b",
+        "voice_a",
+    ]
+    assert provenance_first == provenance_second
+
+    with np.load(first, allow_pickle=False) as archive:
+        assert archive.files == ["voice_b", "voice_a"]
+        assert archive["voice_a"].shape == (2, 4)
+        assert archive["voice_a"].dtype == np.float32
+
+
+@pytest.mark.parametrize("payload", [b"bad", b"\x00" * 12 + b"\x00\x00"])
+def test_pack_voice_archive_rejects_invalid_voice_bytes(
+    tmp_path: Path, payload: bytes
+) -> None:
+    path = tmp_path / "voice.bin"
+    path.write_bytes(payload)
+    source = mirror_release.VoiceSource("voice", "voices/voice.bin")
+
+    with pytest.raises(SystemExit):
+        mirror_release.pack_voice_archive([(source, path)], tmp_path / "voices.npz")

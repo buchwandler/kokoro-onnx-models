@@ -1,0 +1,145 @@
+name: release-all
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  RELEASE_REPOSITORY: buchwandler/kokoro-onnx-models
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      builder_commit: ${{ steps.plan.outputs.builder_commit }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        run: |
+          matrix="$(python scripts/release_all.py --json)"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "builder_commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          {
+            echo '### release-all plan'
+            echo
+            echo "Builder commit: \\`$GITHUB_SHA\\`"
+            echo
+            echo '```json'
+            echo "$matrix"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build-candidates:
+    needs: plan
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build candidate
+        env:
+          RELEASE_KEY: ${{ matrix.release_key }}
+          KIND: ${{ matrix.kind }}
+          PROFILE: ${{ matrix.profile }}
+        run: |
+          if [ "$KIND" = "mirror" ]; then
+            uv run --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
+          else
+            uv run --with numpy python scripts/build_kokoro.py build "$PROFILE"
+            uv run --with numpy python scripts/prepare_release.py "$PROFILE"
+          fi
+      - name: Verify candidate
+        run: |
+          python scripts/verify_candidate.py "dist/${{ matrix.tag }}" \
+            --expected-tag "${{ matrix.tag }}" \
+            --expected-profile "${{ matrix.profile }}" \
+            --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: Upload immutable candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: kokoro-candidate-${{ matrix.release_key }}-${{ needs.plan.outputs.builder_commit }}
+          path: dist/${{ matrix.tag }}
+          compression-level: 0
+          if-no-files-found: error
+
+  publish-all:
+    needs: [plan, build-candidates]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kokoro-candidate-*-${{ needs.plan.outputs.builder_commit }}
+          path: candidates
+          merge-multiple: false
+      - name: Resolve release matrix
+        env:
+          MATRIX: ${{ needs.plan.outputs.matrix }}
+        run: echo "$MATRIX" > /tmp/matrix.json
+      - name: Compare and publish
+        env:
+          CANDIDATE_COMMIT: ${{ needs.plan.outputs.builder_commit }}
+        run: |
+          set -euo pipefail
+          while read -r release_key tag; do
+            candidate="$(find candidates -maxdepth 2 -type f -name release-manifest.json -path "*kokoro-candidate-${release_key}-*")"
+            candidate_dir="$(dirname "$candidate")"
+            test -n "$candidate_dir"
+            rm -rf existing
+            mkdir existing
+            if gh release view "$tag" --repo "$RELEASE_REPOSITORY" >/dev/null 2>&1; then
+              gh release download "$tag" --repo "$RELEASE_REPOSITORY" --pattern release-manifest.json --dir existing --clobber
+              if python scripts/release_all.py compare --candidate "$candidate" --existing existing/release-manifest.json; then
+                echo "$tag already published, skipping"
+                continue
+              else
+                echo "$tag existing release differs from candidate" >&2
+                exit 1
+              fi
+            fi
+            gh release create "$tag" "$candidate_dir"/* \
+              --repo "$RELEASE_REPOSITORY" \
+              --target "$CANDIDATE_COMMIT" \
+              --title "$tag" \
+              --notes-file "$candidate_dir/release-notes.md"
+          done < <(python -c 'import json; [print(x["release_key"], x["tag"]) for x in json.load(open("/tmp/matrix.json"))["include"]]')
+
+  sync-catalog:
+    needs: [plan, publish-all]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kokoro-candidate-*-${{ needs.plan.outputs.builder_commit }}
+          path: candidates
+          merge-multiple: false
+      - name: Regenerate and verify runtime registry
+        run: |
+          set -euo pipefail
+          for manifest in candidates/*/release-manifest.json; do
+            profile="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile"])' "$manifest")"
+            python scripts/update_registry_from_release.py "$(dirname "$manifest")" --profile "$profile" --update
+          done
+          python scripts/verify_model_registry.py
+          python scripts/collect_runtime_metadata.py --check
+      - name: Commit registry update when needed
+        run: |
+          if git diff --quiet -- catalog/models.json; then
+            echo "catalog/models.json is already synchronized"
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add catalog/models.json
+          git commit -m "chore: synchronize model registry from release-all"
+          git push

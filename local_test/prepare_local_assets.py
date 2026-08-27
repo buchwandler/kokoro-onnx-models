@@ -161,7 +161,10 @@ def prepare_registry(key: str) -> None:
         shutil.rmtree(target)
     metadata = download_distribution(key, target, registry_path=REGISTRY_PATH)
     distribution = metadata["distribution"]
-    print(f"staged {key} from {distribution['provider']} distribution {distribution['id']}")
+    print(
+        f"staged {key} from {distribution['provider']} distribution {distribution['id']}"
+    )
+
 
 def main() -> int:
     catalog = _catalog()
@@ -188,7 +191,9 @@ def main() -> int:
         elif spec.get("kind") == "build":
             prepare_build(key, spec)
         else:
-            raise RuntimeError(f"Unsupported catalog kind for {key}: {spec.get('kind')!r}")
+            raise RuntimeError(
+                f"Unsupported catalog kind for {key}: {spec.get('kind')!r}"
+            )
     print(f"\nLocal assets are under {ASSETS}")
     return 0
 

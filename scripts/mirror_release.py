@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
+"""Mirror pinned Hugging Face release assets and build deterministic voice packs."""
+
 from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
+import shutil
 import tempfile
 import urllib.parse
 import urllib.request
+import zipfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,6 +33,17 @@ class MirrorAsset:
     component: str | None = None
     sha256: str | None = None
     size: int | None = None
+    transform: str | None = None
+    source_size: int | None = None
+    source_sha256: str | None = None
+
+
+@dataclass(frozen=True)
+class VoiceSource:
+    name: str
+    path: str
+    size: int | None = None
+    sha256: str | None = None
 
 
 def request_json(url: str) -> Any:
@@ -80,6 +96,9 @@ def normalize_assets(items: list[str | dict[str, Any]]) -> list[MirrorAsset]:
                     component=item.get("component"),
                     sha256=item.get("sha256"),
                     size=item.get("size"),
+                    transform=item.get("transform"),
+                    source_size=item.get("source_size"),
+                    source_sha256=item.get("source_sha256"),
                 )
             )
             continue
@@ -89,14 +108,16 @@ def normalize_assets(items: list[str | dict[str, Any]]) -> list[MirrorAsset]:
 
 def verify_asset(path: Path, asset: MirrorAsset) -> None:
     actual_size = path.stat().st_size
-    if asset.size is not None and actual_size != asset.size:
+    expected_size = asset.source_size if asset.transform else asset.size
+    if expected_size is not None and actual_size != expected_size:
         raise SystemExit(
-            f"Size mismatch for {asset.name}: expected {asset.size}, got {actual_size}"
+            f"Size mismatch for {asset.name}: expected {expected_size}, got {actual_size}"
         )
     actual_sha256 = sha256(path)
-    if asset.sha256 is not None and actual_sha256 != asset.sha256:
+    expected_sha256 = asset.source_sha256 if asset.transform else asset.sha256
+    if expected_sha256 is not None and actual_sha256 != expected_sha256:
         raise SystemExit(
-            f"SHA-256 mismatch for {asset.name}: expected {asset.sha256}, got {actual_sha256}"
+            f"SHA-256 mismatch for {asset.name}: expected {expected_sha256}, got {actual_sha256}"
         )
 
 
@@ -155,20 +176,214 @@ def github_sources(
     return urls, source
 
 
+def huggingface_url(repository: str, revision: str, path: str) -> str:
+    return (
+        f"https://huggingface.co/{repository}/resolve/"
+        f"{urllib.parse.quote(revision, safe='')}/"
+        f"{urllib.parse.quote(path, safe='/')}?download=true"
+    )
+
+
 def huggingface_sources(
     spec: dict[str, Any], assets: list[MirrorAsset]
 ) -> tuple[dict[str, str], dict[str, Any]]:
     repository = spec["source_repository"]
     revision = spec["source_revision"]
     urls = {
-        asset.name: (
-            f"https://huggingface.co/{repository}/resolve/"
-            f"{urllib.parse.quote(revision, safe='')}/"
-            f"{urllib.parse.quote(asset.source, safe='/')}?download=true"
-        )
+        asset.name: huggingface_url(repository, revision, asset.source)
         for asset in assets
     }
     return urls, {"type": "huggingface", "repository": repository, "revision": revision}
+
+
+def _voice_sources(spec: dict[str, Any], pack: dict[str, Any]) -> list[VoiceSource]:
+    entries = pack.get("source_assets")
+    if entries is not None:
+        sources = [
+            VoiceSource(
+                str(item["name"]),
+                str(item.get("path", f"voices/{item['name']}.bin")),
+                int(item["size"]) if item.get("size") is not None else None,
+                str(item["sha256"]) if item.get("sha256") is not None else None,
+            )
+            for item in entries
+        ]
+    else:
+        names = [
+            str(name)
+            for name in pack.get("voices", spec.get("runtime", {}).get("voices", []))
+        ]
+        sources = [
+            VoiceSource(
+                name,
+                f"{pack.get('source_prefix', 'voices/')}{name}{pack.get('source_suffix', '.bin')}",
+            )
+            for name in names
+        ]
+    if len(sources) != len({source.name for source in sources}):
+        raise SystemExit("Voice pack contains duplicate voice names")
+    expected_count = int(pack.get("expected_count", len(sources)))
+    if len(sources) != expected_count:
+        raise SystemExit(
+            f"Voice pack declares {expected_count} voices but lists {len(sources)}"
+        )
+    return sources
+
+
+def _huggingface_tree(
+    repository: str, revision: str, path: str = ""
+) -> list[dict[str, Any]]:
+    url = (
+        f"https://huggingface.co/api/models/{repository}/tree/"
+        f"{urllib.parse.quote(revision, safe='')}/{path}?recursive=true&expand=true"
+    )
+    entries: list[dict[str, Any]] = []
+    while url:
+        request = urllib.request.Request(
+            url, headers={"User-Agent": "kokoro-onnx-models-mirror"}
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            page = json.load(response)
+            if not isinstance(page, list):
+                raise SystemExit("Hugging Face tree response is not a list")
+            entries.extend(item for item in page if isinstance(item, dict))
+            link = response.headers.get("Link", "")
+        url = next(
+            (
+                part.split(";", 1)[0].strip("<>")
+                for part in link.split(",")
+                if 'rel="next"' in part
+            ),
+            "",
+        )
+    return entries
+
+
+def _discover_voice_sources(
+    spec: dict[str, Any], pack: dict[str, Any]
+) -> list[VoiceSource]:
+    repository = spec["source_repository"]
+    revision = spec["source_revision"]
+    entries = _huggingface_tree(repository, revision, "voices")
+    prefix = str(pack.get("source_prefix", "voices/"))
+    suffix = str(pack.get("source_suffix", ".bin"))
+    found = {
+        item["path"]: item
+        for item in entries
+        if isinstance(item, dict)
+        and str(item.get("path", "")).startswith(prefix)
+        and str(item.get("path", "")).endswith(suffix)
+    }
+    declared = _voice_sources(spec, pack)
+    expected_paths = {item.path for item in declared}
+    unexpected = sorted(set(found) - expected_paths)
+    missing = sorted(expected_paths - set(found))
+    if missing:
+        raise SystemExit("Upstream is missing expected voices: " + ", ".join(missing))
+    if unexpected:
+        raise SystemExit(
+            "Upstream contains unexpected voices: " + ", ".join(unexpected)
+        )
+    return [
+        VoiceSource(item.name, item.path, int(found[item.path].get("size", 0)) or None)
+        for item in declared
+    ]
+
+
+def _voice_source_list(spec: dict[str, Any], pack: dict[str, Any]) -> list[VoiceSource]:
+    if pack.get("discover"):
+        return _discover_voice_sources(spec, pack)
+    return _voice_sources(spec, pack)
+
+
+def _voice_array(path: Path, source: VoiceSource, style_width: int) -> Any:
+    try:
+        import numpy as np
+    except ImportError as exc:
+        raise SystemExit("numpy is required to build a voice archive") from exc
+    raw = path.read_bytes()
+    if len(raw) % 4:
+        raise SystemExit(f"Voice {source.name} is not float32-aligned")
+    values = np.frombuffer(raw, dtype="<f4")
+    if values.size == 0 or values.size % style_width:
+        raise SystemExit(
+            f"Voice {source.name} has {values.size} values, incompatible with style width {style_width}"
+        )
+    values = values.reshape((-1, style_width))
+    if not np.isfinite(values).all():
+        raise SystemExit(f"Voice {source.name} contains non-finite values")
+    return values.copy()
+
+
+def _npy_bytes(array: Any) -> bytes:
+    import numpy as np
+
+    output = io.BytesIO()
+    np.save(output, array, allow_pickle=False)
+    return output.getvalue()
+
+
+def pack_voice_archive(
+    sources: list[tuple[VoiceSource, Path]], target: Path, *, style_width: int = 256
+) -> list[dict[str, Any]]:
+    """Pack validated raw voices into a reproducible, named NumPy archive."""
+    if len({source.name for source, _ in sources}) != len(sources):
+        raise SystemExit("Voice pack contains duplicate voice names")
+    members: list[tuple[str, bytes, VoiceSource, int]] = []
+    for source, path in sources:
+        array = _voice_array(path, source, style_width)
+        payload = _npy_bytes(array)
+        members.append((f"{source.name}.npy", payload, source, array.shape[0]))
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(
+        target, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+    ) as archive:
+        for member_name, payload, _, _ in members:
+            info = zipfile.ZipInfo(member_name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 0
+            info.external_attr = 0
+            archive.writestr(info, payload)
+
+    return [
+        {
+            "path": source.path,
+            "size": path.stat().st_size,
+            "sha256": sha256(path),
+            "target_member": source.name,
+            "shape": [rows, style_width],
+        }
+        for _, _, source, rows in members
+        for path in [next(path for item, path in sources if item == source)]
+    ]
+
+
+def _derive_vocab(source_path: Path, target: Path, spec: dict[str, Any]) -> None:
+    try:
+        data = json.loads(source_path.read_text(encoding="utf-8"))
+        vocabulary = data["model"]["vocab"]
+    except (
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        KeyError,
+        TypeError,
+    ) as exc:
+        raise SystemExit(
+            f"Cannot derive vocabulary from {source_path.name}: {exc}"
+        ) from exc
+    if not isinstance(vocabulary, dict) or not all(
+        isinstance(key, str) and isinstance(value, int) and not isinstance(value, bool)
+        for key, value in vocabulary.items()
+    ):
+        raise SystemExit(
+            f"Tokenizer vocabulary in {source_path.name} is not a string-to-integer map"
+        )
+    target.write_text(
+        json.dumps(vocabulary, ensure_ascii=False, indent=2, sort_keys=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
@@ -210,7 +425,7 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
         f"- Language(s): {', '.join(runtime['language_codes'])}",
         f"- Frontend: {runtime['frontend']}",
         f"- Model qualities: {', '.join(qualities) or 'unspecified'}",
-        f"- Voices: {', '.join(runtime['voices'])}",
+        f"- Voices: {len(runtime['voices'])} ({', '.join(runtime['voices'])})",
         f"- Source: {manifest['source']['repository']} @ {manifest['source']['revision']}",
         f"- License: {manifest['license']}",
         f"- SHA-256: recorded for {len(manifest['assets'])} assets",
@@ -236,7 +451,7 @@ def main() -> int:
             f"{args.release_key} is a build profile, not a mirrored release"
         )
 
-    assets = normalize_assets(spec["assets"])
+    assets = normalize_assets(spec.get("assets", []))
     source_type = spec.get("source_type", "github-release")
     if source_type == "github-release":
         urls, source = github_sources(spec, assets)
@@ -251,10 +466,10 @@ def main() -> int:
     try:
         for asset in assets:
             target = out / asset.name
-            if asset_matches(target, asset):
+            if asset.transform is None and asset_matches(target, asset):
                 print(f"Using existing {asset.name}")
                 continue
-            print(f"Downloading {asset.name}")
+            print(f"Downloading {asset.source}")
             staged.append((stage_asset(urls[asset.name], target, asset), target))
         for temporary, target in staged:
             temporary.replace(target)
@@ -263,18 +478,109 @@ def main() -> int:
             temporary.unlink(missing_ok=True)
         raise
 
-    manifest_assets = [
-        {
-            "name": asset.name,
-            "role": asset.role,
-            "format": asset.format,
-            **({"quality": asset.quality} if asset.quality is not None else {}),
-            **({"component": asset.component} if asset.component is not None else {}),
-            "size": (out / asset.name).stat().st_size,
-            "sha256": sha256(out / asset.name),
-        }
-        for asset in assets
-    ]
+    provenance: list[dict[str, Any]] = []
+    voice_pack = spec.get("voice_pack")
+    if voice_pack:
+        voice_sources = _voice_source_list(spec, voice_pack)
+        voice_staged: list[tuple[VoiceSource, Path]] = []
+        try:
+            for voice in voice_sources:
+                source_path = out / ".sources" / voice.path.replace("/", "_")
+                source_path.parent.mkdir(parents=True, exist_ok=True)
+                voice_asset = MirrorAsset(
+                    voice.path, voice.path, size=voice.size, sha256=voice.sha256
+                )
+                temporary = stage_asset(
+                    huggingface_url(
+                        spec["source_repository"], spec["source_revision"], voice.path
+                    ),
+                    source_path,
+                    voice_asset,
+                )
+                temporary.replace(source_path)
+                voice_staged.append((voice, source_path))
+            target = out / str(voice_pack["target"])
+            provenance = pack_voice_archive(
+                voice_staged,
+                target,
+                style_width=int(voice_pack.get("style_width", 256)),
+            )
+        finally:
+            shutil.rmtree(out / ".sources", ignore_errors=True)
+        provenance_path = out / "source-assets.json"
+        provenance_path.write_text(
+            json.dumps(
+                {
+                    "schema": 1,
+                    "source": source,
+                    "transform": "raw-float32-le-to-numpy-npz-v1",
+                    "style_width": int(voice_pack.get("style_width", 256)),
+                    "assets": provenance,
+                    "output": {
+                        "name": str(voice_pack["target"]),
+                        "sha256": sha256(target),
+                    },
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    for asset in assets:
+        if asset.transform == "vocabulary":
+            source_path = out / f".{asset.name}.source"
+            source_path.write_bytes((out / asset.name).read_bytes())
+            _derive_vocab(source_path, out / asset.name, spec)
+            source_path.unlink()
+
+    manifest_assets: list[dict[str, Any]] = []
+    for asset in assets:
+        path = out / asset.name
+        manifest_assets.append(
+            {
+                "name": asset.name,
+                "role": asset.role,
+                "format": asset.format,
+                **({"quality": asset.quality} if asset.quality is not None else {}),
+                **(
+                    {"component": asset.component}
+                    if asset.component is not None
+                    else {}
+                ),
+                "size": path.stat().st_size,
+                "sha256": sha256(path),
+            }
+        )
+    if voice_pack:
+        target = out / str(voice_pack["target"])
+        manifest_assets.append(
+            {
+                "name": target.name,
+                "role": "voices",
+                "format": "numpy-npz",
+                "size": target.stat().st_size,
+                "sha256": sha256(target),
+                "handling": {
+                    "dtype": "float32",
+                    "style_width": int(voice_pack.get("style_width", 256)),
+                    "voice_count": len(provenance),
+                    "members": [item["target_member"] for item in provenance],
+                },
+                "provenance": "source-assets.json",
+            }
+        )
+        source_assets = out / "source-assets.json"
+        manifest_assets.append(
+            {
+                "name": source_assets.name,
+                "role": "metadata",
+                "format": "json",
+                "size": source_assets.stat().st_size,
+                "sha256": sha256(source_assets),
+            }
+        )
     contract = dict(spec.get("onnx_contract") or {})
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
@@ -296,6 +602,12 @@ def main() -> int:
         "onnx_contract": contract,
         "assets": manifest_assets,
     }
+    if voice_pack:
+        manifest["transform"] = {
+            "type": "voice-pack",
+            "version": 1,
+            "source_manifest": "source-assets.json",
+        }
     builder_commit = os.environ.get("GITHUB_SHA")
     if builder_commit:
         manifest["builder"] = {

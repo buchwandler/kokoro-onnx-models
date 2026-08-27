@@ -36,16 +36,24 @@
         "language_codes": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[a-z]{2,4})?$" },
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]{2,3}(?:-[a-z]{2,4})?$"
+          },
           "uniqueItems": true
         },
-        "frontend": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)+$" },
+        "frontend": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)+$"
+        },
         "frontend_display_name": { "type": "string", "minLength": 1 },
         "sample_rate": { "const": 24000 },
         "runtime": { "$ref": "#/$defs/runtime" },
         "onnx_contract": { "$ref": "#/$defs/contract" },
         "license": { "$ref": "#/$defs/license" },
-        "mirror_policy": { "enum": ["required", "preferred", "optional", "forbidden"] },
+        "mirror_policy": {
+          "enum": ["required", "preferred", "optional", "forbidden"]
+        },
         "distributions": {
           "type": "array",
           "items": { "$ref": "#/$defs/distribution" }
@@ -110,6 +118,10 @@
         "release_key": { "type": "string", "minLength": 1 },
         "release_tag": { "type": "string", "minLength": 1 },
         "runtime_ready": { "const": true },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": true
+        },
         "artifacts": {
           "type": "array",
           "minItems": 2,
@@ -119,11 +131,31 @@
     },
     "artifact": {
       "type": "object",
-      "required": ["id", "role", "url", "local_name", "format", "size", "sha256"],
+      "required": [
+        "id",
+        "role",
+        "url",
+        "local_name",
+        "format",
+        "size",
+        "sha256"
+      ],
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "role": { "enum": ["model", "voice", "voices", "config", "vocab", "metadata", "bundle", "license", "attribution"] },
+        "role": {
+          "enum": [
+            "model",
+            "voice",
+            "voices",
+            "config",
+            "vocab",
+            "metadata",
+            "bundle",
+            "license",
+            "attribution"
+          ]
+        },
         "quality": { "type": "string", "minLength": 1 },
         "component": { "type": "string", "minLength": 1 },
         "voice": { "type": "string", "minLength": 1 },

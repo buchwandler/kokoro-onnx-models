@@ -6,25 +6,69 @@
       "model_version": "1.0",
       "display_name": "v1.0",
       "runtime_available": true,
-      "language_codes": [
-        "en",
-        "es",
-        "fr",
-        "hi",
-        "it",
-        "ja",
-        "pt",
-        "zh"
-      ],
+      "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
       "runtime": {
         "layout": "single-onnx-v1",
         "max_tokens": 510,
-        "default_voice": "af",
+        "default_voice": "af_heart",
         "voices": [
-          "af"
+          "af_alloy",
+          "af_aoede",
+          "af_bella",
+          "af_heart",
+          "af_jessica",
+          "af_kore",
+          "af_nicole",
+          "af_nova",
+          "af_river",
+          "af_sarah",
+          "af_sky",
+          "am_adam",
+          "am_echo",
+          "am_eric",
+          "am_fenrir",
+          "am_liam",
+          "am_michael",
+          "am_onyx",
+          "am_puck",
+          "am_santa",
+          "bf_alice",
+          "bf_emma",
+          "bf_isabella",
+          "bf_lily",
+          "bm_daniel",
+          "bm_fable",
+          "bm_george",
+          "bm_lewis",
+          "ef_dora",
+          "em_alex",
+          "em_santa",
+          "ff_siwis",
+          "hf_alpha",
+          "hf_beta",
+          "hm_omega",
+          "hm_psi",
+          "if_sara",
+          "im_nicola",
+          "jf_alpha",
+          "jf_gongitsune",
+          "jf_nezumi",
+          "jf_tebukuro",
+          "jm_kumo",
+          "pf_dora",
+          "pm_alex",
+          "pm_santa",
+          "zf_xiaobei",
+          "zf_xiaoni",
+          "zf_xiaoxiao",
+          "zf_xiaoyi",
+          "zm_yunjian",
+          "zm_yunxi",
+          "zm_yunxia",
+          "zm_yunyang"
         ]
       },
       "onnx_contract": {
@@ -41,9 +85,9 @@
       "license": {
         "declared": "Apache-2.0",
         "redistribution": "allowed-with-upstream-terms",
-        "source_repository": "thewh1teagle/kokoro-onnx"
+        "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX"
       },
-      "mirror_policy": "preferred",
+      "mirror_policy": "required",
       "distributions": [
         {
           "id": "github-model-files-v1.0",
@@ -52,6 +96,11 @@
           "release_key": "v1.0",
           "release_tag": "model-files-v1.0",
           "runtime_ready": true,
+          "provenance": {
+            "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX",
+            "source_revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+            "transform": "raw-float32-le-to-numpy-npz-v1"
+          },
           "artifacts": [
             {
               "id": "model-kokoro-v1.0",
@@ -59,8 +108,8 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
               "local_name": "kokoro-v1.0.onnx",
               "format": "onnx",
-              "size": 325532387,
-              "sha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5",
+              "size": 325532232,
+              "sha256": "8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb",
               "quality": "fp32"
             },
             {
@@ -69,46 +118,91 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.fp16.onnx",
               "local_name": "kokoro-v1.0.fp16.onnx",
               "format": "onnx",
-              "size": 177464787,
-              "sha256": "c1610a859f3bdea01107e73e50100685af38fff88f5cd8e5c56df109ec880204",
+              "size": 163234740,
+              "sha256": "ba4527a874b42b21e35f468c10d326fdff3c7fc8cac1f85e9eb6c0dfc35c334a",
               "quality": "fp16"
             },
             {
-              "id": "model-kokoro-v1.0.fp16-gpu",
+              "id": "model-kokoro-v1.0.q8",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.fp16-gpu.onnx",
-              "local_name": "kokoro-v1.0.fp16-gpu.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q8.onnx",
+              "local_name": "kokoro-v1.0.q8.onnx",
               "format": "onnx",
-              "size": 177464787,
-              "sha256": "c1610a859f3bdea01107e73e50100685af38fff88f5cd8e5c56df109ec880204",
-              "quality": "fp16-gpu"
+              "size": 92361116,
+              "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+              "quality": "q8"
             },
             {
-              "id": "model-kokoro-v1.0.int8",
+              "id": "model-kokoro-v1.0.q8f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.int8.onnx",
-              "local_name": "kokoro-v1.0.int8.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q8f16.onnx",
+              "local_name": "kokoro-v1.0.q8f16.onnx",
               "format": "onnx",
-              "size": 92361271,
-              "sha256": "6e742170d309016e5891a994e1ce1559c702a2ccd0075e67ef7157974f6406cb",
-              "quality": "int8"
+              "size": 86033585,
+              "sha256": "04c658aec1b6008857c2ad10f8c589d4180d0ec427e7e6118ceb487e215c3cd0",
+              "quality": "q8f16"
+            },
+            {
+              "id": "model-kokoro-v1.0.q4",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q4.onnx",
+              "local_name": "kokoro-v1.0.q4.onnx",
+              "format": "onnx",
+              "size": 305215966,
+              "sha256": "04cf570cf9c4153694f76347ed4b9a48c1b59ff1de0999e6605d123966b197c7",
+              "quality": "q4"
+            },
+            {
+              "id": "model-kokoro-v1.0.q4f16",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q4f16.onnx",
+              "local_name": "kokoro-v1.0.q4f16.onnx",
+              "format": "onnx",
+              "size": 154586422,
+              "sha256": "d1a508a6a29671ead84fac99c7401fbd3c21a583fc6ed1406d1ec974d53bf45f",
+              "quality": "q4f16"
+            },
+            {
+              "id": "model-kokoro-v1.0.uint8",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.uint8.onnx",
+              "local_name": "kokoro-v1.0.uint8.onnx",
+              "format": "onnx",
+              "size": 177464632,
+              "sha256": "6607a397d77b8514065420b7c1e7320117f7aabfdb45ce15f0050c5b0fe75aea",
+              "quality": "uint8"
+            },
+            {
+              "id": "model-kokoro-v1.0.uint8f16",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.uint8f16.onnx",
+              "local_name": "kokoro-v1.0.uint8f16.onnx",
+              "format": "onnx",
+              "size": 114209226,
+              "sha256": "883333e03c597584b532eebea0f8310f25f0c9ade58fe864792c12d969944a9a",
+              "quality": "uint8f16"
+            },
+            {
+              "id": "vocab-vocab-v1.0",
+              "role": "vocab",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/vocab-v1.0.json",
+              "local_name": "vocab-v1.0.json",
+              "format": "json",
+              "size": 1385,
+              "sha256": "f7fbd75b0e0a176525e3f233a8d21fa9a45f3bbc9dda6205c58a97c9fa0d5b3a"
             },
             {
               "id": "voices-voices-v1.0",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/voices-v1.0.bin",
-              "local_name": "voices-v1.0.bin",
-              "format": "raw-float32-le",
-              "size": 28214398,
-              "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/voices-v1.0.npz",
+              "local_name": "voices-v1.0.npz",
+              "format": "numpy-npz",
+              "size": 25930751,
+              "sha256": "620cb7dd32da4a89bb7fa406176375c6a167ded48a491fe29e957ca930c39bc4",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
-                "endianness": "little",
-                "voice_count": 1
+                "style_width": 256,
+                "voice_count": 54
               }
             }
           ]
@@ -119,9 +213,7 @@
       "model_version": "1.1",
       "display_name": "v1.1-zh",
       "runtime_available": true,
-      "language_codes": [
-        "zh"
-      ],
+      "language_codes": ["zh"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -130,7 +222,109 @@
         "max_tokens": 510,
         "default_voice": "af_maple",
         "voices": [
-          "af_maple"
+          "af_maple",
+          "af_sol",
+          "bf_vale",
+          "zf_001",
+          "zf_002",
+          "zf_003",
+          "zf_004",
+          "zf_005",
+          "zf_006",
+          "zf_007",
+          "zf_008",
+          "zf_017",
+          "zf_018",
+          "zf_019",
+          "zf_021",
+          "zf_022",
+          "zf_023",
+          "zf_024",
+          "zf_026",
+          "zf_027",
+          "zf_028",
+          "zf_032",
+          "zf_036",
+          "zf_038",
+          "zf_039",
+          "zf_040",
+          "zf_042",
+          "zf_043",
+          "zf_044",
+          "zf_046",
+          "zf_047",
+          "zf_048",
+          "zf_049",
+          "zf_051",
+          "zf_059",
+          "zf_060",
+          "zf_067",
+          "zf_070",
+          "zf_071",
+          "zf_072",
+          "zf_073",
+          "zf_074",
+          "zf_075",
+          "zf_076",
+          "zf_077",
+          "zf_078",
+          "zf_079",
+          "zf_083",
+          "zf_084",
+          "zf_085",
+          "zf_086",
+          "zf_087",
+          "zf_088",
+          "zf_090",
+          "zf_092",
+          "zf_093",
+          "zf_094",
+          "zf_099",
+          "zm_009",
+          "zm_010",
+          "zm_011",
+          "zm_012",
+          "zm_013",
+          "zm_014",
+          "zm_015",
+          "zm_016",
+          "zm_020",
+          "zm_025",
+          "zm_029",
+          "zm_030",
+          "zm_031",
+          "zm_033",
+          "zm_034",
+          "zm_035",
+          "zm_037",
+          "zm_041",
+          "zm_045",
+          "zm_050",
+          "zm_052",
+          "zm_053",
+          "zm_054",
+          "zm_055",
+          "zm_056",
+          "zm_057",
+          "zm_058",
+          "zm_061",
+          "zm_062",
+          "zm_063",
+          "zm_064",
+          "zm_065",
+          "zm_066",
+          "zm_068",
+          "zm_069",
+          "zm_080",
+          "zm_081",
+          "zm_082",
+          "zm_089",
+          "zm_091",
+          "zm_095",
+          "zm_096",
+          "zm_097",
+          "zm_098",
+          "zm_100"
         ]
       },
       "onnx_contract": {
@@ -147,9 +341,9 @@
       "license": {
         "declared": "Apache-2.0",
         "redistribution": "allowed-with-upstream-terms",
-        "source_repository": "thewh1teagle/kokoro-onnx"
+        "source_repository": "onnx-community/Kokoro-82M-v1.1-zh-ONNX"
       },
-      "mirror_policy": "preferred",
+      "mirror_policy": "required",
       "distributions": [
         {
           "id": "github-model-files-v1.1",
@@ -158,6 +352,11 @@
           "release_key": "v1.1-zh",
           "release_tag": "model-files-v1.1",
           "runtime_ready": true,
+          "provenance": {
+            "source_repository": "onnx-community/Kokoro-82M-v1.1-zh-ONNX",
+            "source_revision": "6cc0f0d2ebe369a68b0df87c2b65c1af8c0ac3e3",
+            "transform": "raw-float32-le-to-numpy-npz-v1"
+          },
           "artifacts": [
             {
               "id": "model-kokoro-v1.1-zh",
@@ -165,8 +364,8 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.onnx",
               "local_name": "kokoro-v1.1-zh.onnx",
               "format": "onnx",
-              "size": 325506167,
-              "sha256": "859f9ded9f53be16c24857cdab3254a45da53c3afd5ba6ef134c7de3f822e326",
+              "size": 339369442,
+              "sha256": "94b973941b1852754f979be5d5e20be666d5c81d9bb886b88ae1dc85c9b895ca",
               "quality": "fp32"
             },
             {
@@ -175,9 +374,19 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.fp16.onnx",
               "local_name": "kokoro-v1.1-zh.fp16.onnx",
               "format": "onnx",
-              "size": 163528759,
-              "sha256": "a628ea5d6fbde96d1a85f691a6a00847829937f9e488021ba2c5359bc6ea08b5",
+              "size": 163630554,
+              "sha256": "d59cb626c885c91acb7ecf7250f26f9915ad0af99b770572000d90b598c3dfbc",
               "quality": "fp16"
+            },
+            {
+              "id": "model-kokoro-v1.1-zh.q8",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.q8.onnx",
+              "local_name": "kokoro-v1.1-zh.q8.onnx",
+              "format": "onnx",
+              "size": 127356597,
+              "sha256": "a39469be791eeaa3089c1ed5e58b8731d1f2462ea0e7dae2bc44388e58f973d8",
+              "quality": "q8"
             },
             {
               "id": "model-kokoro-v1.1-zh.int8",
@@ -185,26 +394,71 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.int8.onnx",
               "local_name": "kokoro-v1.1-zh.int8.onnx",
               "format": "onnx",
-              "size": 114120125,
-              "sha256": "11751c087b4bbeed031e2b687b11dda698bd27ba0509472f960b57f835a999f7",
+              "size": 127356504,
+              "sha256": "58b9b997faeaf42b427bac24c8a6246b236b0561311f6b118318cd9d2f47acb1",
               "quality": "int8"
+            },
+            {
+              "id": "model-kokoro-v1.1-zh.q4",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.q4.onnx",
+              "local_name": "kokoro-v1.1-zh.q4.onnx",
+              "format": "onnx",
+              "size": 341021906,
+              "sha256": "dbf3e5a505c4e453303de84d941d51271f5b460956d9b911dea310a90c88b7c2",
+              "quality": "q4"
+            },
+            {
+              "id": "model-kokoro-v1.1-zh.q4f16",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.q4f16.onnx",
+              "local_name": "kokoro-v1.1-zh.q4f16.onnx",
+              "format": "onnx",
+              "size": 165976977,
+              "sha256": "9ee7ca1ace506c7dc983d0c9a20c7edfcb08c2027645ae4450afa3dbbd8a57ef",
+              "quality": "q4f16"
+            },
+            {
+              "id": "model-kokoro-v1.1-zh.uint8",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.uint8.onnx",
+              "local_name": "kokoro-v1.1-zh.uint8.onnx",
+              "format": "onnx",
+              "size": 127356597,
+              "sha256": "a39469be791eeaa3089c1ed5e58b8731d1f2462ea0e7dae2bc44388e58f973d8",
+              "quality": "uint8"
+            },
+            {
+              "id": "model-kokoro-v1.1-zh.bnb4",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/kokoro-v1.1-zh.bnb4.onnx",
+              "local_name": "kokoro-v1.1-zh.bnb4.onnx",
+              "format": "onnx",
+              "size": 340645586,
+              "sha256": "71d417643add4820933a7ae552074eb3dc646e622cf022bcd69dbbfea4332338",
+              "quality": "bnb4"
+            },
+            {
+              "id": "vocab-vocab-v1.1-zh",
+              "role": "vocab",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/vocab-v1.1-zh.json",
+              "local_name": "vocab-v1.1-zh.json",
+              "format": "json",
+              "size": 2151,
+              "sha256": "354cbcb7d2d0e184291229dd0d7656256ec3edc004b53e9605ab973a507edd19"
             },
             {
               "id": "voices-voices-v1.1-zh",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/voices-v1.1-zh.bin",
-              "local_name": "voices-v1.1-zh.bin",
-              "format": "raw-float32-le",
-              "size": 53815880,
-              "sha256": "14cb6186c99e4f6016871405f62046c5df863ae27465cbdc4ee08be7dd703acd",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.1/voices-v1.1-zh.npz",
+              "local_name": "voices-v1.1-zh.npz",
+              "format": "numpy-npz",
+              "size": 39907317,
+              "sha256": "b79f686255d05397a1c38a4d26cb685fd5d9ee08eda310fbefec33f8f0f2ab08",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
-                "endianness": "little",
-                "voice_count": 1
+                "style_width": 256,
+                "voice_count": 103
               }
             }
           ]
@@ -215,12 +469,7 @@
       "model_version": "1.2",
       "display_name": "v1.2-de-martin",
       "runtime_available": true,
-      "language_codes": [
-        "de",
-        "de-de",
-        "de-at",
-        "de-ch"
-      ],
+      "language_codes": ["de", "de-de", "de-at", "de-ch"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "german-ipa-v1",
       "sample_rate": 24000,
@@ -228,9 +477,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "martin",
-        "voices": [
-          "martin"
-        ]
+        "voices": ["martin"]
       },
       "onnx_contract": {
         "inputs": {
@@ -285,9 +532,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (ContextBoxAI)",
       "runtime_available": true,
-      "language_codes": [
-        "vi"
-      ],
+      "language_codes": ["vi"],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -295,9 +540,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -354,10 +597,7 @@
               "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -388,9 +628,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (anphunl mirror)",
       "runtime_available": false,
-      "language_codes": [
-        "vi"
-      ],
+      "language_codes": ["vi"],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -398,9 +636,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -425,9 +661,7 @@
       "model_version": "0.1",
       "display_name": "Nabra-82M Arabic",
       "runtime_available": true,
-      "language_codes": [
-        "ar"
-      ],
+      "language_codes": ["ar"],
       "frontend": "nabra-arabic-v1",
       "frontend_display_name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
       "sample_rate": 24000,
@@ -435,9 +669,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -494,10 +726,7 @@
               "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -528,9 +757,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro German Kerstin (Crane)",
       "runtime_available": true,
-      "language_codes": [
-        "de"
-      ],
+      "language_codes": ["de"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA compatible frontend",
       "sample_rate": 24000,
@@ -538,9 +765,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -597,10 +822,7 @@
               "sha256": "f96576f656c58221b42ce46c74398dc2a6ffc03b8408abe530d85ebd717ca062",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -631,9 +853,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Hebrew NC",
       "runtime_available": true,
-      "language_codes": [
-        "he"
-      ],
+      "language_codes": ["he"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "Hebrew-specific G2P",
       "sample_rate": 24000,
@@ -641,9 +861,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -700,10 +918,7 @@
               "sha256": "46fa0346798d8d961cba4a3a36ff1d7bf629da4fd7368c6fe29f604d298a1362",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -734,9 +949,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Swedish (Joakim multi-speaker)",
       "runtime_available": true,
-      "language_codes": [
-        "sv"
-      ],
+      "language_codes": ["sv"],
       "frontend": "kokorog2p-sv-v1",
       "frontend_display_name": "kokorog2p Swedish",
       "sample_rate": 24000,
@@ -812,10 +1025,7 @@
               "sha256": "d91053a2a96fbfd66887b7f1a9485d8cacb28edffcb5320f9201ecdfa2e948fb",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 10
               }
@@ -846,9 +1056,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro German Thorsten",
       "runtime_available": true,
-      "language_codes": [
-        "de"
-      ],
+      "language_codes": ["de"],
       "frontend": "kokorog2p-de-thorsten-v1",
       "frontend_display_name": "German Kokoro G2P + Thorsten short-ü normalization",
       "sample_rate": 24000,
@@ -856,9 +1064,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "thorsten",
-        "voices": [
-          "thorsten"
-        ]
+        "voices": ["thorsten"]
       },
       "onnx_contract": {
         "inputs": {
@@ -915,10 +1121,7 @@
               "sha256": "3195c20800f7684494a94b64f30928b9b22ffab1aa46175c784c93ba084e44c5",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -949,9 +1152,7 @@
       "model_version": "1",
       "display_name": "th-wayu",
       "runtime_available": true,
-      "language_codes": [
-        "th"
-      ],
+      "language_codes": ["th"],
       "frontend": "kokorog2p-th-wayu-v1",
       "frontend_display_name": "kokorog2p-th-wayu-v1",
       "sample_rate": 24000,
@@ -1113,9 +1314,7 @@
       "model_version": "1",
       "display_name": "Kokoro Kazakh (AnuarSv km_m1)",
       "runtime_available": true,
-      "language_codes": [
-        "kk"
-      ],
+      "language_codes": ["kk"],
       "frontend": "kokorog2p-kk-v1",
       "frontend_display_name": "kokorog2p Kazakh",
       "sample_rate": 24000,
@@ -1123,9 +1322,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "km_m1",
-        "voices": [
-          "km_m1"
-        ]
+        "voices": ["km_m1"]
       },
       "onnx_contract": {
         "inputs": {
@@ -1182,10 +1379,7 @@
               "sha256": "e1cdc89c1d0abcfdbc189fce73a074dfa50b34d08321f9fe20126b8317c9b8f0",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -1216,9 +1410,7 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio base)",
       "runtime_available": true,
-      "language_codes": [
-        "ru"
-      ],
+      "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian kokorog2p",
       "sample_rate": 24000,
@@ -1226,10 +1418,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "sveta",
-        "voices": [
-          "sveta",
-          "masha"
-        ]
+        "voices": ["sveta", "masha"]
       },
       "onnx_contract": {
         "inputs": {
@@ -1279,10 +1468,7 @@
               "sha256": "10df737d434a84a04e9de193ff5e9be8a4bbe4944706a236bb64dab317620508",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             },
@@ -1297,10 +1483,7 @@
               "sha256": "627c261c34391d16f3b7b21a3aad73e289d97623a4eb5f125a8b7e7fe214b97a",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             },
@@ -1321,9 +1504,7 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio Dima)",
       "runtime_available": true,
-      "language_codes": [
-        "ru"
-      ],
+      "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian kokorog2p",
       "sample_rate": 24000,
@@ -1331,9 +1512,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "dima",
-        "voices": [
-          "dima"
-        ]
+        "voices": ["dima"]
       },
       "onnx_contract": {
         "inputs": {
@@ -1383,10 +1562,7 @@
               "sha256": "e774e8859604164aa27c393fa4393c3a4ff2162d37911a39574551edbc801dcb",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             },

@@ -271,11 +271,11 @@ def test_validate_nabra_named_onnx_contract(tmp_path: Path) -> None:
     )
 
 
-
 def test_russian_profiles_are_not_build_recipes() -> None:
     profiles = build_kokoro.load_profiles()
     assert "ru-zaakirio-base" not in profiles
     assert "ru-zaakirio-dima" not in profiles
+
 
 def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:
     profile = build_kokoro.load_profiles()["kk-anuarsv"]

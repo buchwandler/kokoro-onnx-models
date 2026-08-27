@@ -12,7 +12,6 @@ from frontend import thorsten_cleanup
 kokorog2p = pytest.importorskip("kokorog2p")
 
 
-
 FIXTURES = Path(__file__).parent / "fixtures"
 RUSSIAN_GOLDEN_FIXTURES = json.loads(
     (FIXTURES / "russian_zaakirio_frontend.json").read_text(encoding="utf-8")
@@ -28,6 +27,8 @@ def _phonemize_or_skip(text: str, language: str) -> str:
     except (ImportError, RuntimeError, ValueError) as exc:
         pytest.skip(f"kokorog2p has no native {language} frontend: {exc}")
     return result.phonemes
+
+
 SWEDISH_SENTENCE = "Hej. Det här är ett lokalt rösttest före publiceringen av modellen."
 
 
@@ -44,6 +45,7 @@ def test_thorsten_short_u_cleanup_removes_unsupported_symbol() -> None:
     cleaned = thorsten_cleanup(result.phonemes)
     assert "ʏ" not in cleaned
     assert thorsten_cleanup("bʏkə") == "bykə"
+
 
 @pytest.mark.parametrize("fixture", RUSSIAN_GOLDEN_FIXTURES)
 def test_russian_frontend_matches_zaakirio_reference(fixture: dict[str, str]) -> None:
