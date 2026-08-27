@@ -51,7 +51,7 @@ jobs:
           if [ "$KIND" = "mirror" ]; then
             uv run --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
           else
-            uv run --with numpy python scripts/build_kokoro.py build "$PROFILE"
+            uv run scripts/build_kokoro.py build "$PROFILE"
             uv run --with numpy python scripts/prepare_release.py "$PROFILE"
           fi
       - name: Verify candidate

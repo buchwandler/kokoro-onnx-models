@@ -70,7 +70,7 @@ jobs:
           if [ "$KIND" = "mirror" ]; then
             uv run --with pytest --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
           else
-            uv run --with numpy python scripts/build_kokoro.py build "$PROFILE"
+            uv run scripts/build_kokoro.py build "$PROFILE"
             prep_args=("$PROFILE")
             if [ "$ALLOW_RESTRICTED" = "true" ]; then prep_args+=(--allow-restricted); fi
             uv run --with numpy python scripts/prepare_release.py "${prep_args[@]}"
