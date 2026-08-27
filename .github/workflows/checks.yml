@@ -14,6 +14,10 @@ jobs:
       - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py
       - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
       - run: python -m json.tool catalog/releases.json >/dev/null
+      - run: python -m json.tool catalog/models.json >/dev/null
+      - run: python -m json.tool schemas/model-registry.schema.json >/dev/null
+      - run: python scripts/verify_model_registry.py
+      - run: python scripts/collect_runtime_metadata.py --check
       - run: python -m json.tool schemas/release-manifest.schema.json >/dev/null
       - name: Check catalog contract metadata
         run: |

@@ -7,6 +7,8 @@ artifacts with the current `pykokoro` checkout. The test data must stay local:
 model weights, voice packs, temporary compatibility archives, Hugging Face cache
 data, and generated WAV files must never be committed.
 
+
+The preparation path now reads `catalog/models.json`, selects one atomic runtime distribution, downloads each exact HTTPS URL, and verifies its size and SHA-256 before staging. This applies to upstream-only Russian distributions as well as GitHub mirrors. The preparation code uses `local_test/registry.py` and does not use `huggingface_hub` for direct registry downloads.
 The tracked test harness is:
 
 ```text

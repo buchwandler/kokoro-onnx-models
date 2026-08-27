@@ -19,12 +19,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from .registry import download_distribution, load_registry
+except ImportError:
+    from registry import download_distribution, load_registry
+
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL = ROOT / ".local-test"
 ASSETS = LOCAL / "assets"
 DOWNLOADS = LOCAL / "downloads"
 BUILDS = LOCAL / "build"
 CATALOG_PATH = ROOT / "catalog" / "releases.json"
+REGISTRY_PATH = ROOT / "catalog" / "models.json"
 
 
 def _copy(source: Path, target: Path) -> None:
@@ -149,26 +155,40 @@ def prepare_build(key: str, spec: dict[str, Any]) -> None:
             _copy(source, target / target_name)
 
 
+def prepare_registry(key: str) -> None:
+    target = ASSETS / key
+    if target.exists():
+        shutil.rmtree(target)
+    metadata = download_distribution(key, target, registry_path=REGISTRY_PATH)
+    distribution = metadata["distribution"]
+    print(f"staged {key} from {distribution['provider']} distribution {distribution['id']}")
+
 def main() -> int:
     catalog = _catalog()
+    registry = load_registry(REGISTRY_PATH)
     releases: dict[str, dict[str, Any]] = catalog["releases"]
-
+    registry_models = registry["models"]
+    choices = list(dict.fromkeys([*releases, *registry_models]))
     parser = argparse.ArgumentParser()
-    parser.add_argument("profile", choices=[*releases, "all"])
+    parser.add_argument("profile", choices=[*choices, "all"])
     args = parser.parse_args()
 
-    keys = list(releases) if args.profile == "all" else [args.profile]
+    keys = choices if args.profile == "all" else [args.profile]
     for key in keys:
-        spec = releases[key]
         print(f"\n=== preparing {key} ===")
+        model = registry_models.get(key)
+        if model and model.get("runtime_available") and model.get("distributions"):
+            prepare_registry(key)
+            continue
+        spec = releases.get(key)
+        if spec is None:
+            raise RuntimeError(f"{key} has no runtime distribution or build recipe")
         if spec.get("kind") == "mirror":
             prepare_mirror(key, spec)
         elif spec.get("kind") == "build":
             prepare_build(key, spec)
         else:
-            raise RuntimeError(
-                f"Unsupported catalog kind for {key}: {spec.get('kind')!r}"
-            )
+            raise RuntimeError(f"Unsupported catalog kind for {key}: {spec.get('kind')!r}")
     print(f"\nLocal assets are under {ASSETS}")
     return 0
 

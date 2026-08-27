@@ -3,14 +3,14 @@
 Canonical build and release repository for Kokoro-family ONNX model assets used by
 [`buchwandler/pykokoro`](https://github.com/buchwandler/pykokoro).
 
-The goal is to give `pykokoro` one stable GitHub release origin:
+The canonical client inventory is `catalog/models.json`. It describes immutable runtime distributions, exact artifact URLs, hashes, formats, voices, frontends, and provenance.
 
+GitHub Releases are an optional mirror provider for redistribution-compatible models:
 ```text
 https://github.com/buchwandler/kokoro-onnx-models/releases/download/<tag>/<asset>
 ```
 
-instead of hard-coding multiple upstream GitHub and Hugging Face repositories in
-the runtime library.
+Direct upstream distributions use pinned HTTPS URLs and standard-library downloads; `pykokoro` does not require `huggingface_hub` to consume registry artifacts.
 
 ## What belongs here
 
@@ -19,6 +19,10 @@ the runtime library.
 - release manifests with SHA-256 hashes and provenance;
 - migration tooling to mirror the release assets already consumed by `pykokoro`;
 - documentation of model/front-end compatibility and third-party licenses.
+
+The runtime registry is the source of truth for usable models. Build-only checkpoints and `.pt` voice sources stay in `scripts/kokoro_profiles.json` as conversion recipes and are not exposed as client runtime artifacts. A registry distribution is selected atomically, so its model, voices, config, and split components cannot be mixed with another provider.
+
+`mirror_policy` distinguishes runtime availability from redistribution: `required`, `preferred`, `optional`, and `forbidden`. Russian Zaakirio is fully usable through its pinned upstream Hugging Face distribution but is forbidden from GitHub mirroring.
 
 Large model binaries should live in **GitHub Releases**, not in git history.
 
@@ -58,8 +62,6 @@ Supported build profiles:
 | `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
-| `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | **no**: pending exact OpenRAIL weight review |
-| `ru-zaakirio-dima` | Russian | `zaakirio/kokoro-ru` | **no**: pending exact OpenRAIL weight review |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
 
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.

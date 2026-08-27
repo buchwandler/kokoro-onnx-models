@@ -68,8 +68,6 @@ def test_expected_profiles_exist() -> None:
         "he-hebrew-nc",
         "sv-joakim",
         "de-thorsten",
-        "ru-zaakirio-base",
-        "ru-zaakirio-dima",
         "kk-anuarsv",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
@@ -272,65 +270,12 @@ def test_validate_nabra_named_onnx_contract(tmp_path: Path) -> None:
         == []
     )
 
-def test_russian_profiles_use_prebuilt_onnx_sources(tmp_path: Path) -> None:
+
+
+def test_russian_profiles_are_not_build_recipes() -> None:
     profiles = build_kokoro.load_profiles()
-    sources = {
-        "onnx/model.onnx": b"base-onnx",
-        "onnx/model_dima.onnx": b"dima-onnx",
-    }
-    downloaded: list[tuple[str, str, str]] = []
-
-    def fake_download(repo_id, filename, revision, cache_dir):
-        downloaded.append((repo_id, filename, revision))
-        if filename == "config.json":
-            path = tmp_path / "config.json"
-            path.write_text("{}", encoding="utf-8")
-            return path
-        path = tmp_path / Path(filename).name
-        path.write_bytes(sources[filename])
-        return path
-
-    with (
-        patch.object(build_kokoro, "hf_download", side_effect=fake_download),
-        patch.object(
-            build_kokoro,
-            "export_checkpoint_to_onnx",
-            side_effect=AssertionError("Russian ONNX must not be re-exported"),
-        ),
-    ):
-        for key, source_name in (
-            ("ru-zaakirio-base", "onnx/model.onnx"),
-            ("ru-zaakirio-dima", "onnx/model_dima.onnx"),
-        ):
-            out = tmp_path / key / "model.onnx"
-            build_kokoro.resolve_model(
-                profiles[key], tmp_path / key / "cache", out, opset=14, seq_len=64
-            )
-            assert out.read_bytes() == sources[source_name]
-
-    assert downloaded == [
-        (
-            "zaakirio/kokoro-ru",
-            "config.json",
-            "d649c57b239b18c4c384378127cbf01dba039bc1",
-        ),
-        (
-            "zaakirio/kokoro-ru",
-            "onnx/model.onnx",
-            "d649c57b239b18c4c384378127cbf01dba039bc1",
-        ),
-        (
-            "zaakirio/kokoro-ru",
-            "config.json",
-            "d649c57b239b18c4c384378127cbf01dba039bc1",
-        ),
-        (
-            "zaakirio/kokoro-ru",
-            "onnx/model_dima.onnx",
-            "d649c57b239b18c4c384378127cbf01dba039bc1",
-        ),
-    ]
-
+    assert "ru-zaakirio-base" not in profiles
+    assert "ru-zaakirio-dima" not in profiles
 
 def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:
     profile = build_kokoro.load_profiles()["kk-anuarsv"]

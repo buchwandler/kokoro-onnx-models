@@ -14,6 +14,10 @@ Existing tags and filenames are intentionally preserved for the three retained
 | `v1.1-zh`        | `model-files-v1.1`               |
 | `v1.2-de-martin` | `model-files-german-martin-v1.2` |
 
+The runtime source of truth is now `catalog/models.json`, not the GitHub release catalog. PyKokoro should select one complete distribution and download its artifacts from the registry. Direct Hugging Face distributions use immutable commit URLs and plain HTTPS, so no `huggingface_hub` dependency is needed at runtime. GitHub is an optional mirror provider.
+
+Zaakirio Russian is upstream-only: `ru-zaakirio-base` contains `sveta` and `masha`, while `ru-zaakirio-dima` contains `dima`. Both use the pinned `zaakirio/kokoro-ru` revision and are forbidden from GitHub mirroring.
+
 New planned tags:
 
 - `model-files-vietnamese-v1.0`
@@ -24,8 +28,6 @@ New planned tags:
 - `model-files-swedish-v1.0`
 - `model-files-german-thorsten-v1.0`
 - `model-files-thai-wayu-v1`
-- `model-files-russian-zaakirio-base-v2`
-- `model-files-russian-zaakirio-dima-v2`
 - `model-files-kazakh-anuarsv-v1`
 
 Planned first-class `pykokoro` variants:
