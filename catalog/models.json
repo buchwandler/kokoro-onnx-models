@@ -1098,8 +1098,8 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.0/kokoro-german-thorsten-v1.0.onnx",
               "local_name": "kokoro-german-thorsten-v1.0.onnx",
               "format": "onnx",
-              "size": 325662836,
-              "sha256": "bcad626c04798380d7d1b3ea1ac7fadad0c5c4f649cf9f9bd9c3095e79970414",
+              "size": 325507753,
+              "sha256": "f660888d8f2130c85dcebfe1d9560906a4926902305ead8cba8200896d75f26b",
               "quality": "fp32"
             },
             {
@@ -1109,7 +1109,7 @@
               "local_name": "voices-german-thorsten-v1.0.npz",
               "format": "numpy-npz",
               "size": 522510,
-              "sha256": "cebba0f7695cf7361cf87196c68d18af7b3aaf31460223a258491e34fc89db80"
+              "sha256": "dba1f2ea13f6a75470da932cfc3e5ab421a7d2a845a9720020374c9b233f7b0c"
             },
             {
               "id": "voices-voices-german-thorsten-v1.0.raw",
@@ -1118,7 +1118,7 @@
               "local_name": "voices-german-thorsten-v1.0.raw.bin",
               "format": "raw-float32-le",
               "size": 522240,
-              "sha256": "3195c20800f7684494a94b64f30928b9b22ffab1aa46175c784c93ba084e44c5",
+              "sha256": "81dc9f282f528a379cbb427b1c102fbbac271e743541c00bf5d2eeae6b75e2ca",
               "handling": {
                 "dtype": "float32",
                 "shape": [510, 256],
@@ -1132,8 +1132,8 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.0/bundle.json",
               "local_name": "bundle.json",
               "format": "json",
-              "size": 1681,
-              "sha256": "8049a1d755b47cb4c39e1d28dc407d64f6ee6608038a90571dc1e1e52ee14c72"
+              "size": 2958,
+              "sha256": "54a1eb063469e248312467320ef8aab7fe5451d71ac891ad11f3fd1faf9318bc"
             },
             {
               "id": "config-config-german-thorsten-v1.0",

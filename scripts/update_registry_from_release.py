@@ -62,6 +62,7 @@ def distribution_from_manifest(
         "release_key": str(manifest["profile"]),
         "release_tag": tag,
         "runtime_ready": True,
+        "artifacts": artifacts,
         "provenance": {
             "source_repository": release.get("source_repository"),
             "source_revision": release.get("source_revision"),

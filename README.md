@@ -121,6 +121,17 @@ python scripts/verify_candidate.py dist/model-files-v1.0 \
 
 The normal workflow never deletes or overwrites an existing release. A missing tag is published, an equivalent tag is skipped, and a differing tag fails. The one-time replacement of old v1.0/v1.1 releases is a separate maintainer operation.
 
+After publishing a release manually, validate its assets and synchronize the runtime catalog with the published bytes:
+
+```bash
+python scripts/sync_registry_from_release.py de-thorsten
+git diff -- catalog/models.json
+git add catalog/models.json
+git commit -m "chore: synchronize model registry from release"
+```
+
+The sync command downloads every manifest asset, checks its size and SHA-256, validates the candidate, then updates `catalog/models.json`.
+
 Review `MODEL_LICENSES.md` before every first publication of an upstream model. Do not use `--allow-restricted` for Hebrew unless you have independently verified that redistribution is permitted by the original gated model and dataset terms.
 
 ## Licensing
