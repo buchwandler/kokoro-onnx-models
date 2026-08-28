@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import tempfile
+from contextlib import nullcontext
 from pathlib import Path
 from unittest.mock import patch
 
@@ -97,12 +99,82 @@ def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
     assert profile["postprocess"]["frequencies_hz"] == [2400, 4800, 7200, 9600]
 
 
-def test_thorsten_profile_uses_default_epoch5_alias() -> None:
+def test_build_defaults_to_opset_17() -> None:
+    args = build_kokoro.build_parser().parse_args(["build", "de-thorsten"])
+    assert args.opset == 17
+
+
+def test_verify_source_hash_rejects_mismatch(tmp_path: Path) -> None:
+    path = tmp_path / "source.bin"
+    path.write_bytes(b"actual")
+    with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
+        build_kokoro.verify_source_hash(path, "0" * 64, label="model checkpoint")
+
+
+def test_parity_validation_rejects_waveform_mismatch(monkeypatch) -> None:
+    class FakeTensor:
+        def __init__(self, value):
+            self.value = value
+
+        def numpy(self):
+            return self.value
+
+    fake_torch = type("Torch", (), {"no_grad": staticmethod(nullcontext)})
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+    monkeypatch.setattr(build_kokoro, "deterministic_inference", nullcontext)
+    monkeypatch.setattr(
+        build_kokoro,
+        "_parity_inputs",
+        lambda case, voice, max_phonemes: (
+            FakeTensor(np.zeros((1, 3))),
+            FakeTensor(np.zeros((1, 256))),
+            FakeTensor(np.zeros(1)),
+        ),
+    )
+
+    class Model:
+        def __call__(self, tokens, style, speed):
+            return np.array([0.0, 1.0]), np.array([1])
+
+    class Session:
+        def run(self, output_names, inputs):
+            return np.array([0.0, 0.5]), np.array([1])
+
+    with pytest.raises(build_kokoro.BuildError, match="parity failed"):
+        build_kokoro._validate_parity_case(
+            Session(),
+            Model(),
+            {"name": "mismatch"},
+            np.zeros((510, 1, 256)),
+            max_phonemes=510,
+            atol=1e-4,
+            rtol=1e-4,
+            max_audio_abs=1.0,
+        )
+
+
+def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     profile = build_kokoro.load_profiles()["de-thorsten"]
     assert profile["repo_id"] == "Thorsten-Voice/Kokoro"
-    assert profile["model"]["path"] == "model.pth"
-    assert profile["voices"]["items"] == {"thorsten": "voices/thorsten.pt"}
-    assert "model_ep10.pth" not in json.dumps(profile)
+    assert profile["model"] == {
+        "kind": "checkpoint",
+        "path": "model_ep5.pth",
+        "sha256": "0bbe3f8d6a97b74352aae58f344531eb291bb8b4738bf3c9476e97ec63d68ded",
+        "config": "config.json",
+        "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+    }
+    assert profile["voices"]["items"] == {
+        "thorsten": {
+            "path": "voices/thorsten_ep5.pt",
+            "sha256": "63ead702015953db38cf5640bb19b1d32fed6a5e9e597372388cc17498f0eccd",
+        }
+    }
+    assert profile["onnx_contract"]["outputs"] == {
+        "audio": "float32",
+        "duration": "int64",
+    }
+    assert "model.pth" not in json.dumps(profile)
+    assert "voices/thorsten.pt" not in json.dumps(profile)
 
 
 def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
@@ -116,7 +188,9 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         calls.append((repo_id, filename, revision))
         return config if filename == "config.json" else checkpoint
 
-    def fake_export(checkpoint_path, config_path, output_path, *, opset, seq_len):
+    def fake_export(
+        checkpoint_path, config_path, output_path, *, opset, seq_len, **kwargs
+    ):
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_bytes(b"exported")
 
@@ -125,6 +199,7 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         patch.object(
             build_kokoro, "export_checkpoint_to_onnx", side_effect=fake_export
         ),
+        patch.object(build_kokoro, "verify_source_hash"),
     ):
         profiles = build_kokoro.load_profiles()
         for key in ("sv-joakim", "de-thorsten", "kk-anuarsv"):
@@ -152,7 +227,7 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         ),
         (
             "Thorsten-Voice/Kokoro",
-            "model.pth",
+            "model_ep5.pth",
             "734e593d320a3d876bede7020f773dfd481a0cc7",
         ),
         (

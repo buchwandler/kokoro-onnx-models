@@ -357,13 +357,18 @@
     "sample_rate": 24000,
     "model": {
       "kind": "checkpoint",
-      "path": "model.pth",
-      "config": "config.json"
+      "path": "model_ep5.pth",
+      "sha256": "0bbe3f8d6a97b74352aae58f344531eb291bb8b4738bf3c9476e97ec63d68ded",
+      "config": "config.json",
+      "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
     },
     "voices": {
       "kind": "fixed_pt",
       "items": {
-        "thorsten": "voices/thorsten.pt"
+        "thorsten": {
+          "path": "voices/thorsten_ep5.pt",
+          "sha256": "63ead702015953db38cf5640bb19b1d32fed6a5e9e597372388cc17498f0eccd"
+        }
       }
     },
     "frontend": {
@@ -400,9 +405,36 @@
         "speed": "float32"
       },
       "outputs": {
-        "audio": "float32"
+        "audio": "float32",
+        "duration": "int64"
       },
       "max_tokens": 510
+    },
+    "export_validation": {
+      "cases": [
+        {
+          "name": "hallo",
+          "phonemes": "hˈaloː, hˈiːɾ ʃpɾˈɪçt tˈoːɾstən.",
+          "tokens": [
+            0, 50, 156, 43, 54, 57, 158, 3, 16, 50, 156, 51, 158, 125, 16, 131,
+            58, 125, 156, 102, 78, 62, 16, 62, 156, 57, 158, 125, 61, 62, 83,
+            56, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "bruecke",
+          "phonemes": "diː bɾykə ɪst ʃˈøːn.",
+          "tokens": [
+            0, 46, 51, 158, 16, 44, 125, 67, 53, 83, 16, 102, 61, 62, 16, 131,
+            156, 116, 158, 56, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ],
+      "atol": 0.001,
+      "rtol": 0.001,
+      "max_audio_abs": 1.0
     }
   },
   "kk-anuarsv": {

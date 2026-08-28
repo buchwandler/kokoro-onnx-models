@@ -10,6 +10,7 @@ build = [
   "huggingface-hub>=0.27",
   "onnx>=1.17",
   "torch>=2.6",
-  "kokoro>=0.9.4",
+  "kokoro==0.9.4",
+  "onnxruntime>=1.20",
 ]
 test = ["pytest>=8"]

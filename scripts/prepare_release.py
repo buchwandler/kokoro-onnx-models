@@ -194,6 +194,8 @@ def main() -> int:
     ):
         asset_metadata.append(_asset_metadata(metadata, target))
 
+    bundle = json.loads((out / "bundle.json").read_text(encoding="utf-8"))
+
     contract = dict(profile.get("onnx_contract") or {})
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
@@ -222,6 +224,10 @@ def main() -> int:
         "runtime": _runtime_metadata(profile, out / "bundle.json", release),
         "onnx_contract": contract,
         "assets": asset_metadata,
+        "provenance": {
+            "source_artifacts": bundle.get("source_artifacts", {}),
+            "exporter": bundle.get("exporter", {}),
+        },
     }
     builder_commit = os.environ.get("GITHUB_SHA")
     if builder_commit:

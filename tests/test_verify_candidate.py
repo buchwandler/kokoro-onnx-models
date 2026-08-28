@@ -100,6 +100,16 @@ def test_verify_candidate_checks_manifest_assets_and_checksums(tmp_path: Path) -
     assert result["asset_count"] == 3
 
 
+def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
+    candidate = _write_candidate(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["profile"] = "de-thorsten"
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(verify_candidate.CandidateError, match="epoch 5"):
+        verify_candidate.verify_candidate(candidate)
+
+
 def test_verify_candidate_rejects_size_mismatch(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
     manifest_path = candidate / "release-manifest.json"

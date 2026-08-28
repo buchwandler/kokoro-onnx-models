@@ -252,6 +252,51 @@ def _validate_manifest_identity(
         )
 
 
+def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
+    if manifest.get("profile") != "de-thorsten":
+        return
+    provenance = manifest.get("provenance") or {}
+    _require(isinstance(provenance, dict), "Checkpoint provenance must be an object")
+    source = provenance.get("source_artifacts") or {}
+    model = source.get("model") or {}
+    voice = (source.get("voices") or {}).get("thorsten") or {}
+    _require(
+        model.get("path") == "model_ep5.pth", "Thorsten checkpoint path is not epoch 5"
+    )
+    _require(
+        voice.get("path") == "voices/thorsten_ep5.pt",
+        "Thorsten voice path is not epoch 5",
+    )
+    for label, value in (
+        ("model", model.get("sha256")),
+        ("model config", model.get("config_sha256")),
+        ("Thorsten voice", voice.get("sha256")),
+    ):
+        _require(
+            isinstance(value, str) and SHA256_RE.fullmatch(value) is not None,
+            f"Thorsten provenance is missing a valid {label} SHA-256",
+        )
+    exporter = provenance.get("exporter") or {}
+    for field in (
+        "kokoro_version",
+        "torch_version",
+        "onnx_version",
+        "onnxruntime_version",
+        "python_version",
+        "opset",
+        "outputs",
+    ):
+        _require(
+            field in exporter,
+            f"Thorsten provenance is missing exporter field {field!r}",
+        )
+    _require(exporter["opset"] == 17, "Thorsten exporter opset must be 17")
+    _require(
+        exporter["outputs"] == ["audio", "duration"],
+        "Thorsten exporter outputs are incomplete",
+    )
+
+
 def verify_candidate(
     candidate: Path,
     *,
@@ -277,6 +322,7 @@ def verify_candidate(
         allow_restricted=allow_restricted,
     )
 
+    _validate_checkpoint_provenance(manifest)
     assets = manifest["assets"]
     _require(
         isinstance(assets, list) and assets, "Manifest assets must be a non-empty list"

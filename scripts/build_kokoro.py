@@ -5,8 +5,9 @@
 #   "huggingface-hub",
 #   "numpy",
 #   "onnx",
+#   "onnxruntime",
 #   "torch",
-#   "kokoro>=0.9.4",
+#   "kokoro==0.9.4",
 # ]
 # ///
 """Build Kokoro-family ONNX + sherpa-onnx raw voice bundles from HF profiles.
@@ -20,11 +21,13 @@ ONNX.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import sys
 import zipfile
 from collections.abc import Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +39,26 @@ STYLE_WIDTH = 256
 
 class BuildError(RuntimeError):
     pass
+
+
+@contextmanager
+def deterministic_inference() -> Any:
+    import torch
+
+    original_rand = torch.rand
+    original_randn_like = torch.randn_like
+    torch.rand = lambda *size, **kwargs: torch.zeros(*size, **kwargs)
+
+    def deterministic_randn_like(input: Any, **kwargs: Any) -> Any:
+        values = torch.arange(input.numel(), dtype=input.dtype, device=input.device)
+        return torch.sin(values).reshape(input.shape)
+
+    torch.randn_like = deterministic_randn_like
+    try:
+        yield
+    finally:
+        torch.rand = original_rand
+        torch.randn_like = original_randn_like
 
 
 def load_profiles(path: Path = PROFILE_FILE) -> dict[str, dict[str, Any]]:
@@ -57,6 +80,24 @@ def hf_download(repo_id: str, filename: str, revision: str, cache_dir: Path) -> 
             local_dir=str(cache_dir),
         )
     )
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_source_hash(path: Path, expected: str | None, *, label: str) -> None:
+    if expected is None:
+        return
+    actual = sha256(path)
+    if actual != expected:
+        raise BuildError(
+            f"SHA-256 mismatch for {label}: expected {expected}, got {actual}"
+        )
 
 
 def _as_numpy(value: Any) -> np.ndarray:
@@ -116,11 +157,18 @@ def resolve_json_pt_voices(
 
 
 def resolve_fixed_pt_voices(
-    repo_id: str, revision: str, cache_dir: Path, items: Mapping[str, str]
+    repo_id: str, revision: str, cache_dir: Path, items: Mapping[str, Any]
 ) -> dict[str, np.ndarray]:
     voices: dict[str, np.ndarray] = {}
-    for name, filename in items.items():
+    for name, item in items.items():
+        if isinstance(item, str):
+            filename = item
+            expected_hash = None
+        else:
+            filename = str(item["path"])
+            expected_hash = item.get("sha256")
         local = hf_download(repo_id, filename, revision, cache_dir)
+        verify_source_hash(local, expected_hash, label=f"voice {name}")
         voices[name] = load_pt_voice(local, name=name)
     return voices
 
@@ -233,21 +281,96 @@ def write_numpy_voice_archive(
     return shape
 
 
-def _waveform_only_wrapper(model_for_onnx: Any) -> Any:
+def _parity_inputs(
+    case: Mapping[str, Any],
+    voice: np.ndarray,
+    *,
+    max_phonemes: int,
+) -> tuple[Any, Any, Any]:
     import torch
 
-    class WaveformOnly(torch.nn.Module):
-        def __init__(self, inner: Any):
-            super().__init__()
-            self.inner = inner
+    phonemes = str(case["phonemes"])[:max_phonemes]
+    if not phonemes:
+        raise BuildError("Export validation requires non-empty phonemes")
+    tokens = torch.tensor(case["tokens"], dtype=torch.long).unsqueeze(0)
+    expected_tokens = [0, *[int(token) for token in case["tokens"][1:-1]], 0]
+    if tokens.shape[1] < 2 or tokens.squeeze(0).tolist() != expected_tokens:
+        raise BuildError(
+            f"Invalid frozen token fixture for {case.get('name', 'case')!r}"
+        )
+    style_index = min(len(phonemes), max_phonemes) - 1
+    if style_index >= voice.shape[0]:
+        raise BuildError(
+            f"Voice pack has {voice.shape[0]} rows; cannot select style row {style_index}"
+        )
+    style = torch.from_numpy(voice[style_index]).to(dtype=torch.float32)
+    speed = torch.tensor([float(case.get("speed", 1.0))], dtype=torch.float32)
+    return tokens, style, speed
 
-        def forward(self, tokens: Any, style: Any, speed: Any) -> Any:
-            result = self.inner(tokens, style, speed)
-            if isinstance(result, (tuple, list)):
-                return result[0]
-            return result
 
-    return WaveformOnly(model_for_onnx)
+def _validate_parity_case(
+    session: Any,
+    model: Any,
+    case: Mapping[str, Any],
+    voice: np.ndarray,
+    *,
+    max_phonemes: int,
+    atol: float,
+    rtol: float,
+    max_audio_abs: float,
+) -> dict[str, Any]:
+    import torch
+
+    tokens, style, speed = _parity_inputs(case, voice, max_phonemes=max_phonemes)
+    with deterministic_inference(), torch.no_grad():
+        expected_audio, expected_duration = model(tokens, style, speed)
+    actual_audio, actual_duration = session.run(
+        ["audio", "duration"],
+        {
+            "tokens": tokens.numpy(),
+            "style": style.numpy(),
+            "speed": speed.numpy(),
+        },
+    )
+    expected_audio_np = _as_numpy(expected_audio)
+    expected_duration_np = _as_numpy(expected_duration)
+    actual_audio_np = np.asarray(actual_audio)
+    actual_duration_np = np.asarray(actual_duration)
+    for label, values in (
+        ("PyTorch audio", expected_audio_np),
+        ("ONNX audio", actual_audio_np),
+    ):
+        if not np.isfinite(values).all():
+            raise BuildError(f"{label} contains non-finite values")
+    if expected_audio_np.shape != actual_audio_np.shape:
+        raise BuildError(
+            f"Audio shape mismatch for {case.get('name', 'case')!r}: "
+            f"PyTorch {expected_audio_np.shape}, ONNX {actual_audio_np.shape}"
+        )
+    if expected_duration_np.shape != actual_duration_np.shape:
+        raise BuildError(
+            f"Duration shape mismatch for {case.get('name', 'case')!r}: "
+            f"PyTorch {expected_duration_np.shape}, ONNX {actual_duration_np.shape}"
+        )
+    if np.max(np.abs(expected_audio_np), initial=0) > max_audio_abs:
+        raise BuildError(f"PyTorch audio exceeds bound {max_audio_abs}")
+    if np.max(np.abs(actual_audio_np), initial=0) > max_audio_abs:
+        raise BuildError(f"ONNX audio exceeds bound {max_audio_abs}")
+    try:
+        np.testing.assert_allclose(
+            actual_audio_np, expected_audio_np, atol=atol, rtol=rtol
+        )
+        np.testing.assert_array_equal(actual_duration_np, expected_duration_np)
+    except AssertionError as exc:
+        raise BuildError(
+            f"PyTorch/ONNX parity failed for {case.get('name', 'case')!r}: {exc}"
+        ) from exc
+    return {
+        "name": str(case.get("name", "case")),
+        "audio_samples": int(actual_audio_np.size),
+        "audio_peak": float(np.max(np.abs(actual_audio_np), initial=0)),
+        "audio_rms": float(np.sqrt(np.mean(np.square(actual_audio_np)))),
+    }
 
 
 def export_checkpoint_to_onnx(
@@ -257,7 +380,14 @@ def export_checkpoint_to_onnx(
     *,
     opset: int,
     seq_len: int,
-) -> None:
+    voice: np.ndarray | None = None,
+    validation: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    import platform
+
+    import kokoro
+    import onnx
+    import onnxruntime as ort
     import torch
     from kokoro import KModel
     from kokoro.model import KModelForONNX
@@ -276,32 +406,71 @@ def export_checkpoint_to_onnx(
         .to("cpu")
         .eval()
     )
-    wrapper = _waveform_only_wrapper(KModelForONNX(model).eval()).eval()
-
-    inner_len = max(8, int(seq_len))
-    middle = torch.randint(1, max(2, n_token), (inner_len,), dtype=torch.long)
-    tokens = torch.cat(
-        [torch.zeros(1, dtype=torch.long), middle, torch.zeros(1, dtype=torch.long)]
-    ).unsqueeze(0)
-    style = torch.rand(1, STYLE_WIDTH, dtype=torch.float32)
-    # sherpa-onnx supplies speed as a 1-element float tensor.
-    speed = torch.tensor([1.0], dtype=torch.float32)
+    onnx_model = KModelForONNX(model).eval()
+    cases = list((validation or {}).get("cases") or [])
+    if cases:
+        if voice is None:
+            raise BuildError("Export validation requires a voice pack")
+        tokens, style, speed = _parity_inputs(cases[0], voice, max_phonemes=510)
+    else:
+        inner_len = max(8, int(seq_len))
+        middle = torch.randint(1, max(2, n_token), (inner_len,), dtype=torch.long)
+        tokens = torch.cat(
+            [torch.zeros(1, dtype=torch.long), middle, torch.zeros(1, dtype=torch.long)]
+        ).unsqueeze(0)
+        style = torch.rand(1, STYLE_WIDTH, dtype=torch.float32)
+        speed = torch.tensor([1.0], dtype=torch.float32)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with torch.no_grad():
+    with deterministic_inference(), torch.no_grad():
         torch.onnx.export(
-            wrapper,
+            onnx_model,
             (tokens, style, speed),
             str(out_path),
             input_names=["tokens", "style", "speed"],
-            output_names=["audio"],
+            output_names=["audio", "duration"],
             dynamic_axes={
                 "tokens": {1: "sequence_length"},
                 "audio": {0: "audio_length"},
+                "duration": {0: "duration_length"},
             },
             opset_version=opset,
             dynamo=False,
         )
+
+    result: dict[str, Any] = {
+        "kokoro_version": str(getattr(kokoro, "__version__", "unknown")),
+        "torch_version": str(torch.__version__),
+        "onnx_version": str(onnx.__version__),
+        "onnxruntime_version": str(ort.__version__),
+        "python_version": platform.python_version(),
+        "opset": opset,
+        "inputs": ["tokens", "style", "speed"],
+        "outputs": ["audio", "duration"],
+    }
+    if cases:
+        session = ort.InferenceSession(
+            str(out_path), providers=["CPUExecutionProvider"]
+        )
+        result["parity"] = {
+            "atol": float(validation.get("atol", 1e-4)),
+            "rtol": float(validation.get("rtol", 1e-4)),
+            "max_audio_abs": float(validation.get("max_audio_abs", 1.0)),
+            "cases": [
+                _validate_parity_case(
+                    session,
+                    onnx_model,
+                    case,
+                    voice,
+                    max_phonemes=510,
+                    atol=float(validation.get("atol", 1e-4)),
+                    rtol=float(validation.get("rtol", 1e-4)),
+                    max_audio_abs=float(validation.get("max_audio_abs", 1.0)),
+                )
+                for case in cases
+            ],
+        }
+    return result
 
 
 def resolve_model(
@@ -311,13 +480,21 @@ def resolve_model(
     *,
     opset: int,
     seq_len: int,
+    voice: np.ndarray | None = None,
+    export_provenance: dict[str, Any] | None = None,
 ) -> Path | None:
     repo_id = profile["repo_id"]
     revision = profile.get("revision", "main")
     spec = profile["model"]
     config_local: Path | None = None
     if spec.get("config"):
-        config_local = hf_download(repo_id, spec["config"], revision, cache_dir)
+        config_name = str(spec["config"])
+        config_local = hf_download(repo_id, config_name, revision, cache_dir)
+        verify_source_hash(
+            config_local,
+            spec.get("config_sha256"),
+            label=f"model config {config_name}",
+        )
 
     if spec["kind"] == "onnx":
         source = hf_download(repo_id, spec["path"], revision, cache_dir)
@@ -328,14 +505,23 @@ def resolve_model(
     if spec["kind"] == "checkpoint":
         if config_local is None:
             raise BuildError("Checkpoint export requires model.config")
-        checkpoint = hf_download(repo_id, spec["path"], revision, cache_dir)
-        export_checkpoint_to_onnx(
+        checkpoint = hf_download(repo_id, str(spec["path"]), revision, cache_dir)
+        verify_source_hash(
+            checkpoint,
+            spec.get("sha256"),
+            label=f"model checkpoint {spec['path']}",
+        )
+        metadata = export_checkpoint_to_onnx(
             checkpoint,
             config_local,
             out_path,
             opset=opset,
             seq_len=seq_len,
+            voice=voice,
+            validation=profile.get("export_validation"),
         )
+        if export_provenance is not None and metadata:
+            export_provenance.update(metadata)
         return config_local
 
     raise BuildError(f"Unsupported model.kind={spec['kind']!r}")
@@ -487,6 +673,29 @@ def add_sherpa_metadata(
     onnx.save(model, str(onnx_path))
 
 
+def source_artifacts(profile: Mapping[str, Any]) -> dict[str, Any]:
+    model = profile["model"]
+    model_artifact: dict[str, Any] = {"path": str(model["path"])}
+    if model.get("sha256") is not None:
+        model_artifact["sha256"] = str(model["sha256"])
+    config_name = model.get("config")
+    if config_name is not None:
+        model_artifact["config"] = str(config_name)
+        if model.get("config_sha256") is not None:
+            model_artifact["config_sha256"] = str(model["config_sha256"])
+    voices: dict[str, Any] = {}
+    for name, item in (profile.get("voices") or {}).get("items", {}).items():
+        if isinstance(item, str):
+            voices[name] = {"path": item}
+        else:
+            voices[name] = {
+                key: str(value)
+                for key, value in item.items()
+                if key in {"path", "sha256"}
+            }
+    return {"model": model_artifact, "voices": voices}
+
+
 def write_bundle_manifest(
     out_dir: Path,
     profile_key: str,
@@ -496,11 +705,13 @@ def write_bundle_manifest(
     contract_issues: list[str],
     config_local: Path | None,
     auxiliary_files: list[dict[str, str]],
+    export_provenance: Mapping[str, Any] | None = None,
 ) -> None:
     manifest = {
         "profile": profile_key,
         "source_repo": profile["repo_id"],
         "revision": profile.get("revision", "main"),
+        "source_artifacts": source_artifacts(profile),
         "license": profile["license"],
         "language": profile["language"],
         "sample_rate": profile.get("sample_rate", 24000),
@@ -518,6 +729,8 @@ def write_bundle_manifest(
         "runtime_hints": profile.get("runtime_hints", {}),
         "postprocess": profile.get("postprocess", {}),
     }
+    if export_provenance:
+        manifest["exporter"] = dict(export_provenance)
     with (out_dir / "bundle.json").open("w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
         f.write("\n")
@@ -543,6 +756,8 @@ def build_profile(
     style_shape = write_sherpa_voices_bin(voices, out_dir / "voices.raw.bin")
     write_numpy_voice_archive(voices, out_dir / "voices.npz")
 
+    export_provenance: dict[str, Any] = {}
+
     print(f"[{profile_key}] resolving model", file=sys.stderr)
     config_local = resolve_model(
         profile,
@@ -550,6 +765,8 @@ def build_profile(
         out_dir / "model.onnx",
         opset=opset,
         seq_len=seq_len,
+        voice=next(iter(voices.values()), None),
+        export_provenance=export_provenance,
     )
 
     auxiliary_files = resolve_auxiliary_files(profile, cache_dir, out_dir)
@@ -576,6 +793,7 @@ def build_profile(
         contract_issues,
         config_local,
         auxiliary_files,
+        export_provenance,
     )
     shutil.rmtree(cache_dir, ignore_errors=True)
     return out_dir
@@ -604,7 +822,7 @@ def build_parser() -> argparse.ArgumentParser:
     build = sub.add_parser("build", help="Build one profile or all profiles")
     build.add_argument("profile", help="Profile key or 'all'")
     build.add_argument("--out", type=Path, default=Path("build"))
-    build.add_argument("--opset", type=int, default=14)
+    build.add_argument("--opset", type=int, default=17)
     build.add_argument("--seq-len", type=int, default=64)
     build.add_argument("--skip-check", action="store_true")
     return parser
