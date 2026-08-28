@@ -4,6 +4,7 @@ import importlib.util
 import json
 import sys
 import tempfile
+import types
 from contextlib import nullcontext
 from pathlib import Path
 from unittest.mock import patch
@@ -18,6 +19,39 @@ assert SPEC is not None and SPEC.loader is not None
 build_kokoro = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(build_kokoro)
 
+
+def test_install_exact_onnx_istft_returns_installed_instance(monkeypatch) -> None:
+    class FakeExactOnnxISTFT:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.native_transform = None
+
+        def set_native_transform(self, transform):
+            self.native_transform = transform
+
+    monkeypatch.setitem(
+        sys.modules,
+        "scripts.onnx_istft",
+        types.SimpleNamespace(ExactOnnxISTFT=FakeExactOnnxISTFT),
+    )
+    native_stft = types.SimpleNamespace(
+        filter_length=20,
+        hop_length=5,
+        win_length=20,
+        transform=object(),
+    )
+    model = types.SimpleNamespace(
+        decoder=types.SimpleNamespace(
+            generator=types.SimpleNamespace(stft=native_stft)
+        )
+    )
+
+    metadata, replacement = build_kokoro.install_exact_onnx_istft(model)
+
+    assert model.decoder.generator.stft is replacement
+    assert replacement.native_transform is native_stft.transform
+    assert metadata["backend"] == "exact-convtranspose-istft-v1"
+    assert native_stft is not replacement
 
 def test_normalizes_rank2_voice() -> None:
     got = build_kokoro.normalize_voice(
@@ -267,13 +301,13 @@ def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     }
     assert "model.pth" not in json.dumps(profile)
     assert "voices/thorsten.pt" not in json.dumps(profile)
-    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.2"
-    assert profile["release"]["model_version"] == "1.1.2"
-    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.2.onnx"
-    assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.2.json"
+    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.3"
+    assert profile["release"]["model_version"] == "1.1.3"
+    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.3.onnx"
+    assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.3.json"
     assert (
         profile["release"]["voice_assets"][0]["filename"]
-        == "voices-german-thorsten-v1.1.2.npz"
+        == "voices-german-thorsten-v1.1.3.npz"
     )
     assert profile["export_validation"]["requires_random_source_ops"] is True
     assert profile["export_validation"]["export_seed"] == 20260828

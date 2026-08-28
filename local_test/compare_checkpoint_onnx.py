@@ -138,6 +138,48 @@ def _stage_record(
         )
     return record
 
+_DISTRIBUTION_METRICS = (
+    "rms",
+    "frame_rms_cv",
+    "zcr_mean",
+    "spectral_centroid_mean_hz",
+    "high_band_energy_ratio_4k_nyquist",
+    "spectral_flatness_mean",
+    "normalized_spectral_flux_mean",
+ )
+_DISTRIBUTION_FLOORS = {
+    "rms": 0.005,
+    "frame_rms_cv": 0.05,
+    "zcr_mean": 0.02,
+    "spectral_centroid_mean_hz": 250.0,
+    "high_band_energy_ratio_4k_nyquist": 0.05,
+    "spectral_flatness_mean": 0.05,
+    "normalized_spectral_flux_mean": 0.05,
+ }
+
+
+def _metric_envelope(records: list[Mapping[str, Any]]) -> dict[str, dict[str, float]]:
+    envelope: dict[str, dict[str, float]] = {}
+    for name in _DISTRIBUTION_METRICS:
+        values = np.asarray([float(record["metrics"][name]) for record in records])
+        median = float(np.median(values))
+        mad = float(np.median(np.abs(values - median)))
+        margin = max(3.0 * mad, _DISTRIBUTION_FLOORS[name])
+        envelope[name] = {"median": median, "lower": median - margin, "upper": median + margin}
+    return envelope
+
+
+def _check_metric_envelope(
+    record: Mapping[str, Any], envelope: Mapping[str, Mapping[str, float]]
+ ) -> None:
+    for name, bounds in envelope.items():
+        value = float(record["metrics"][name])
+        if not bounds["lower"] <= value <= bounds["upper"]:
+            raise build_kokoro.BuildError(
+                f"Metric {name}={value:.6f} is outside native envelope "
+                f"[{bounds['lower']:.6f}, {bounds['upper']:.6f}]"
+            )
+
 
 def _relative_path(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
@@ -185,6 +227,7 @@ def compare_profile(
     cases = eligible_cases(profile_key, profile, requested_cases)
     sample_rate = int(profile.get("sample_rate", 24000))
     validation = profile.get("export_validation") or {}
+    reference_validation = validation | {"reject_stationary_broadband_noise": False}
     build_dir = build_root / profile_key
     cache_dir = build_dir / ".hf"
     model_path = build_dir / "model.onnx"
@@ -231,13 +274,25 @@ def compare_profile(
     native_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
     from kokoro.model import KModelForONNX
 
+    native_wrapper = KModelForONNX(native_model).eval()
     native_cases = build_kokoro.capture_native_reference_cases(
-        KModelForONNX(native_model).eval(),
+        native_wrapper,
         cases,
         voice,
         max_phonemes=510,
         seed=seed,
     )
+    native_replicates = [native_cases]
+    for replicate in range(1, max(3, runs)):
+        native_replicates.append(
+            build_kokoro.capture_native_reference_cases(
+                native_wrapper,
+                cases,
+                voice,
+                max_phonemes=510,
+                seed=seed + replicate,
+            )
+        )
 
     export_provenance: dict[str, Any] = {}
     build_kokoro.resolve_model(
@@ -251,13 +306,13 @@ def compare_profile(
     )
 
     patched_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
-    patch_metadata = build_kokoro.install_exact_onnx_istft(patched_model)
+    patch_metadata, _patched_stft = build_kokoro.install_exact_onnx_istft(patched_model)
     patched_wrapper = KModelForONNX(patched_model).eval()
     patched_cases = build_kokoro.validate_patched_pytorch_against_native(
         patched_wrapper,
         native_cases,
         sample_rate=sample_rate,
-        validation=validation,
+        validation=reference_validation,
         seed=seed,
     )["cases"]
 
@@ -266,18 +321,32 @@ def compare_profile(
     session = ort.InferenceSession(str(model_path), providers=[provider])
     output_dir.mkdir(parents=True, exist_ok=True)
     report_cases: list[dict[str, Any]] = []
-    for native_case, patched_case, case in zip(native_cases, patched_cases, cases):
+    for case_index, (native_case, patched_case, case) in enumerate(
+        zip(native_cases, patched_cases, cases)
+    ):
         case_name = _safe_component(str(case.get("name", "case")), "case name")
         case_dir = output_dir / case_name
         native_audio = np.asarray(native_case["audio"])
         native_duration = np.asarray(native_case["duration"])
+        native_distribution = [
+            {
+                "metrics": waveform_metrics(
+                    np.asarray(replicate[case_index]["audio"]), sample_rate
+                ),
+                "duration": _duration_record(
+                    np.asarray(replicate[case_index]["duration"])
+                ),
+            }
+            for replicate in native_replicates
+        ]
+        native_envelope = _metric_envelope(native_distribution)
         native_record = _stage_record(
             native_audio,
             native_duration,
             native_audio=native_audio,
             token_count=int(native_case["tokens"].shape[1]),
             sample_rate=sample_rate,
-            validation=validation,
+            validation=reference_validation,
             wav_path=case_dir / "torch-native.wav" if write_wav else None,
             wav_root=output_dir,
         )
@@ -290,10 +359,12 @@ def compare_profile(
             native_audio=native_audio,
             token_count=int(native_case["tokens"].shape[1]),
             sample_rate=sample_rate,
-            validation=validation,
+            validation=reference_validation,
             wav_path=case_dir / "torch-patched.wav" if write_wav else None,
             wav_root=output_dir,
         )
+        if not validation.get("requires_random_source_ops", False):
+            _check_metric_envelope(patched_record, native_envelope)
         patched_record["comparison_to_native"] = patched_case["waveform_structure"]
 
         onnx_records: list[dict[str, Any]] = []
@@ -318,6 +389,8 @@ def compare_profile(
                 wav_path=case_dir / f"onnx-{index:02d}.wav" if write_wav else None,
                 wav_root=output_dir,
             )
+            if not validation.get("requires_random_source_ops", False):
+                _check_metric_envelope(onnx_record, native_envelope)
             onnx_records.append(onnx_record)
         report_cases.append(
             {
@@ -325,6 +398,8 @@ def compare_profile(
                 "tokens": int(native_case["tokens"].shape[1]),
                 "speed": float(case.get("speed", 1.0)),
                 "native": native_record,
+                "native_distribution": native_distribution,
+                "native_envelope": native_envelope,
                 "patched": patched_record,
                 "onnx": onnx_records,
             }

@@ -144,7 +144,14 @@ def _thorsten_provenance() -> dict[str, object]:
                 "center": True,
                 "one_sided_bin_scaling": True,
                 "window_envelope_normalization": True,
-                "native_patched_validation": {"max_abs_error": 1.0e-7},
+                "native_delegate_validation": {
+                    "max_abs_error": 1.0e-7,
+                    "cases": [{"name": "hallo"}],
+                },
+                "native_patched_validation": {
+                    "max_abs_error": 1.0e-7,
+                    "cases": [{"name": "hallo"}],
+                },
             },
             "waveform_validation": {
                 "cases": [
@@ -201,6 +208,18 @@ def test_thorsten_provenance_rejects_missing_native_metrics() -> None:
     with pytest.raises(verify_candidate.CandidateError, match="native metrics"):
         verify_candidate._validate_checkpoint_provenance(manifest)
 
+
+@pytest.mark.parametrize(
+    ("field", "message"),
+    [("native_delegate_validation", "native-delegate"), ("native_patched_validation", "native/patched")],
+ )
+def test_thorsten_provenance_requires_both_validation_phases(
+    field: str, message: str
+ ) -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    del manifest["provenance"]["exporter"]["decoder_reconstruction"][field]
+    with pytest.raises(verify_candidate.CandidateError, match=message):
+        verify_candidate._validate_checkpoint_provenance(manifest)
 
 def test_thorsten_provenance_rejects_excessive_reconstruction_error() -> None:
     manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}

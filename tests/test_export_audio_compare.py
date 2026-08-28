@@ -201,7 +201,7 @@ def test_compare_profile_writes_repeated_report_and_wavs(
     monkeypatch.setattr(
         compare.build_kokoro,
         "install_exact_onnx_istft",
-        lambda model: {"backend": "test"},
+        lambda model: ({"backend": "test"}, object()),
     )
     monkeypatch.setattr(
         compare.build_kokoro,
@@ -251,6 +251,8 @@ def test_compare_profile_writes_repeated_report_and_wavs(
     assert order.index("capture") < order.index("export")
     assert report["listening"]["status"] == "not-recorded"
     assert len(report["cases"][0]["onnx"]) == 3
+    assert len(report["cases"][0]["native_distribution"]) == 3
+    assert "rms" in report["cases"][0]["native_envelope"]
     assert report["cases"][0]["native"]["wav"] == "fixture/torch-native.wav"
     assert report["cases"][0]["onnx"][2]["wav"] == "fixture/onnx-03.wav"
     assert (output_dir / "report.json").exists()

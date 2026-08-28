@@ -450,10 +450,25 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
             decoder_reconstruction.get(field) is True,
             f"Thorsten decoder reconstruction is missing {field}",
         )
+    native_delegate = decoder_reconstruction.get("native_delegate_validation")
+    _require(
+        isinstance(native_delegate, dict),
+        "Thorsten decoder is missing native-delegate validation",
+    )
+    _require(
+        isinstance(native_delegate.get("cases"), list)
+        and bool(native_delegate["cases"]),
+        "Thorsten native-delegate validation has no cases",
+    )
     native_patched = decoder_reconstruction.get("native_patched_validation")
     _require(
         isinstance(native_patched, dict),
         "Thorsten decoder is missing native/patched validation",
+    )
+    _require(
+        isinstance(native_patched.get("cases"), list)
+        and bool(native_patched["cases"]),
+        "Thorsten native/patched validation has no cases",
     )
     max_abs_error = native_patched.get("max_abs_error")
     _require(

@@ -18,6 +18,7 @@ Two voice-package modes are supported:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import sys
@@ -339,6 +340,37 @@ def validate_local_waveform_health(
     )
     return metrics
 
+def _verify_prepared_manifest(asset_dir: Path) -> dict[str, object] | None:
+    manifest_path = asset_dir / "release-manifest.json"
+    if not manifest_path.is_file():
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assets = manifest.get("assets")
+    if not isinstance(assets, list) or not assets:
+        raise RuntimeError("Prepared release manifest has no assets")
+    for asset in assets:
+        if not isinstance(asset, dict):
+            raise TypeError("Prepared release manifest contains an invalid asset")
+        name = asset.get("name")
+        if not isinstance(name, str):
+            raise TypeError("Prepared release manifest has an invalid asset name")
+        path = asset_dir / name
+        if not path.is_file():
+            raise RuntimeError(f"Prepared release is missing asset {name!r}")
+        actual_size = path.stat().st_size
+        if actual_size != asset.get("size"):
+            raise RuntimeError(
+                f"Prepared asset {name!r} size mismatch: "
+                f"{actual_size} != {asset.get('size')}"
+            )
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if digest != asset.get("sha256"):
+            raise RuntimeError(
+                f"Prepared asset {name!r} SHA-256 mismatch: "
+                f"{digest} != {asset.get('sha256')}"
+            )
+    return manifest
+
 
 def _parser(spec: LocalTestSpec) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -538,6 +570,9 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
             f"Run: python local_test/prepare_local_assets.py {spec.key}"
         )
 
+    prepared_manifest = _verify_prepared_manifest(asset_dir)
+    if prepared_manifest is not None:
+        print(f"verified prepared release manifest: {asset_dir / 'release-manifest.json'}")
     missing_required = [
         filename
         for filename in spec.required_files

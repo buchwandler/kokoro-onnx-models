@@ -104,3 +104,11 @@ published or staged ONNX + voices + config -> pykokoro
 It tests the final packaged consumer, frontend routing, voice assets, config,
 input names, and release format. Both gates are required for a checkpoint
 derived release, and neither substitutes for the other.
+
+## Native metric distributions
+
+The comparison captures at least three native references for each frozen input. ONNX-safe PyTorch and repeated ONNX Runtime outputs are checked against a native-derived envelope using the median plus or minus the greater of three MAD values and a metric-specific floor. The report retains the native distribution and envelope for review.
+
+## Prepared artifact gate
+
+Release automation runs the consumer smoke test against the prepared release directory. When `release-manifest.json` is present, `local_test/common.py` verifies every prepared asset's size and SHA-256 before pykokoro starts. Checkpoint-derived publication also requires a comparison report whose listening status is explicitly recorded as `pass`.

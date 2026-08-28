@@ -92,6 +92,10 @@ class ExactOnnxISTFT(nn.Module):
     def use_onnx_transform(self) -> None:
         self._native_transform = None
 
+    @property
+    def onnx_transform_enabled(self) -> bool:
+        return self._native_transform is None
+
     def transform(self, waveform: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         if self._native_transform is not None:
             return self._native_transform(waveform)  # type: ignore[operator]

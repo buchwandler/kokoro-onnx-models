@@ -1077,7 +1077,7 @@
       ]
     },
     "de-thorsten": {
-      "model_version": "1.1.2",
+      "model_version": "1.1.3",
       "display_name": "Kokoro German Thorsten",
       "runtime_available": true,
       "language_codes": ["de"],
@@ -1117,11 +1117,11 @@
       "mirror_policy": "preferred",
       "distributions": [
         {
-          "id": "github-model-files-german-thorsten-v1.1.2",
+          "id": "github-model-files-german-thorsten-v1.1.3",
           "provider": "github-release",
           "transport": "https",
           "release_key": "de-thorsten",
-          "release_tag": "model-files-german-thorsten-v1.1.2",
+          "release_tag": "model-files-german-thorsten-v1.1.3",
           "runtime_ready": true,
           "provenance": {
             "source_repository": "Thorsten-Voice/Kokoro",
@@ -1132,45 +1132,45 @@
             {
               "id": "bundle-bundle",
               "role": "bundle",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.2/bundle.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.3/bundle.json",
               "local_name": "bundle.json",
               "format": "json",
-              "size": 23085,
-              "sha256": "7a2ce98cc2d05ca182b117a72dc69f5dde16fce46ddd97a5eb961f12fda710ec"
+              "size": 34459,
+              "sha256": "a8c7410eaa0528795aad82539dbdaeb0e072d29d8506edb8a40a80c7a72af5a2"
             },
             {
-              "id": "config-config-german-thorsten-v1.1.2",
+              "id": "config-config-german-thorsten-v1.1.3",
               "role": "config",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.2/config-german-thorsten-v1.1.2.json",
-              "local_name": "config-german-thorsten-v1.1.2.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.3/config-german-thorsten-v1.1.3.json",
+              "local_name": "config-german-thorsten-v1.1.3.json",
               "format": "json",
               "size": 2351,
               "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
             },
             {
-              "id": "model-kokoro-german-thorsten-v1.1.2",
+              "id": "model-kokoro-german-thorsten-v1.1.3",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.2/kokoro-german-thorsten-v1.1.2.onnx",
-              "local_name": "kokoro-german-thorsten-v1.1.2.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.3/kokoro-german-thorsten-v1.1.3.onnx",
+              "local_name": "kokoro-german-thorsten-v1.1.3.onnx",
               "format": "onnx",
               "size": 325510011,
-              "sha256": "e34fd8ec01637730e58b7e7944505c26998daa37560e49a432a784a0d046ac10",
+              "sha256": "9479f894d5e86659a00003235feb2039b8c158953c99302580981e839e597c3a",
               "quality": "fp32"
             },
             {
-              "id": "voices-voices-german-thorsten-v1.1.2",
+              "id": "voices-voices-german-thorsten-v1.1.3",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.2/voices-german-thorsten-v1.1.2.npz",
-              "local_name": "voices-german-thorsten-v1.1.2.npz",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.3/voices-german-thorsten-v1.1.3.npz",
+              "local_name": "voices-german-thorsten-v1.1.3.npz",
               "format": "numpy-npz",
               "size": 522510,
               "sha256": "dba1f2ea13f6a75470da932cfc3e5ab421a7d2a845a9720020374c9b233f7b0c"
             },
             {
-              "id": "voices-voices-german-thorsten-v1.1.2.raw",
+              "id": "voices-voices-german-thorsten-v1.1.3.raw",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.2/voices-german-thorsten-v1.1.2.raw.bin",
-              "local_name": "voices-german-thorsten-v1.1.2.raw.bin",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.3/voices-german-thorsten-v1.1.3.raw.bin",
+              "local_name": "voices-german-thorsten-v1.1.3.raw.bin",
               "format": "raw-float32-le",
               "size": 522240,
               "sha256": "81dc9f282f528a379cbb427b1c102fbbac271e743541c00bf5d2eeae6b75e2ca",

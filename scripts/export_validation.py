@@ -63,6 +63,108 @@ def frame_rms(
     )
 
 
+def _spectral_frames(
+    values: np.ndarray, sample_rate: int, *, frame_ms: float, hop_ms: float
+ ) -> tuple[np.ndarray, int]:
+    frame_size = max(1, round(sample_rate * frame_ms / 1000.0))
+    hop_size = max(1, round(sample_rate * hop_ms / 1000.0))
+    if values.size < frame_size:
+        return np.empty((0, frame_size), dtype=np.float64), frame_size
+    starts = range(0, values.size - frame_size + 1, hop_size)
+    frames = np.asarray([values[start : start + frame_size] for start in starts])
+    return frames, frame_size
+
+
+def spectral_metrics(
+    audio: np.ndarray,
+    sample_rate: int,
+    *,
+    frame_ms: float = 50.0,
+    hop_ms: float = 25.0,
+    high_band_hz: float = 4000.0,
+ ) -> dict[str, float]:
+    values = _audio_values(audio, sample_rate, allow_empty=False)
+    frames, frame_size = _spectral_frames(
+        values, sample_rate, frame_ms=frame_ms, hop_ms=hop_ms
+    )
+    if not len(frames):
+        return {
+            "zcr_mean": 0.0,
+            "spectral_centroid_mean_hz": 0.0,
+            "spectral_centroid_cv": 0.0,
+            "spectral_bandwidth_mean_hz": 0.0,
+            "spectral_flatness_mean": 0.0,
+            "normalized_spectral_flux_mean": 0.0,
+            "high_band_energy_ratio_4k_nyquist": 0.0,
+            "frame_rms_cv": 0.0,
+        }
+    window = np.hanning(frame_size)
+    spectra = np.square(np.abs(np.fft.rfft(frames * window, axis=1)))
+    frequencies = np.fft.rfftfreq(frame_size, 1.0 / sample_rate)
+    spectra[:, 0] = 0.0
+    power_totals = np.maximum(np.sum(spectra, axis=1), np.finfo(np.float64).eps)
+    normalized = spectra / power_totals[:, None]
+    centroids = np.sum(normalized * frequencies[None, :], axis=1)
+    bandwidths = np.sqrt(
+        np.sum(normalized * (frequencies[None, :] - centroids[:, None]) ** 2, axis=1)
+    )
+    flatness = np.exp(
+        np.mean(np.log(np.maximum(spectra, np.finfo(np.float64).tiny)), axis=1)
+    ) / np.maximum(np.mean(spectra, axis=1), np.finfo(np.float64).eps)
+    flux = (
+        0.5 * np.linalg.norm(np.diff(normalized, axis=0), axis=1)
+        if len(normalized) > 1
+        else np.array([])
+    )
+    zcr = np.mean(np.diff(np.signbit(frames), axis=1), axis=1)
+    high_band = frequencies >= high_band_hz
+    return {
+        "zcr_mean": float(np.mean(zcr)),
+        "spectral_centroid_mean_hz": float(np.mean(centroids)),
+        "spectral_centroid_cv": float(
+            np.std(centroids)
+            / max(float(np.mean(centroids)), np.finfo(np.float64).eps)
+        ),
+        "spectral_bandwidth_mean_hz": float(np.mean(bandwidths)),
+        "spectral_flatness_mean": float(np.mean(flatness)),
+        "normalized_spectral_flux_mean": float(np.mean(flux)) if flux.size else 0.0,
+        "high_band_energy_ratio_4k_nyquist": float(
+            np.sum(spectra[:, high_band]) / np.sum(spectra)
+        ),
+        "frame_rms_cv": float(
+            np.std(np.sqrt(np.mean(np.square(frames), axis=1)))
+            / max(
+                float(np.mean(np.sqrt(np.mean(np.square(frames), axis=1)))),
+                np.finfo(np.float64).eps,
+            )
+        ),
+    }
+
+
+def stationary_broadband_noise(
+    metrics: dict[str, float],
+    *,
+    seconds: float,
+    sample_rate: int,
+    min_seconds: float = 1.0,
+    min_zcr: float = 0.45,
+    min_centroid_fraction: float = 0.23,
+    max_centroid_cv: float = 0.05,
+    min_high_band_ratio: float = 0.65,
+    max_frame_rms_cv: float = 0.08,
+    max_spectral_flux: float = 0.05,
+ ) -> bool:
+    return (
+        seconds >= min_seconds
+        and metrics["zcr_mean"] > min_zcr
+        and metrics["spectral_centroid_mean_hz"] > min_centroid_fraction * sample_rate
+        and metrics["spectral_centroid_cv"] < max_centroid_cv
+        and metrics["high_band_energy_ratio_4k_nyquist"] > min_high_band_ratio
+        and metrics["frame_rms_cv"] < max_frame_rms_cv
+        and metrics["normalized_spectral_flux_mean"] < max_spectral_flux
+    )
+
+
 def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
     values = _audio_values(audio, sample_rate, allow_empty=False)
     rms = float(np.sqrt(np.mean(np.square(values))))
@@ -73,7 +175,7 @@ def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
         if frames.size
         else 0.0
     )
-    return {
+    metrics: dict[str, Any] = {
         "samples": int(values.size),
         "seconds": float(values.size / sample_rate),
         "peak": float(np.max(np.abs(values))),
@@ -83,6 +185,8 @@ def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
         "frame_rms_cv": frame_rms_cv,
         "frame_rms": frames.tolist(),
     }
+    metrics.update(spectral_metrics(values, sample_rate))
+    return metrics
 
 
 def compare_waveform_structure(
@@ -138,6 +242,14 @@ def validate_waveform_health(
     min_frame_rms_cv: float,
     max_stationary_tone_ratio: float,
     max_dc_to_rms_ratio: float | None = None,
+    reject_stationary_broadband_noise: bool = True,
+    noise_min_seconds: float = 1.0,
+    noise_min_zcr: float = 0.45,
+    noise_min_centroid_fraction: float = 0.23,
+    noise_max_centroid_cv: float = 0.05,
+    noise_min_high_band_ratio: float = 0.65,
+    noise_max_frame_rms_cv: float = 0.08,
+    noise_max_spectral_flux: float = 0.05,
     error_type: type[ErrorT] = ValueError,
 ) -> dict[str, float]:
     """Measure and validate basic speech waveform health indicators."""
@@ -203,6 +315,25 @@ def validate_waveform_health(
             f"{stationary_tone_ratio:.6f} > {max_stationary_tone_ratio:.6f}"
         )
 
+    spectral = spectral_metrics(values, sample_rate)
+    if reject_stationary_broadband_noise and stationary_broadband_noise(
+        spectral,
+        seconds=float(values.size / sample_rate),
+        sample_rate=sample_rate,
+        min_seconds=noise_min_seconds,
+        min_zcr=noise_min_zcr,
+        min_centroid_fraction=noise_min_centroid_fraction,
+        max_centroid_cv=noise_max_centroid_cv,
+        min_high_band_ratio=noise_min_high_band_ratio,
+        max_frame_rms_cv=noise_max_frame_rms_cv,
+        max_spectral_flux=noise_max_spectral_flux,
+    ):
+        fail(
+            "Audio resembles stationary broadband noise: "
+            f"zcr={spectral['zcr_mean']:.6f}, "
+            f"centroid={spectral['spectral_centroid_mean_hz']:.2f}Hz, "
+            f"high_band={spectral['high_band_energy_ratio_4k_nyquist']:.6f}"
+        )
     return {
         "samples": int(values.size),
         "seconds": float(values.size / sample_rate),
@@ -212,4 +343,5 @@ def validate_waveform_health(
         "dc_to_rms_ratio": dc_to_rms_ratio,
         "frame_rms_cv": frame_rms_cv,
         "stationary_tone_ratio": stationary_tone_ratio,
+        **spectral,
     }

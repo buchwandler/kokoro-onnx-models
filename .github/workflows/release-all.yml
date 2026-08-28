@@ -42,6 +42,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v4
+        with:
+          repository: buchwandler/pykokoro
+          path: pykokoro
+          fetch-depth: 1
       - name: Build candidate
         env:
           RELEASE_KEY: ${{ matrix.release_key }}
@@ -55,17 +60,36 @@ jobs:
             uv run scripts/build_kokoro.py build "$PROFILE"
             uv run --with numpy python scripts/prepare_release.py "$PROFILE"
           fi
+      - name: Checkpoint A/B and staged consumer gate
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-thorsten' }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten --runs 5 --seed 20260828 --keep-build
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --with soundfile python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
+          test -f ".local-test/compare/de-thorsten/report.json"
       - name: Verify candidate
         run: |
           python scripts/verify_candidate.py "dist/${{ matrix.tag }}" \
             --expected-tag "${{ matrix.tag }}" \
             --expected-profile "${{ matrix.profile }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: Require human listening record
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-thorsten' }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.local-test/compare/de-thorsten/report.json').read_text())
+          status = report.get('listening', {}).get('status')
+          if status != 'pass':
+              raise SystemExit(f'Human listening gate is not passed: {status!r}')
+          PY
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
           name: kokoro-candidate-${{ matrix.release_key }}-${{ needs.plan.outputs.builder_commit }}
-          path: dist/${{ matrix.tag }}
+          path: |
+            dist/${{ matrix.tag }}
+            .local-test/compare/de-thorsten
           compression-level: 0
           if-no-files-found: error
 

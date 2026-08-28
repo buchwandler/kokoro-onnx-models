@@ -121,7 +121,8 @@ def _validate_distribution(
     )
     _distribution_ids.add(distribution_id)
     _require(
-        distribution.get("runtime_ready") is True,
+        distribution.get("runtime_ready") is True
+        or model.get("runtime_available", True) is False,
         f"{model_id}/{distribution_id}: distribution is not runtime-ready",
     )
     artifacts = distribution["artifacts"]
@@ -181,6 +182,8 @@ def _validate_distribution(
             distribution.get("repository") and distribution.get("revision"),
             f"{model_id}/{distribution_id}: Hugging Face provenance is incomplete",
         )
+    if distribution.get("runtime_ready") is not True:
+        return
     if distribution["provider"] == "github-release":
         release_key = distribution.get("release_key")
         _require(
@@ -260,9 +263,12 @@ def verify_registry(
             f"{model_id}: invalid mirror policy",
         )
         distributions = model["distributions"]
+        ready_distributions = [
+            item for item in distributions if item.get("runtime_ready") is True
+        ]
         _require(
-            bool(distributions) == bool(model.get("runtime_available", True)),
-            f"{model_id}: runtime_available does not match distributions",
+            bool(ready_distributions) == bool(model.get("runtime_available", True)),
+            f"{model_id}: runtime_available does not match ready distributions",
         )
         distribution_ids = [item["id"] for item in distributions]
         _require(

@@ -403,21 +403,21 @@ python local_test/prepare_local_assets.py de-thorsten
 python local_test/smoke_de_thorsten.py --strict-release-format
 ```
 
-### Thorsten v1.1.2 mandatory acoustic gate
+### Thorsten checkpoint mandatory acoustic gate
 
-Use the v1.1.2 candidate directory and record the waveform metrics before publication:
+Use the prepared candidate directory and verify it before invoking the consumer:
 
 ```bash
-python scripts/verify_candidate.py dist-v1.1.2/model-files-german-thorsten-v1.1.2 \
-  --expected-tag model-files-german-thorsten-v1.1.2 \
+
+python scripts/verify_candidate.py dist/model-files-german-thorsten-v1.1.3 \
+  --expected-tag model-files-german-thorsten-v1.1.3 \
   --expected-profile de-thorsten
-python local_test/prepare_local_assets.py de-thorsten
-python local_test/smoke_de_thorsten.py --strict-release-format
+python local_test/smoke_de_thorsten.py --asset-dir dist/model-files-german-thorsten-v1.1.3 --strict-release-format
 ```
 
-The candidate must expose `audio` and `duration`, preserve 24 kHz output and duration parity, and report finite audio with low `dc`, `dc_to_rms_ratio`, and a nonzero frame-RMS envelope. The native, patched PyTorch, and ONNX metrics must be retained in `bundle.json` and `release-manifest.json`.
+The smoke runner verifies every prepared manifest asset's size and SHA-256 before loading the model. It applies the absolute spectral health gate, and the staged directory must be the same directory used for the direct ONNX Runtime checks.
 
-Listen to a short phrase, a long sentence, numbers and dates, punctuation, the isolated word `ruhen.`, and concatenated multi-segment output. Confirm clear German speech, no continuous hiss or static, no large positive DC offset, no silence-only or tone-only output, usable phrase durations, and no clicks at segment boundaries. Do not publish until this listening gate passes.
+For diagnostics, run `examples/german3.py --no-short-sentence --raw-segments-dir .local-test/raw-segments`. Listen to a short phrase, a long sentence, numbers and dates, punctuation, the isolated word `ruhen.`, and concatenated multi-segment output. Confirm clear German speech, no continuous hiss or static, no large positive DC offset, no silence-only or tone-only output, usable phrase durations, and no clicks at segment boundaries. Do not publish until the listening result is recorded as `pass`.
 
 Thai is a runtime-layout-specific mirror and cannot use the current single-model `KokoroPipeline` harness:
 

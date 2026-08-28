@@ -71,6 +71,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v4
+        with:
+          repository: buchwandler/pykokoro
+          path: pykokoro
+          fetch-depth: 1
       - name: Build or mirror release
         env:
           KIND: ${{ needs.prepare.outputs.kind }}
@@ -87,6 +92,13 @@ jobs:
             if [ "$ALLOW_RESTRICTED" = "true" ]; then prep_args+=(--allow-restricted); fi
             uv run --with numpy python scripts/prepare_release.py "${prep_args[@]}"
           fi
+      - name: Checkpoint A/B and staged consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/de-thorsten/report.json"
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -96,10 +108,27 @@ jobs:
           args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
           if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
           uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
+      - name: Staged pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --with soundfile python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+      - name: Require human listening record
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.local-test/compare/de-thorsten/report.json').read_text())
+          status = report.get('listening', {}).get('status')
+          if status != 'pass':
+              raise SystemExit(f'Human listening gate is not passed: {status!r}')
+          PY
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
           name: kokoro-candidate-${{ inputs.release_key }}-${{ github.sha }}
-          path: dist/${{ needs.prepare.outputs.tag }}
+          path: |
+            dist/${{ needs.prepare.outputs.tag }}
+            .local-test/compare/de-thorsten
           compression-level: 0
           if-no-files-found: error
