@@ -85,6 +85,104 @@ def _validate_tensor_contract(
         raise CandidateError(f"Invalid ONNX {label} contract in {path.name}")
 
 
+def _validate_timing_contract(
+    contract: dict[str, Any],
+    *,
+    actual_outputs: dict[str, str] | None = None,
+    label: str = "ONNX contract",
+) -> None:
+    timing = contract.get("timing")
+    if timing is None:
+        return
+    _require(isinstance(timing, dict), f"{label} timing must be an object")
+    for field in (
+        "kind",
+        "output",
+        "unit",
+        "samples_per_frame",
+        "includes_boundary_tokens",
+    ):
+        _require(field in timing, f"{label} timing is missing {field!r}")
+    _require(
+        timing["kind"] == "token-duration-v1",
+        f"{label} timing kind is unsupported",
+    )
+    _require(timing["unit"] == "frame", f"{label} timing unit must be frame")
+    _require(
+        isinstance(timing["samples_per_frame"], int)
+        and timing["samples_per_frame"] > 0,
+        f"{label} samples_per_frame must be positive",
+    )
+    _require(
+        isinstance(timing["includes_boundary_tokens"], bool),
+        f"{label} boundary-token semantics must be boolean",
+    )
+    if actual_outputs is not None:
+        output = timing["output"]
+        _require(
+            output in actual_outputs,
+            f"ONNX model timing output {output!r} is missing",
+        )
+        _require(
+            actual_outputs[output]
+            in {"int64", "int32", "float16", "float32", "float64"},
+            f"ONNX timing output {output!r} is not numeric",
+        )
+
+
+def _validate_exporter_contract(manifest: dict[str, Any]) -> None:
+    contract = manifest["onnx_contract"]
+    timing = contract.get("timing")
+    if timing is None:
+        return
+    effective = contract
+    component = timing.get("component") if isinstance(timing, dict) else None
+    if component:
+        effective = (contract.get("components") or {}).get(component) or {}
+    _validate_timing_contract(effective, label="Manifest ONNX contract")
+    output = timing.get("output")
+    _require(
+        output in (effective.get("outputs") or {}),
+        f"Timing output {output!r} is not declared in its output contract",
+    )
+    exporter = (manifest.get("provenance") or {}).get("exporter") or {}
+    if exporter:
+        exported = exporter.get("outputs") or []
+        _require(
+            output in exported,
+            f"Exporter provenance is missing timing output {output!r}",
+        )
+
+
+def _validate_transform_provenance(manifest: dict[str, Any]) -> None:
+    transform = manifest.get("transform") or {}
+    if transform.get("type") != "onnx-expose-kokoro-duration-v1":
+        return
+    _require(transform.get("version") == 1, "Unsupported ONNX timing transform version")
+    records = transform.get("assets") or []
+    _require(records, "ONNX timing transform has no asset provenance")
+    by_hash = {record.get("transformed_sha256"): record for record in records}
+    model_assets = [
+        asset for asset in manifest["assets"] if asset.get("role") == "model"
+    ]
+    for asset in model_assets:
+        record = by_hash.get(asset.get("sha256"))
+        if record is None:
+            continue
+        _require(
+            record.get("waveform_identical") in {True, None},
+            "Invalid waveform provenance",
+        )
+        _require(
+            bool(record.get("source_sha256")), "Transform is missing source SHA-256"
+        )
+        _require(
+            record.get("public_output") == "duration", "Transform must expose duration"
+        )
+        return
+    raise CandidateError("No model asset matches ONNX timing transform provenance")
+
+
 def _validate_onnx_asset(
     path: Path, contract: dict[str, Any], component: str | None = None
 ) -> None:
@@ -112,6 +210,16 @@ def _validate_onnx_asset(
         path, "output", effective.get("outputs", {}), actual_outputs
     )
     _require(bool(actual_outputs), f"ONNX model {path.name} has no outputs")
+    timing_contract = contract
+    if component and (contract.get("timing") or {}).get("component") == component:
+        timing_contract = contract
+    elif component:
+        timing_contract = effective
+    _validate_timing_contract(
+        timing_contract,
+        actual_outputs=actual_outputs,
+        label=f"{path.name} ONNX contract",
+    )
 
 
 def _validate_voice_asset(
@@ -327,6 +435,8 @@ def verify_candidate(
     _require(
         isinstance(assets, list) and assets, "Manifest assets must be a non-empty list"
     )
+    _validate_exporter_contract(manifest)
+    _validate_transform_provenance(manifest)
     names: set[str] = set()
     slots: set[tuple[str, str, str | None, str | None]] = set()
     model_components: set[str] = set()

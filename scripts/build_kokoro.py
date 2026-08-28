@@ -308,6 +308,49 @@ def _parity_inputs(
     return tokens, style, speed
 
 
+def _validate_duration_audio_consistency(
+    audio: np.ndarray,
+    duration: np.ndarray,
+    *,
+    token_count: int,
+    samples_per_frame: int = 600,
+    tolerance: float = 1e-3,
+) -> dict[str, Any]:
+    values = np.asarray(duration)
+    if values.size != token_count:
+        raise BuildError(
+            f"Duration count {values.size} does not match token count {token_count}"
+        )
+    if not np.isfinite(values).all():
+        raise BuildError("Duration contains non-finite values")
+    rounded = np.rint(values)
+    if not np.allclose(values, rounded, atol=1e-4):
+        raise BuildError("Duration contains non-integer values")
+    integer_values = rounded.astype(np.int64)
+    if np.any(integer_values < 1):
+        raise BuildError("Duration contains values below one frame")
+    audio_values = np.asarray(audio)
+    if not np.isfinite(audio_values).all():
+        raise BuildError("Audio contains non-finite values")
+    total_frames = int(integer_values.sum())
+    if total_frames <= 0:
+        raise BuildError("Duration has no synthesis frames")
+    actual_samples_per_frame = audio_values.size / total_frames
+    if not np.isclose(
+        actual_samples_per_frame, samples_per_frame, rtol=tolerance, atol=tolerance
+    ):
+        raise BuildError(
+            f"Audio/duration frame ratio {actual_samples_per_frame:.6f} "
+            f"does not match {samples_per_frame}"
+        )
+    return {
+        "samples_per_frame": samples_per_frame,
+        "duration_frames": total_frames,
+        "audio_samples": int(audio_values.size),
+        "audio_samples_per_frame": float(actual_samples_per_frame),
+    }
+
+
 def _validate_parity_case(
     session: Any,
     model: Any,
@@ -365,11 +408,17 @@ def _validate_parity_case(
         raise BuildError(
             f"PyTorch/ONNX parity failed for {case.get('name', 'case')!r}: {exc}"
         ) from exc
+    timing = _validate_duration_audio_consistency(
+        actual_audio_np,
+        actual_duration_np,
+        token_count=int(tokens.shape[1]),
+    )
     return {
         "name": str(case.get("name", "case")),
         "audio_samples": int(actual_audio_np.size),
         "audio_peak": float(np.max(np.abs(actual_audio_np), initial=0)),
         "audio_rms": float(np.sqrt(np.mean(np.square(actual_audio_np)))),
+        "timing": timing,
     }
 
 
@@ -420,6 +469,17 @@ def export_checkpoint_to_onnx(
         ).unsqueeze(0)
         style = torch.rand(1, STYLE_WIDTH, dtype=torch.float32)
         speed = torch.tensor([1.0], dtype=torch.float32)
+    parity_cases = cases
+    if not parity_cases and voice is not None:
+        probe_length = max(8, int(seq_len))
+        parity_cases = [
+            {
+                "name": "synthetic-probe",
+                "phonemes": "a" * probe_length,
+                "tokens": [0, *([1] * probe_length), 0],
+                "speed": 1.0,
+            }
+        ]
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with deterministic_inference(), torch.no_grad():
@@ -447,15 +507,20 @@ def export_checkpoint_to_onnx(
         "opset": opset,
         "inputs": ["tokens", "style", "speed"],
         "outputs": ["audio", "duration"],
+        "timing": {
+            "output": "duration",
+            "samples_per_frame": 600,
+            "validated": bool(parity_cases),
+        },
     }
-    if cases:
+    if parity_cases:
         session = ort.InferenceSession(
             str(out_path), providers=["CPUExecutionProvider"]
         )
         result["parity"] = {
-            "atol": float(validation.get("atol", 1e-4)),
-            "rtol": float(validation.get("rtol", 1e-4)),
-            "max_audio_abs": float(validation.get("max_audio_abs", 1.0)),
+            "atol": float((validation or {}).get("atol", 1e-4)),
+            "rtol": float((validation or {}).get("rtol", 1e-4)),
+            "max_audio_abs": float((validation or {}).get("max_audio_abs", 1.0)),
             "cases": [
                 _validate_parity_case(
                     session,
@@ -463,11 +528,11 @@ def export_checkpoint_to_onnx(
                     case,
                     voice,
                     max_phonemes=510,
-                    atol=float(validation.get("atol", 1e-4)),
-                    rtol=float(validation.get("rtol", 1e-4)),
-                    max_audio_abs=float(validation.get("max_audio_abs", 1.0)),
+                    atol=float((validation or {}).get("atol", 1e-4)),
+                    rtol=float((validation or {}).get("rtol", 1e-4)),
+                    max_audio_abs=float((validation or {}).get("max_audio_abs", 1.0)),
                 )
-                for case in cases
+                for case in parity_cases
             ],
         }
     return result
@@ -617,6 +682,33 @@ def validate_onnx_contract(
     elif not actual_outputs:
         issues.append("model has no outputs")
 
+    timing = (expected or {}).get("timing")
+    if timing is not None:
+        if not isinstance(timing, dict):
+            issues.append("timing metadata must be an object")
+        else:
+            required_timing = {
+                "kind",
+                "output",
+                "unit",
+                "samples_per_frame",
+                "includes_boundary_tokens",
+            }
+            missing_timing = sorted(required_timing - timing.keys())
+            if missing_timing:
+                issues.append(
+                    "timing metadata is missing: " + ", ".join(missing_timing)
+                )
+            if timing.get("kind") != "token-duration-v1":
+                issues.append("timing kind must be token-duration-v1")
+            timing_output = timing.get("output")
+            if timing_output not in (expected_outputs or {}):
+                issues.append(
+                    f"timing output {timing_output!r} is not declared in outputs"
+                )
+            samples_per_frame = timing.get("samples_per_frame")
+            if not isinstance(samples_per_frame, int) or samples_per_frame <= 0:
+                issues.append("timing samples_per_frame must be positive")
     if "sample_rate" in (expected or {}) and expected["sample_rate"] != 24000:
         issues.append("sample_rate metadata must be 24000 Hz")
     max_tokens = (expected or {}).get("max_tokens")

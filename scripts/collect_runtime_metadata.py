@@ -70,9 +70,16 @@ def _validate_format(path: Path, artifact: dict[str, Any]) -> None:
         except ImportError:
             return
         try:
-            onnx.checker.check_model(str(path))
+            model = onnx.load(str(path), load_external_data=True)
+            onnx.checker.check_model(model)
         except Exception as exc:
             raise MetadataError(f"{artifact['id']}: invalid ONNX: {exc}") from exc
+        outputs = {value.name for value in model.graph.output}
+        expected = artifact.get("timing_output")
+        if expected is not None and expected not in outputs:
+            raise MetadataError(f"{artifact['id']}: missing timing output {expected!r}")
+        if expected is not None:
+            artifact["timing_verified"] = True
 
 
 def _iter_artifacts(

@@ -1371,6 +1371,25 @@
       "profile": "vi-contextbox",
       "tag": "model-files-vietnamese-v1.0",
       "model_version": "1.0",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
       "assets": [
         {
           "source": "model.onnx",
@@ -1410,6 +1429,25 @@
       "profile": "vi-anphunl",
       "tag": "model-files-vietnamese-anphunl-v1.0",
       "model_version": "1.0",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
       "assets": [
         {
           "source": "model.onnx",
@@ -1567,6 +1605,25 @@
       "profile": "sv-joakim",
       "tag": "model-files-swedish-v1.0",
       "model_version": "1.0",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
       "assets": [
         {
           "source": "model.onnx",
@@ -1604,12 +1661,31 @@
     "de-thorsten": {
       "kind": "build",
       "profile": "de-thorsten",
-      "tag": "model-files-german-thorsten-v1.0",
-      "model_version": "1.0",
+      "tag": "model-files-german-thorsten-v1.1",
+      "model_version": "1.1",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
       "assets": [
         {
           "source": "model.onnx",
-          "name": "kokoro-german-thorsten-v1.0.onnx",
+          "name": "kokoro-german-thorsten-v1.1.onnx",
           "role": "model",
           "quality": "fp32",
           "format": "onnx"
@@ -1634,7 +1710,7 @@
         },
         {
           "source": "config.json",
-          "name": "config-german-thorsten-v1.0.json",
+          "name": "config-german-thorsten-v1.1.json",
           "role": "config",
           "format": "json"
         }
@@ -1682,6 +1758,14 @@
           "audio": "float32"
         },
         "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "component": "prosody",
+          "output": "pred_dur",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
         "components": {
           "prosody": {
             "inputs": {
@@ -1789,6 +1873,25 @@
       "profile": "kk-anuarsv",
       "tag": "model-files-kazakh-anuarsv-v1",
       "model_version": "1",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
       "publish": true,
       "license": "Apache-2.0",
       "language_codes": ["kk"],

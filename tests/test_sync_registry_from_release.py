@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from scripts import sync_registry_from_release as sync
-from scripts.update_registry_from_release import distribution_from_manifest
+from scripts.update_registry_from_release import (
+    distribution_from_manifest,
+    sync_release,
+)
 
 
 def test_distribution_from_manifest_contains_artifacts() -> None:
@@ -58,3 +62,60 @@ def test_download_release_fetches_manifest_checksums_and_assets(
         "model.onnx",
         "voices.npz",
     ]
+
+
+def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    timing = {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": True,
+    }
+    contract = {
+        "inputs": {"tokens": "int64"},
+        "outputs": {"audio": "float32", "duration": "int64"},
+        "timing": timing,
+        "max_tokens": 510,
+    }
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(
+            {
+                "tag": "model-files-test",
+                "profile": "test",
+                "onnx_contract": contract,
+                "assets": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    registry = tmp_path / "models.json"
+    registry.write_text(
+        json.dumps(
+            {
+                "models": {
+                    "test": {
+                        "onnx_contract": {"outputs": {"audio": "float32"}},
+                        "distributions": [],
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    releases = tmp_path / "releases.json"
+    releases.write_text(
+        json.dumps({"releases": {"test": {"tag": "model-files-test"}}}),
+        encoding="utf-8",
+    )
+    sync_release(
+        candidate,
+        profile="test",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+    updated = json.loads(registry.read_text(encoding="utf-8"))
+    assert updated["models"]["test"]["onnx_contract"] == contract

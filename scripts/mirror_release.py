@@ -149,6 +149,25 @@ def stage_asset(url: str, target: Path, asset: MirrorAsset) -> Path:
         raise
 
 
+def transform_model_asset(
+    source: Path,
+    target: Path,
+    asset: MirrorAsset,
+) -> dict[str, Any]:
+    if asset.transform != "onnx-expose-kokoro-duration-v1":
+        raise SystemExit(f"Unsupported ONNX transform: {asset.transform}")
+    from scripts import onnx_timing
+
+    try:
+        metadata = onnx_timing.transform_file(source, target)
+    except (onnx_timing.TimingError, OSError) as exc:
+        raise SystemExit(
+            f"ONNX timing transform failed for {asset.name}: {exc}"
+        ) from exc
+    metadata["transform"] = asset.transform
+    return metadata
+
+
 def github_sources(
     spec: dict[str, Any], assets: list[MirrorAsset]
 ) -> tuple[dict[str, str], dict[str, Any]]:
@@ -463,6 +482,7 @@ def main() -> int:
     out = args.dist / spec["tag"]
     out.mkdir(parents=True, exist_ok=True)
     staged: list[tuple[Path, Path]] = []
+    transform_provenance: list[dict[str, Any]] = []
     try:
         for asset in assets:
             target = out / asset.name
@@ -470,7 +490,27 @@ def main() -> int:
                 print(f"Using existing {asset.name}")
                 continue
             print(f"Downloading {asset.source}")
-            staged.append((stage_asset(urls[asset.name], target, asset), target))
+            temporary = stage_asset(urls[asset.name], target, asset)
+            if asset.transform is not None:
+                with tempfile.NamedTemporaryFile(
+                    mode="wb",
+                    prefix=f".{target.name}.",
+                    suffix=".transform.part",
+                    dir=target.parent,
+                    delete=False,
+                ) as file:
+                    transformed = Path(file.name)
+                try:
+                    transform_provenance.append(
+                        transform_model_asset(temporary, transformed, asset)
+                    )
+                except BaseException:
+                    transformed.unlink(missing_ok=True)
+                    temporary.unlink(missing_ok=True)
+                    raise
+                temporary.unlink(missing_ok=True)
+                temporary = transformed
+            staged.append((temporary, target))
         for temporary, target in staged:
             temporary.replace(target)
     except BaseException:
@@ -607,6 +647,13 @@ def main() -> int:
             "type": "voice-pack",
             "version": 1,
             "source_manifest": "source-assets.json",
+        }
+    if transform_provenance:
+        manifest["transform"] = {
+            "type": "onnx-expose-kokoro-duration-v1",
+            "version": 1,
+            "source_manifest": "release-manifest.json",
+            "assets": transform_provenance,
         }
     builder_commit = os.environ.get("GITHUB_SHA")
     if builder_commit:

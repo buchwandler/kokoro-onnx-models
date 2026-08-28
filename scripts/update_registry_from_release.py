@@ -52,6 +52,8 @@ def distribution_from_manifest(
         for field in ("quality", "component"):
             if item.get(field) is not None:
                 artifact[field] = item[field]
+        if item.get("handling") is not None:
+            artifact["handling"] = item["handling"]
         if artifact_id in old_artifacts and old_artifacts[artifact_id].get("handling"):
             artifact["handling"] = old_artifacts[artifact_id]["handling"]
         artifacts.append(artifact)
@@ -95,6 +97,9 @@ def sync_release(
         raise RegistryReleaseError(
             f"Manifest tag {manifest.get('tag')!r} does not match catalog tag {release.get('tag')!r}"
         )
+    manifest_contract = manifest.get("onnx_contract")
+    if not isinstance(manifest_contract, dict):
+        raise RegistryReleaseError("Manifest is missing onnx_contract")
     model = registry["models"][model_id]
     existing = next(
         (d for d in model["distributions"] if d.get("provider") == "github-release"),
@@ -102,6 +107,7 @@ def sync_release(
     )
     generated = distribution_from_manifest(manifest, release, existing)
     if update:
+        model["onnx_contract"] = manifest_contract
         model["distributions"] = [
             d for d in model["distributions"] if d.get("provider") != "github-release"
         ]

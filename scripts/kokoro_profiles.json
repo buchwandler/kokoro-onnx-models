@@ -45,6 +45,18 @@
         "tokens": "int64",
         "style": "float32",
         "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
       }
     }
   },
@@ -94,6 +106,18 @@
         "tokens": "int64",
         "style": "float32",
         "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
       }
     }
   },
@@ -212,6 +236,9 @@
         "input_ids": "int64",
         "style": "float32",
         "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32"
       }
     }
   },
@@ -262,6 +289,9 @@
         "tokens": "int64",
         "style": "float32",
         "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32"
       }
     }
   },
@@ -343,9 +373,17 @@
         "speed": "float32"
       },
       "outputs": {
-        "audio": "float32"
+        "audio": "float32",
+        "duration": "int64"
       },
-      "max_tokens": 510
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
     }
   },
   "de-thorsten": {
@@ -379,21 +417,21 @@
     },
     "release": {
       "enabled": true,
-      "tag": "model-files-german-thorsten-v1.0",
-      "model_version": "1.0",
-      "model_filename": "kokoro-german-thorsten-v1.0.onnx",
-      "config_filename": "config-german-thorsten-v1.0.json",
+      "tag": "model-files-german-thorsten-v1.1",
+      "model_version": "1.1",
+      "model_filename": "kokoro-german-thorsten-v1.1.onnx",
+      "config_filename": "config-german-thorsten-v1.1.json",
       "voices": ["thorsten"],
       "default_voice": "thorsten",
       "voice_assets": [
         {
           "source": "voices.npz",
-          "filename": "voices-german-thorsten-v1.0.npz",
+          "filename": "voices-german-thorsten-v1.1.npz",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "filename": "voices-german-thorsten-v1.0.raw.bin",
+          "filename": "voices-german-thorsten-v1.1.raw.bin",
           "format": "raw-float32-le"
         }
       ]
@@ -408,7 +446,14 @@
         "audio": "float32",
         "duration": "int64"
       },
-      "max_tokens": 510
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
     },
     "export_validation": {
       "cases": [
@@ -527,9 +572,17 @@
         "speed": "float32"
       },
       "outputs": {
-        "audio": "float32"
+        "audio": "float32",
+        "duration": "int64"
       },
-      "max_tokens": 510
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
     }
   }
 }

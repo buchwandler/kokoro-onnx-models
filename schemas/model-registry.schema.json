@@ -87,6 +87,7 @@
           "type": "object",
           "additionalProperties": { "$ref": "#/$defs/contract" }
         },
+        "timing": { "$ref": "#/$defs/timing" },
         "max_tokens": { "type": "integer", "minimum": 1 }
       }
     },
@@ -94,6 +95,25 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "timing": {
+      "type": "object",
+      "required": [
+        "kind",
+        "output",
+        "unit",
+        "samples_per_frame",
+        "includes_boundary_tokens"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "token-duration-v1" },
+        "output": { "type": "string", "minLength": 1 },
+        "component": { "type": "string", "minLength": 1 },
+        "unit": { "const": "frame" },
+        "samples_per_frame": { "type": "integer", "exclusiveMinimum": 0 },
+        "includes_boundary_tokens": { "type": "boolean" }
+      }
     },
     "license": {
       "type": "object",

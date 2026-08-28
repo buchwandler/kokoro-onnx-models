@@ -54,7 +54,52 @@ def _asset_metadata(asset: dict[str, Any], path: Path) -> dict[str, Any]:
     }
     if asset.get("quality") is not None:
         metadata["quality"] = str(asset["quality"])
+    if metadata["role"] == "voices" and metadata["format"] == "raw-float32-le":
+        metadata["handling"] = {
+            "dtype": "float32",
+            "shape": [510, 256],
+            "endianness": "little",
+        }
     return metadata
+
+
+def _validate_checkpoint_contract(
+    profile: dict[str, Any],
+    contract: dict[str, Any],
+    bundle: dict[str, Any],
+) -> None:
+    if profile.get("model", {}).get("kind") != "checkpoint":
+        return
+    if not contract:
+        raise SystemExit("Checkpoint profile is missing onnx_contract")
+    outputs = contract.get("outputs")
+    if not isinstance(outputs, dict) or outputs.get("audio") != "float32":
+        raise SystemExit("Checkpoint onnx_contract must declare audio output")
+    timing = contract.get("timing")
+    if not isinstance(timing, dict):
+        raise SystemExit("Checkpoint onnx_contract must declare timing")
+    if timing.get("kind") != "token-duration-v1":
+        raise SystemExit("Checkpoint timing kind must be token-duration-v1")
+    timing_output = timing.get("output")
+    if outputs.get(timing_output) != "int64":
+        raise SystemExit(
+            "Checkpoint timing output must be declared as int64 in outputs"
+        )
+    if timing.get("unit") != "frame" or timing.get("samples_per_frame") != 600:
+        raise SystemExit("Checkpoint timing must use 600-sample synthesis frames")
+    if not isinstance(timing.get("includes_boundary_tokens"), bool):
+        raise SystemExit("Checkpoint timing must declare boundary-token semantics")
+    exporter = bundle.get("exporter") or {}
+    exported_outputs = exporter.get("outputs")
+    if not isinstance(exported_outputs, list) or timing_output not in exported_outputs:
+        raise SystemExit(
+            "Checkpoint exporter provenance does not expose the declared timing output"
+        )
+    exporter_timing = exporter.get("timing") or {}
+    if exporter_timing.get("output") != timing_output:
+        raise SystemExit("Checkpoint exporter timing output does not match contract")
+    if exporter_timing.get("validated") is not True:
+        raise SystemExit("Checkpoint exporter timing has not been validated")
 
 
 def _write_checksums(out: Path, assets: list[dict[str, Any]]) -> None:
@@ -200,8 +245,10 @@ def main() -> int:
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
     )
-    contract.setdefault("outputs", {"audio": "float32"})
+    if profile.get("model", {}).get("kind") != "checkpoint":
+        contract.setdefault("outputs", {"audio": "float32"})
     contract.setdefault("max_tokens", int(release.get("max_tokens", 510)))
+    _validate_checkpoint_contract(profile, contract, bundle)
     manifest: dict[str, Any] = {
         "schema": 2,
         "runtime_contract": 1,

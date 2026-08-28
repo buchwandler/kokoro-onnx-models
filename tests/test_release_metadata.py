@@ -81,7 +81,7 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     assert thorsten["release"]["default_voice"] == "thorsten"
     assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
     assert (
-        catalog["releases"]["de-thorsten"]["tag"] == "model-files-german-thorsten-v1.0"
+        catalog["releases"]["de-thorsten"]["tag"] == "model-files-german-thorsten-v1.1"
     )
 
 
