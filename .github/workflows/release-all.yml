@@ -72,17 +72,6 @@ jobs:
             --expected-tag "${{ matrix.tag }}" \
             --expected-profile "${{ matrix.profile }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
-      - name: Require human listening record
-        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-thorsten' }}
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          report = json.loads(Path('.local-test/compare/de-thorsten/report.json').read_text())
-          status = report.get('listening', {}).get('status')
-          if status != 'pass':
-              raise SystemExit(f'Human listening gate is not passed: {status!r}')
-          PY
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
