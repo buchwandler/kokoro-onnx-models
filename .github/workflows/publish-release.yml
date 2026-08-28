@@ -60,9 +60,19 @@ jobs:
               print(f"tag={spec['tag']}", file=output)
               print(f"profile={spec.get('profile', key)}", file=output)
           PY
-          uv run python scripts/verify_candidate.py candidate \
-            --expected-tag "$(awk -F= '/^tag=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
-            --expected-profile "$(awk -F= '/^profile=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
+          TAG="$(awk -F= '/^tag=/{print $2}' "$GITHUB_OUTPUT" | tail -1)"
+          PROFILE="$(awk -F= '/^profile=/{print $2}' "$GITHUB_OUTPUT" | tail -1)"
+          manifest="$(find candidate -type f -name release-manifest.json -print -quit)"
+          if [ -z "$manifest" ]; then
+            echo "Downloaded artifact does not contain release-manifest.json" >&2
+            find candidate -maxdepth 5 -type f -print >&2
+            exit 1
+          fi
+          CANDIDATE_DIR="$(dirname "$manifest")"
+          printf 'candidate_dir=%s\n' "$CANDIDATE_DIR" >> "$GITHUB_OUTPUT"
+          uv run python scripts/verify_candidate.py "$CANDIDATE_DIR" \
+            --expected-tag "$TAG" \
+            --expected-profile "$PROFILE" \
             --expected-builder-commit "$CANDIDATE_COMMIT"
       - name: Refuse existing release tag
         env:
@@ -75,8 +85,9 @@ jobs:
       - name: Publish exact candidate bytes
         env:
           TAG: ${{ steps.resolve.outputs.tag }}
+          CANDIDATE_DIR: ${{ steps.resolve.outputs.candidate_dir }}
         run: |
-          gh release create "$TAG" candidate/* \
+          gh release create "$TAG" "$CANDIDATE_DIR"/* \
             --repo "$RELEASE_REPOSITORY" \
             --title "$TAG" \
-            --notes-file candidate/release-notes.md
+            --notes-file "$CANDIDATE_DIR/release-notes.md"
