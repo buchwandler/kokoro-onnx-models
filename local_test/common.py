@@ -372,6 +372,27 @@ def _verify_prepared_manifest(asset_dir: Path) -> dict[str, object] | None:
     return manifest
 
 
+def _prepared_asset_path(
+    asset_dir: Path, manifest: dict[str, object], role: str
+) -> Path:
+    assets = manifest.get("assets")
+    if not isinstance(assets, list):
+        raise RuntimeError("Prepared release manifest has no asset list")
+    matches = [
+        asset["name"]
+        for asset in assets
+        if isinstance(asset, dict)
+        and asset.get("role") == role
+        and isinstance(asset.get("name"), str)
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"Prepared release must contain exactly one {role} asset; "
+            f"found {len(matches)}"
+        )
+    return asset_dir / matches[0]
+
+
 def _parser(spec: LocalTestSpec) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=f"Local pykokoro pre-release smoke test: {spec.display_name}"
@@ -573,10 +594,17 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
     prepared_manifest = _verify_prepared_manifest(asset_dir)
     if prepared_manifest is not None:
         print(f"verified prepared release manifest: {asset_dir / 'release-manifest.json'}")
+    required_paths = {
+        filename: asset_dir / filename for filename in spec.required_files
+    }
+    if prepared_manifest is not None and "config.json" in spec.required_files:
+        required_paths["config.json"] = _prepared_asset_path(
+            asset_dir, prepared_manifest, "config"
+        )
     missing_required = [
         filename
         for filename in spec.required_files
-        if not (asset_dir / filename).is_file()
+        if not required_paths[filename].is_file()
     ]
     if missing_required:
         raise FileNotFoundError(
@@ -633,7 +661,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
             asset_dir / "vocab.json"
             if "vocab.json" in spec.required_files
             else (
-                asset_dir / "config.json"
+                required_paths["config.json"]
                 if "config.json" in spec.required_files
                 else None
             )
