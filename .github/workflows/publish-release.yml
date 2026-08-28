@@ -31,6 +31,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
       - uses: actions/download-artifact@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -59,7 +60,7 @@ jobs:
               print(f"tag={spec['tag']}", file=output)
               print(f"profile={spec.get('profile', key)}", file=output)
           PY
-          python scripts/verify_candidate.py candidate \
+          uv run python scripts/verify_candidate.py candidate \
             --expected-tag "$(awk -F= '/^tag=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
             --expected-profile "$(awk -F= '/^profile=/{print $2}' "$GITHUB_OUTPUT" | tail -1)" \
             --expected-builder-commit "$CANDIDATE_COMMIT"
