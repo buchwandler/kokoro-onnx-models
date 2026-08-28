@@ -360,7 +360,7 @@ def _parity_inputs(
     return tokens, style, speed
 
 
-def _validate_duration_audio_consistency(
+def validate_duration_audio_consistency(
     audio: np.ndarray,
     duration: np.ndarray,
     *,
@@ -448,6 +448,22 @@ def install_exact_onnx_istft(model: Any) -> dict[str, Any]:
     }
 
 
+def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
+    """Load a checkpoint with Kokoro's upstream-native Torch decoder."""
+    from kokoro import KModel
+
+    return (
+        KModel(
+            repo_id="not-used-local-checkpoint",
+            model=str(checkpoint),
+            config=dict(config),
+            disable_complex=False,
+        )
+        .to("cpu")
+        .eval()
+    )
+
+
 def _capture_reference_case(
     model: Any,
     case: Mapping[str, Any],
@@ -473,7 +489,7 @@ def _capture_reference_case(
     }
 
 
-def _capture_native_reference_cases(
+def capture_native_reference_cases(
     model: Any,
     cases: list[Mapping[str, Any]],
     voice: np.ndarray,
@@ -494,7 +510,24 @@ def _capture_native_reference_cases(
     ]
 
 
-def _validate_patched_pytorch_case(
+def run_patched_pytorch_outputs(
+    model: Any,
+    native_case: Mapping[str, Any],
+    *,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Run the export-patched model using a native case's tensors."""
+    import torch
+
+    torch.manual_seed(seed)
+    with torch.no_grad():
+        audio, duration = model(
+            native_case["tokens"], native_case["style"], native_case["speed"]
+        )
+    return np.asarray(_as_numpy(audio)), np.asarray(_as_numpy(duration))
+
+
+def run_patched_pytorch_case(
     model: Any,
     native_case: Mapping[str, Any],
     *,
@@ -502,15 +535,9 @@ def _validate_patched_pytorch_case(
     sample_rate: int,
     validation: Mapping[str, Any],
 ) -> dict[str, Any]:
-    import torch
-
-    torch.manual_seed(seed)
-    with torch.no_grad():
-        patched_audio, patched_duration = model(
-            native_case["tokens"], native_case["style"], native_case["speed"]
-        )
-    patched_audio_np = np.asarray(_as_numpy(patched_audio))
-    patched_duration_np = np.asarray(_as_numpy(patched_duration))
+    patched_audio_np, patched_duration_np = run_patched_pytorch_outputs(
+        model, native_case, seed=seed
+    )
     native_audio_np = np.asarray(native_case["audio"])
     native_duration_np = np.asarray(native_case["duration"])
     try:
@@ -535,7 +562,7 @@ def _validate_patched_pytorch_case(
         "waveform_structure": compare_waveform_structure(
             native_audio_np, patched_audio_np, sample_rate
         ),
-        "duration": _validate_duration_audio_consistency(
+        "duration": validate_duration_audio_consistency(
             patched_audio_np,
             patched_duration_np,
             token_count=int(native_case["tokens"].shape[1]),
@@ -561,7 +588,7 @@ def _health_kwargs(validation: Mapping[str, Any]) -> dict[str, float]:
     }
 
 
-def _validate_patched_pytorch_against_native(
+def validate_patched_pytorch_against_native(
     model: Any,
     native_cases: list[Mapping[str, Any]],
     *,
@@ -570,7 +597,7 @@ def _validate_patched_pytorch_against_native(
     seed: int,
 ) -> dict[str, Any]:
     cases = [
-        _validate_patched_pytorch_case(
+        run_patched_pytorch_case(
             model,
             native_case,
             seed=seed,
@@ -585,6 +612,21 @@ def _validate_patched_pytorch_against_native(
     }
 
 
+def run_onnx_case(
+    session: Any, native_case: Mapping[str, Any]
+) -> tuple[np.ndarray, np.ndarray]:
+    """Run ONNX Runtime with the tensors captured for a native case."""
+    audio, duration = session.run(
+        ["audio", "duration"],
+        {
+            "tokens": native_case["tokens"].numpy(),
+            "style": native_case["style"].numpy(),
+            "speed": native_case["speed"].numpy(),
+        },
+    )
+    return np.asarray(audio), np.asarray(duration)
+
+
 def _validate_onnx_case(
     session: Any,
     native_case: Mapping[str, Any],
@@ -593,16 +635,7 @@ def _validate_onnx_case(
     sample_rate: int,
     validation: Mapping[str, Any],
 ) -> dict[str, Any]:
-    actual_audio, actual_duration = session.run(
-        ["audio", "duration"],
-        {
-            "tokens": native_case["tokens"].numpy(),
-            "style": native_case["style"].numpy(),
-            "speed": native_case["speed"].numpy(),
-        },
-    )
-    actual_audio_np = np.asarray(actual_audio)
-    actual_duration_np = np.asarray(actual_duration)
+    actual_audio_np, actual_duration_np = run_onnx_case(session, native_case)
     native_duration_np = np.asarray(native_case["duration"])
     try:
         np.testing.assert_array_equal(actual_duration_np, native_duration_np)
@@ -636,7 +669,7 @@ def _validate_onnx_case(
         "patched": patched_case["patched"],
         "onnx": validate_waveform_health(actual_audio_np, sample_rate, **health_kwargs),
         "waveform_structure": structure,
-        "timing": _validate_duration_audio_consistency(
+        "timing": validate_duration_audio_consistency(
             actual_audio_np,
             actual_duration_np,
             token_count=int(native_case["tokens"].shape[1]),
@@ -711,7 +744,7 @@ def _validate_parity_case(
         actual_audio_np, sample_rate, **health_kwargs
     )
 
-    timing = _validate_duration_audio_consistency(
+    timing = validate_duration_audio_consistency(
         actual_audio_np,
         actual_duration_np,
         token_count=int(tokens.shape[1]),
@@ -752,24 +785,14 @@ def export_checkpoint_to_onnx(
     import onnx
     import onnxruntime as ort
     import torch
-    from kokoro import KModel
     from kokoro.model import KModelForONNX
 
     with config_path.open("r", encoding="utf-8") as f:
         config = json.load(f)
 
     n_token = int(config.get("n_token", len(config.get("vocab", {})) or 178))
-    native_model = (
-        KModel(
-            repo_id="not-used-local-checkpoint",
-            model=str(checkpoint),
-            config=config,
-            disable_complex=False,
-        )
-        .to("cpu")
-        .eval()
-    )
-    native_onnx_wrapper = KModelForONNX(native_model).eval()
+    native_model = load_checkpoint_native(checkpoint, config)
+    native_onnx_wrapper = KModelForONNX(native_model)
     validation_config = validation or {}
     cases = list(validation_config.get("cases") or [])
     if cases:
@@ -802,7 +825,7 @@ def export_checkpoint_to_onnx(
     if parity_cases:
         if voice is None:
             raise BuildError("Export validation requires a voice pack")
-        native_cases = _capture_native_reference_cases(
+        native_cases = capture_native_reference_cases(
             native_onnx_wrapper,
             parity_cases,
             voice,
@@ -810,11 +833,12 @@ def export_checkpoint_to_onnx(
             seed=export_seed,
         )
 
-    istft_metadata = install_exact_onnx_istft(native_model)
-    export_model = KModelForONNX(native_model).eval()
+    export_model_base = load_checkpoint_native(checkpoint, config)
+    istft_metadata = install_exact_onnx_istft(export_model_base)
+    export_model = KModelForONNX(export_model_base).eval()
     patched_validation = {"cases": [], "max_abs_error": 0.0}
     if native_cases:
-        patched_validation = _validate_patched_pytorch_against_native(
+        patched_validation = validate_patched_pytorch_against_native(
             export_model,
             native_cases,
             sample_rate=int(validation_config.get("sample_rate", 24000)),

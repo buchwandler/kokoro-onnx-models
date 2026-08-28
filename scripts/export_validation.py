@@ -18,6 +18,23 @@ RANDOM_SOURCE_OPS = frozenset(
 ErrorT = TypeVar("ErrorT", bound=Exception)
 
 
+def _audio_values(
+    audio: np.ndarray, sample_rate: int, *, allow_empty: bool = True
+) -> np.ndarray:
+    if sample_rate <= 0:
+        raise ValueError(f"Sample rate must be positive, got {sample_rate}")
+    values = np.asarray(audio, dtype=np.float64).squeeze()
+    if values.ndim != 1:
+        raise ValueError(
+            f"Audio must be one-dimensional after squeeze, got {values.shape}"
+        )
+    if not allow_empty and values.size == 0:
+        raise ValueError("Audio is empty")
+    if not np.isfinite(values).all():
+        raise ValueError("Audio contains non-finite values")
+    return values
+
+
 def random_source_ops(model: Any) -> list[str]:
     """Return supported stochastic source operators present in an ONNX model."""
     return sorted(
@@ -32,11 +49,7 @@ def frame_rms(
     frame_ms: float = 50.0,
     hop_ms: float = 25.0,
 ) -> np.ndarray:
-    values = np.asarray(audio, dtype=np.float64).squeeze()
-    if values.ndim != 1:
-        raise ValueError(
-            f"Audio must be one-dimensional after squeeze, got {values.shape}"
-        )
+    values = _audio_values(audio, sample_rate)
     frame_size = max(1, round(sample_rate * frame_ms / 1000.0))
     hop_size = max(1, round(sample_rate * hop_ms / 1000.0))
     if values.size < frame_size:
@@ -51,13 +64,7 @@ def frame_rms(
 
 
 def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
-    values = np.asarray(audio, dtype=np.float64).squeeze()
-    if values.ndim != 1:
-        raise ValueError(
-            f"Audio must be one-dimensional after squeeze, got {values.shape}"
-        )
-    if values.size == 0:
-        raise ValueError("Audio is empty")
+    values = _audio_values(audio, sample_rate, allow_empty=False)
     rms = float(np.sqrt(np.mean(np.square(values))))
     dc = float(np.mean(values))
     frames = frame_rms(values, sample_rate)
@@ -67,7 +74,7 @@ def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
         else 0.0
     )
     return {
-        "samples": float(values.size),
+        "samples": int(values.size),
         "seconds": float(values.size / sample_rate),
         "peak": float(np.max(np.abs(values))),
         "rms": rms,
@@ -85,8 +92,8 @@ def compare_waveform_structure(
     *,
     eps: float = 1.0e-12,
 ) -> dict[str, float]:
-    reference_values = np.asarray(reference, dtype=np.float64).squeeze()
-    actual_values = np.asarray(actual, dtype=np.float64).squeeze()
+    reference_values = _audio_values(reference, sample_rate, allow_empty=False)
+    actual_values = _audio_values(actual, sample_rate, allow_empty=False)
     if reference_values.shape != actual_values.shape:
         raise ValueError(
             "Waveforms must have equal shape for structural comparison: "
@@ -134,6 +141,8 @@ def validate_waveform_health(
     error_type: type[ErrorT] = ValueError,
 ) -> dict[str, float]:
     """Measure and validate basic speech waveform health indicators."""
+    if sample_rate <= 0:
+        raise error_type(f"Sample rate must be positive, got {sample_rate}")
     values = np.asarray(audio, dtype=np.float64).squeeze()
 
     def fail(message: str) -> None:
@@ -195,7 +204,7 @@ def validate_waveform_health(
         )
 
     return {
-        "samples": float(values.size),
+        "samples": int(values.size),
         "seconds": float(values.size / sample_rate),
         "peak": peak,
         "rms": rms,

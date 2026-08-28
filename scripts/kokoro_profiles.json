@@ -58,6 +58,35 @@
         "samples_per_frame": 600,
         "includes_boundary_tokens": true
       }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "cases": [
+        {
+          "name": "greeting",
+          "text": "Xin chào. Đây là bài kiểm tra giọng nói cục bộ.",
+          "phonemes": "sin→ ʨaw↘. dɤj→ la↘ baj↘ kiəm↘↗ ʈa→ zɔŋʔ↓ noj↗ kukʔ↓ boʔ↓.",
+          "tokens": [
+            0, 61, 51, 56, 171, 16, 21, 43, 65, 173, 4, 16, 46, 140, 52, 171,
+            16, 54, 43, 173, 16, 44, 43, 52, 173, 16, 53, 51, 83, 55, 173, 172,
+            16, 132, 43, 171, 16, 68, 76, 112, 148, 169, 16, 56, 57, 52, 172,
+            16, 53, 63, 53, 148, 169, 16, 44, 57, 148, 169, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "regional-phonemes",
+          "text": "Trường học ở Việt Nam có nhiều tiếng nói khác nhau.",
+          "phonemes": "ʈɯəŋ↘ hɔkʔ↓ ɤ↘↗ viətʔ↓ nam→ kɔ↗ ɲiəw↘ tiəŋ↗ noj↗ xak↗ ɲaw→.",
+          "tokens": [
+            0, 132, 110, 83, 112, 173, 16, 50, 76, 53, 148, 169, 16, 140, 173,
+            172, 16, 64, 51, 83, 62, 148, 169, 16, 56, 43, 55, 171, 16, 53, 76,
+            172, 16, 114, 51, 83, 65, 173, 16, 62, 51, 83, 112, 172, 16, 56, 57,
+            52, 172, 16, 66, 43, 53, 172, 16, 114, 43, 65, 171, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ]
     }
   },
   "vi-anphunl": {
@@ -119,6 +148,35 @@
         "samples_per_frame": 600,
         "includes_boundary_tokens": true
       }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "cases": [
+        {
+          "name": "greeting",
+          "text": "Xin chào. Đây là bài kiểm tra giọng nói cục bộ.",
+          "phonemes": "sin→ ʨaw↘. dɤj→ la↘ baj↘ kiəm↘↗ ʈa→ zɔŋʔ↓ noj↗ kukʔ↓ boʔ↓.",
+          "tokens": [
+            0, 61, 51, 56, 171, 16, 21, 43, 65, 173, 4, 16, 46, 140, 52, 171,
+            16, 54, 43, 173, 16, 44, 43, 52, 173, 16, 53, 51, 83, 55, 173, 172,
+            16, 132, 43, 171, 16, 68, 76, 112, 148, 169, 16, 56, 57, 52, 172,
+            16, 53, 63, 53, 148, 169, 16, 44, 57, 148, 169, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "regional-phonemes",
+          "text": "Trường học ở Việt Nam có nhiều tiếng nói khác nhau.",
+          "phonemes": "ʈɯəŋ↘ hɔkʔ↓ ɤ↘↗ viətʔ↓ nam→ kɔ↗ ɲiəw↘ tiəŋ↗ noj↗ xak↗ ɲaw→.",
+          "tokens": [
+            0, 132, 110, 83, 112, 173, 16, 50, 76, 53, 148, 169, 16, 140, 173,
+            172, 16, 64, 51, 83, 62, 148, 169, 16, 56, 43, 55, 171, 16, 53, 76,
+            172, 16, 114, 51, 83, 65, 173, 16, 62, 51, 83, 112, 172, 16, 56, 57,
+            52, 172, 16, 66, 43, 53, 172, 16, 114, 43, 65, 171, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ]
     }
   },
   "ar-nabra": {
@@ -384,6 +442,36 @@
         "samples_per_frame": 600,
         "includes_boundary_tokens": true
       }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "cases": [
+        {
+          "name": "greeting",
+          "text": "Hej. Det här är ett lokalt rösttest före publiceringen av modellen.",
+          "phonemes": "hˈɛj. dˈɛt hˈɛɹ ˈɛɹ ˈɛtt lˈukɑlt ɹˈɔsttɛst fˈɔɹɛ pˈəblɪsɛɹɪŋɛn ˈɑv mˈudɛllɛn.",
+          "tokens": [
+            0, 50, 156, 86, 52, 4, 16, 46, 156, 86, 62, 16, 50, 156, 86, 123,
+            16, 156, 86, 123, 16, 156, 86, 62, 62, 16, 54, 156, 63, 53, 69, 54,
+            62, 16, 123, 156, 76, 61, 62, 62, 86, 61, 62, 16, 48, 156, 76, 123,
+            86, 16, 58, 156, 83, 44, 54, 102, 61, 86, 123, 102, 112, 86, 56, 16,
+            156, 69, 64, 16, 55, 156, 63, 46, 86, 54, 54, 86, 56, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "difficult-phonemes",
+          "text": "Sju sjöar och höga körsbär känns särskilt vackra.",
+          "phonemes": "ʃˈu ʃˈɔɑɹ ˈɔkh hˈɔɡɑ ʃˈɔʃbɛɹ ʃˈɛnns sˈɛɹʃɪlt vˈɑkɹɑ.",
+          "tokens": [
+            0, 131, 156, 63, 16, 131, 156, 76, 69, 123, 16, 156, 76, 53, 50, 16,
+            50, 156, 76, 92, 69, 16, 131, 156, 76, 131, 44, 86, 123, 16, 131,
+            156, 86, 56, 56, 61, 16, 61, 156, 86, 123, 131, 102, 54, 62, 16, 64,
+            156, 69, 53, 123, 69, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ]
     }
   },
   "de-thorsten": {
@@ -593,6 +681,25 @@
         "samples_per_frame": 600,
         "includes_boundary_tokens": true
       }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "cases": [
+        {
+          "name": "greeting",
+          "text": "Сәлем!",
+          "phonemes": "sælˈem!",
+          "tokens": [0, 61, 72, 54, 156, 47, 55, 5, 0],
+          "speed": 1.0
+        },
+        {
+          "name": "kazakhstan",
+          "text": "Қазақстан",
+          "phonemes": "qɑzɑqstˈɑn",
+          "tokens": [0, 59, 69, 68, 69, 59, 61, 62, 156, 69, 56, 0],
+          "speed": 1.0
+        }
+      ]
     }
   }
 }

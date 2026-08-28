@@ -580,6 +580,24 @@ git diff --cached --name-only -- \
 
 The output should be empty.
 
+## Separate checkpoint export A/B gate
+
+For checkpoint-derived profiles, run the native conversion comparison before the packaged pykokoro smoke test:
+
+```bash
+uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten
+```
+
+The export A/B gate compares native Torch, export-patched Torch when applicable, and repeated ONNX Runtime runs using identical frozen tokens, style, and speed inputs. It writes local WAV and report artifacts below `.local-test/compare/<profile>` and keeps human listening status as `not-recorded`. See `docs/CHECKPOINT_ONNX_AB_COMPARISON.md` for the metrics and listening checklist.
+
+The pykokoro smoke gate remains a separate final-consumer test:
+
+```text
+staged or published ONNX + voices + config -> pykokoro
+```
+
+It verifies frontend routing, packaged voice assets, config and vocabulary, input contracts, release format, and consumer integration. A successful pykokoro smoke test does not prove checkpoint conversion fidelity, and generated comparison WAVs do not prove intelligibility. Both gates are required for checkpoint-derived releases.
+
 ## Current upstream observations (verified 2026-08-26)
 
 These are outside the repository snapshot and should be rechecked when changing
