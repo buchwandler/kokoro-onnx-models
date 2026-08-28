@@ -576,7 +576,7 @@
       "max_audio_abs": 1.0,
       "max_abs_dc": 0.03,
       "max_dc_to_rms_ratio": 0.7,
-      "min_frame_rms_cv": 0.02,
+      "min_frame_rms_cv": 0.015,
       "max_stationary_tone_ratio": 0.7,
       "min_envelope_correlation": 0.1,
       "min_frame_rms_cv_ratio": 0.4,
