@@ -1661,67 +1661,8 @@
     "de-thorsten": {
       "kind": "build",
       "profile": "de-thorsten",
-      "tag": "model-files-german-thorsten-v1.1",
-      "model_version": "1.1",
-      "onnx_contract": {
-        "inputs": {
-          "tokens": "int64",
-          "style": "float32",
-          "speed": "float32"
-        },
-        "outputs": {
-          "audio": "float32",
-          "duration": "int64"
-        },
-        "timing": {
-          "kind": "token-duration-v1",
-          "output": "duration",
-          "unit": "frame",
-          "samples_per_frame": 600,
-          "includes_boundary_tokens": true
-        },
-        "max_tokens": 510
-      },
-      "assets": [
-        {
-          "source": "model.onnx",
-          "name": "kokoro-german-thorsten-v1.1.onnx",
-          "role": "model",
-          "quality": "fp32",
-          "format": "onnx"
-        },
-        {
-          "source": "voices.npz",
-          "name": "voices-german-thorsten-v1.1.npz",
-          "role": "voices",
-          "format": "numpy-npz"
-        },
-        {
-          "source": "voices.raw.bin",
-          "name": "voices-german-thorsten-v1.1.raw.bin",
-          "role": "voices",
-          "format": "raw-float32-le"
-        },
-        {
-          "source": "bundle.json",
-          "name": "bundle.json",
-          "role": "bundle",
-          "format": "json"
-        },
-        {
-          "source": "config.json",
-          "name": "config-german-thorsten-v1.1.json",
-          "role": "config",
-          "format": "json"
-        }
-      ]
-    },
-    "de-thorsten-v1.1.1": {
-      "kind": "build",
-      "profile": "de-thorsten",
       "tag": "model-files-german-thorsten-v1.1.1",
       "model_version": "1.1.1",
-      "publish": false,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",

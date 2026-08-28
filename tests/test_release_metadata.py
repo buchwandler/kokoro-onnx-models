@@ -81,12 +81,8 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     assert thorsten["release"]["default_voice"] == "thorsten"
     assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
     assert (
-        catalog["releases"]["de-thorsten-v1.1.1"]["tag"]
-        == "model-files-german-thorsten-v1.1.1"
-    )
-    assert (
         catalog["releases"]["de-thorsten"]["tag"]
-        == "model-files-german-thorsten-v1.1"
+        == "model-files-german-thorsten-v1.1.1"
     )
 
 
@@ -97,7 +93,7 @@ def test_build_profile_and_release_asset_names_match() -> None:
     )
     catalog = json.loads((ROOT / "catalog" / "releases.json").read_text())
     profile_release = profiles["de-thorsten"]["release"]
-    release = catalog["releases"]["de-thorsten-v1.1.1"]
+    release = catalog["releases"]["de-thorsten"]
 
     assert release["tag"] == profile_release["tag"]
     assert release["model_version"] == profile_release["model_version"]

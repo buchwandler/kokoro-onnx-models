@@ -45,10 +45,21 @@ jobs:
           publish = bool(spec.get("publish", True))
           if not publish and os.environ["ALLOW_RESTRICTED"].lower() != "true":
               raise SystemExit("Release is disabled; set allow_restricted only after reviewing its license")
+          profile = spec.get("profile", key)
+          if spec["kind"] == "build":
+              profiles = json.loads(
+                  Path("scripts/kokoro_profiles.json").read_text()
+              )
+              built_tag = profiles[profile]["release"]["tag"]
+              if built_tag != spec["tag"]:
+                  raise SystemExit(
+                      f"Catalog/profile tag mismatch for {key}: "
+                      f"catalog={spec['tag']!r}, profile={built_tag!r}"
+                  )
           for name, value in {
               "kind": spec["kind"],
               "tag": spec["tag"],
-              "profile": spec.get("profile", key),
+              "profile": profile,
               "publish": str(publish).lower(),
           }.items():
               print(f"{name}={value}", file=open(os.environ["GITHUB_OUTPUT"], "a"))
