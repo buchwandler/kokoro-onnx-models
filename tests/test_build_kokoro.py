@@ -128,9 +128,7 @@ def _speech_like_fixture() -> np.ndarray:
     envelope = 0.01 + 0.09 * (0.5 + 0.5 * np.sin(2 * np.pi * 0.8 * t))
     phase = 2 * np.pi * (180 * t + 25 * t**2)
     audio = envelope * (
-        np.sin(phase)
-        + 0.35 * np.sin(2 * phase)
-        + 0.15 * np.sin(3 * phase)
+        np.sin(phase) + 0.35 * np.sin(2 * phase) + 0.15 * np.sin(3 * phase)
     )
     return (audio + 0.003 * rng.normal(size=t.size)).astype(np.float32)
 
@@ -139,17 +137,14 @@ def test_waveform_health_rejects_stationary_tone() -> None:
     sample_rate = 24_000
     t = np.arange(sample_rate * 2, dtype=np.float64) / sample_rate
     audio = (
-        0.12 * np.sin(2 * np.pi * 4_800 * t)
-        + 0.06 * np.sin(2 * np.pi * 9_600 * t)
+        0.12 * np.sin(2 * np.pi * 4_800 * t) + 0.06 * np.sin(2 * np.pi * 9_600 * t)
     ).astype(np.float32)
 
     with pytest.raises(
         build_kokoro.BuildError,
         match="stationary-tone|frame RMS variation",
     ):
-        build_kokoro.validate_waveform_health(
-            audio, sample_rate, **_health_kwargs()
-        )
+        build_kokoro.validate_waveform_health(audio, sample_rate, **_health_kwargs())
 
 
 def test_waveform_health_accepts_non_stationary_fixture() -> None:
@@ -172,6 +167,7 @@ def _run_fake_parity_case(monkeypatch, actual_duration: np.ndarray):
 
         def numpy(self):
             return self.value
+
     monkeypatch.setattr(
         build_kokoro,
         "_parity_inputs",
@@ -202,17 +198,13 @@ def _run_fake_parity_case(monkeypatch, actual_duration: np.ndarray):
 
 
 def test_stochastic_audio_mismatch_is_allowed(monkeypatch) -> None:
-    result = _run_fake_parity_case(
-        monkeypatch, np.array([20, 30, 30], dtype=np.int64)
-    )
+    result = _run_fake_parity_case(monkeypatch, np.array([20, 30, 30], dtype=np.int64))
     assert result["rms_ratio"] == pytest.approx(1.0, rel=0.01)
 
 
 def test_duration_mismatch_still_fails(monkeypatch) -> None:
     with pytest.raises(build_kokoro.BuildError, match="Duration parity failed"):
-        _run_fake_parity_case(
-            monkeypatch, np.array([20, 30, 31], dtype=np.int64)
-        )
+        _run_fake_parity_case(monkeypatch, np.array([20, 30, 31], dtype=np.int64))
 
 
 def test_random_source_graph_validation() -> None:
@@ -235,8 +227,10 @@ def test_random_source_graph_validation() -> None:
         )
 
     random_model = graph_with(
-        [helper.make_node("RandomNormalLike", ["input"], ["random"]),
-         helper.make_node("Identity", ["random"], ["output"])],
+        [
+            helper.make_node("RandomNormalLike", ["input"], ["random"]),
+            helper.make_node("Identity", ["random"], ["output"]),
+        ],
     )
     assert build_kokoro.validate_random_source_graph(
         random_model, requires_random_source_ops=True

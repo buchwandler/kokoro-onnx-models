@@ -110,7 +110,6 @@ def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
         verify_candidate.verify_candidate(candidate)
 
 
-
 def _thorsten_provenance() -> dict[str, object]:
     return {
         "source_artifacts": {
@@ -144,9 +143,7 @@ def test_thorsten_provenance_rejects_missing_and_unsupported_random_ops() -> Non
     manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
     exporter = manifest["provenance"]["exporter"]
     del exporter["random_source_ops"]
-    with pytest.raises(
-        verify_candidate.CandidateError, match="random_source_ops"
-    ):
+    with pytest.raises(verify_candidate.CandidateError, match="random_source_ops"):
         verify_candidate._validate_checkpoint_provenance(manifest)
 
     exporter["random_source_ops"] = ["Identity"]
@@ -157,6 +154,7 @@ def test_thorsten_provenance_rejects_missing_and_unsupported_random_ops() -> Non
 
     exporter["random_source_ops"] = ["RandomNormalLike"]
     verify_candidate._validate_checkpoint_provenance(manifest)
+
 
 def test_verify_candidate_rejects_size_mismatch(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)

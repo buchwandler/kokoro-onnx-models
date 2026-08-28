@@ -1130,8 +1130,8 @@
               "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-thorsten-v1.1.1/bundle.json",
               "local_name": "bundle.json",
               "format": "json",
-              "size": 6691,
-              "sha256": "c6d3749380334820e01e77ecb56485af7e113fe1a1e4780aeb965adda2e2324a"
+              "size": 6702,
+              "sha256": "f2abfad0e5eec2a23580f700817a4f1306635420d71158f46e53639b6b73d1b7"
             },
             {
               "id": "config-config-german-thorsten-v1.1.1",
@@ -1149,7 +1149,7 @@
               "local_name": "kokoro-german-thorsten-v1.1.1.onnx",
               "format": "onnx",
               "size": 325503819,
-              "sha256": "2ecbeef41d0085071c72f41dd768524fbe5100aaeedc15f0e5db955f0484cc79",
+              "sha256": "17030d84f05774db4292aff8e91a04741c974ece24941d6d0d9122a55fdb1a9d",
               "quality": "fp32"
             },
             {

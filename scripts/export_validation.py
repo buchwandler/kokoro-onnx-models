@@ -21,11 +21,7 @@ ErrorT = TypeVar("ErrorT", bound=Exception)
 def random_source_ops(model: Any) -> list[str]:
     """Return supported stochastic source operators present in an ONNX model."""
     return sorted(
-        {
-            node.op_type
-            for node in model.graph.node
-            if node.op_type in RANDOM_SOURCE_OPS
-        }
+        {node.op_type for node in model.graph.node if node.op_type in RANDOM_SOURCE_OPS}
     )
 
 

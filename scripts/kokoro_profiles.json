@@ -482,7 +482,7 @@
       "max_abs_dc": 0.1,
       "min_frame_rms_cv": 0.005,
       "max_stationary_tone_ratio": 0.7,
-      "min_rms_ratio": 0.10,
+      "min_rms_ratio": 0.1,
       "max_rms_ratio": 10.0,
       "requires_random_source_ops": true
     }

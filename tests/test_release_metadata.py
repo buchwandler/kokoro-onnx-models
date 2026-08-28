@@ -86,7 +86,6 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     )
 
 
-
 def test_build_profile_and_release_asset_names_match() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
@@ -103,6 +102,7 @@ def test_build_profile_and_release_asset_names_match() -> None:
     for voice in profile_release["voice_assets"]:
         assert voice["filename"] in release_names
     assert not any("thorsten-v1.0" in name for name in release_names)
+
 
 def test_thai_wayu_is_pinned_split_mirror() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())

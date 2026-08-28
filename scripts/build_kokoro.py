@@ -50,6 +50,7 @@ STYLE_WIDTH = 256
 class BuildError(RuntimeError):
     pass
 
+
 def validate_waveform_health(
     audio: np.ndarray,
     sample_rate: int,
@@ -71,6 +72,7 @@ def validate_waveform_health(
         error_type=BuildError,
     )
 
+
 def validate_random_source_graph(
     model: Any, *, requires_random_source_ops: bool
 ) -> list[str]:
@@ -81,8 +83,6 @@ def validate_random_source_graph(
             + ", ".join(sorted(RANDOM_SOURCE_OPS))
         )
     return detected
-
-
 
 
 def load_profiles(path: Path = PROFILE_FILE) -> dict[str, dict[str, Any]]:

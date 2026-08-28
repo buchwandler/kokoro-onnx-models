@@ -18,11 +18,11 @@ The profiles `ar-nabra`, `de-crane`, and `he-hebrew-nc` use prebuilt or mirrored
 
 The available workspace graphs were inspected with ONNX using the accepted random-source operator set:
 
-| Build profile | Accepted random-source operators |
-| --- | --- |
+| Build profile | Accepted random-source operators        |
+| ------------- | --------------------------------------- |
 | `de-thorsten` | `RandomNormalLike`, `RandomUniformLike` |
-| `sv-joakim` | `RandomNormalLike`, `RandomUniformLike` |
-| `ar-nabra` | `RandomNormalLike`, `RandomUniformLike` |
+| `sv-joakim`   | `RandomNormalLike`, `RandomUniformLike` |
+| `ar-nabra`    | `RandomNormalLike`, `RandomUniformLike` |
 
 The regenerated `build/de-thorsten` bundle now contains exporter provenance, both frozen waveform-validation cases, and the accepted random operators. The pre-existing `build/sv-joakim` bundle has no exporter provenance, so its graph presence does not prove that it was produced by the repaired exporter. The corrected Thorsten build measured DC offset, frame-RMS variation, and stationary-tone ratio across native PyTorch and ONNX Runtime outputs; the profile thresholds were calibrated to the observed stochastic output while still rejecting the stationary-tone regression fixture.
 
