@@ -253,11 +253,12 @@ SPECS: dict[str, LocalTestSpec] = {
         display_name="Kokoro German Thorsten",
         language="de",
         model_source="github",
-        model_variant="v1.0",
+        model_variant="de-thorsten",
         expected_speakers=("thorsten",),
+        required_files=("config.json",),
         frontend="German Kokoro G2P with Thorsten ʏ -> y cleanup",
         exact_pykokoro_expected=False,
-        notes="Uses the current v1.0 pykokoro integration shim until de-thorsten is first-class.",
+        notes="Uses the v1.1.2 exact-iSTFT candidate; listen before publication.",
     ),
     "ru-zaakirio-base": LocalTestSpec(
         key="ru-zaakirio-base",
@@ -320,6 +321,7 @@ def validate_local_waveform_health(
         "max_audio_abs": float("inf"),
         "max_abs_dc": float("inf"),
         "min_frame_rms_cv": 0.0,
+        "max_dc_to_rms_ratio": float("inf"),
         "max_stationary_tone_ratio": 1.0,
     }
     metrics = _validate_waveform_health(audio, sample_rate, **metric_kwargs)
@@ -328,6 +330,7 @@ def validate_local_waveform_health(
         sample_rate,
         min_audio_rms=float(validation.get("min_audio_rms", 0.0005)),
         max_audio_abs=float(validation.get("max_audio_abs", 1.0)),
+        max_dc_to_rms_ratio=float(validation.get("max_dc_to_rms_ratio", float("inf"))),
         max_abs_dc=float(validation.get("max_abs_dc", 0.05)),
         min_frame_rms_cv=float(validation.get("min_frame_rms_cv", 0.03)),
         max_stationary_tone_ratio=float(
@@ -592,7 +595,13 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         model_path=model_path,
         voices_path=voices_path,
         model_config_path=(
-            asset_dir / "vocab.json" if "vocab.json" in spec.required_files else None
+            asset_dir / "vocab.json"
+            if "vocab.json" in spec.required_files
+            else (
+                asset_dir / "config.json"
+                if "config.json" in spec.required_files
+                else None
+            )
         ),
         model_source=spec.model_source,
         model_variant=spec.model_variant,  # type: ignore[arg-type]
@@ -643,6 +652,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
                             "peak",
                             "rms",
                             "dc",
+                            "dc_to_rms_ratio",
                             "frame_rms_cv",
                             "stationary_tone_ratio",
                         ):

@@ -14,9 +14,50 @@ REGISTRY = ROOT / "catalog" / "models.json"
 RELEASES = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 
+_IMMUTABLE_ARTIFACT_FIELDS = (
+    "id",
+    "role",
+    "url",
+    "local_name",
+    "format",
+    "size",
+    "sha256",
+    "quality",
+    "component",
+    "handling",
+    "voice",
+)
+
 
 class RegistryReleaseError(ValueError):
     pass
+
+
+def _artifact_signature(distribution: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        str(item["id"]): {
+            field: item.get(field) for field in _IMMUTABLE_ARTIFACT_FIELDS
+        }
+        for item in distribution.get("artifacts", [])
+    }
+
+
+def _assert_release_tag_immutable(
+    existing: dict[str, Any] | None, generated: dict[str, Any]
+) -> None:
+    if existing is None or existing.get("release_tag") != generated.get("release_tag"):
+        return
+    if _artifact_signature(existing) == _artifact_signature(generated):
+        return
+    tag = generated.get("release_tag")
+    changed_ids = sorted(
+        set(_artifact_signature(existing)) ^ set(_artifact_signature(generated))
+    )
+    artifact_id = changed_ids[0] if changed_ids else "one or more artifacts"
+    raise RegistryReleaseError(
+        f"Published release {tag!r} changed immutable artifact metadata for {artifact_id!r}. "
+        "Publish a new release tag instead of rewriting catalog metadata for an existing tag."
+    )
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -106,6 +147,7 @@ def sync_release(
         None,
     )
     generated = distribution_from_manifest(manifest, release, existing)
+    _assert_release_tag_immutable(existing, generated)
     if update:
         model["onnx_contract"] = manifest_contract
         model["distributions"] = [

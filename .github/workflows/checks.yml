@@ -9,9 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
       - run: uv run --with pytest --with numpy pytest -q
-      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py
+      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py scripts/check_registry_immutability.py
       - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
       - run: python -m json.tool catalog/releases.json >/dev/null
       - run: python -m json.tool catalog/models.json >/dev/null
@@ -35,3 +37,18 @@ jobs:
                   if asset["role"] == "model":
                       assert asset.get("quality")
           PY
+      - name: Check release-tag artifact immutability
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            git show "$BASE_SHA:catalog/models.json" > /tmp/models-before.json
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1 && git cat-file -e HEAD^:catalog/models.json; then
+            git show "HEAD^:catalog/models.json" > /tmp/models-before.json
+          else
+            printf '{"models": {}}\n' > /tmp/models-before.json
+          fi
+          python scripts/check_registry_immutability.py \
+            --before /tmp/models-before.json \
+            --after catalog/models.json

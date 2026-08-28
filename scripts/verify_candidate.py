@@ -11,7 +11,20 @@ from typing import Any
 try:
     from scripts.export_validation import RANDOM_SOURCE_OPS
 except ModuleNotFoundError:
-    from export_validation import RANDOM_SOURCE_OPS
+    try:
+        from export_validation import RANDOM_SOURCE_OPS
+    except ModuleNotFoundError:
+        import importlib.util
+
+        validation_spec = importlib.util.spec_from_file_location(
+            "_verify_candidate_export_validation",
+            Path(__file__).with_name("export_validation.py"),
+        )
+        if validation_spec is None or validation_spec.loader is None:
+            raise
+        validation_module = importlib.util.module_from_spec(validation_spec)
+        validation_spec.loader.exec_module(validation_module)
+        RANDOM_SOURCE_OPS = validation_module.RANDOM_SOURCE_OPS
 
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ALLOWED_FILES = {"release-manifest.json", "SHA256SUMS", "release-notes.md"}
@@ -419,13 +432,50 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
         set(random_ops) <= RANDOM_SOURCE_OPS,
         "Thorsten exporter provenance contains unsupported random operators",
     )
+    decoder_reconstruction = exporter.get("decoder_reconstruction")
+    _require(
+        isinstance(decoder_reconstruction, dict),
+        "Thorsten exporter is missing decoder reconstruction provenance",
+    )
+    _require(
+        decoder_reconstruction.get("reference_backend") == "torch.istft",
+        "Thorsten decoder reference backend must be torch.istft",
+    )
+    _require(
+        decoder_reconstruction.get("backend") == "exact-convtranspose-istft-v1",
+        "Thorsten decoder export backend must be exact-convtranspose-istft-v1",
+    )
+    for field in ("one_sided_bin_scaling", "window_envelope_normalization"):
+        _require(
+            decoder_reconstruction.get(field) is True,
+            f"Thorsten decoder reconstruction is missing {field}",
+        )
+    native_patched = decoder_reconstruction.get("native_patched_validation")
+    _require(
+        isinstance(native_patched, dict),
+        "Thorsten decoder is missing native/patched validation",
+    )
+    max_abs_error = native_patched.get("max_abs_error")
+    _require(
+        isinstance(max_abs_error, (int, float))
+        and not isinstance(max_abs_error, bool)
+        and max_abs_error <= 1.0e-4,
+        "Thorsten native/patched reconstruction error exceeds 1e-4",
+    )
     waveform_validation = exporter.get("waveform_validation")
     _require(
         isinstance(waveform_validation, dict)
         and isinstance(waveform_validation.get("cases"), list)
         and bool(waveform_validation["cases"]),
-        "Thorsten exporter provenance has no waveform validation cases",
+        "Thorsten exporter has no waveform validation cases",
     )
+    for case in waveform_validation["cases"]:
+        _require(isinstance(case, dict), "Thorsten waveform case must be an object")
+        for metric_name in ("native", "patched", "onnx"):
+            _require(
+                isinstance(case.get(metric_name), dict),
+                f"Thorsten waveform case is missing {metric_name} metrics",
+            )
 
 
 def verify_candidate(

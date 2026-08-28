@@ -33,16 +33,42 @@ from typing import Any
 import numpy as np
 
 try:
-    from scripts.export_validation import RANDOM_SOURCE_OPS, random_source_ops
+    from scripts.export_validation import (
+        RANDOM_SOURCE_OPS,
+        compare_waveform_structure,
+        random_source_ops,
+        waveform_metrics,
+    )
     from scripts.export_validation import (
         validate_waveform_health as _validate_waveform_health,
     )
 except ModuleNotFoundError:
-    from export_validation import RANDOM_SOURCE_OPS, random_source_ops
-    from export_validation import (
-        validate_waveform_health as _validate_waveform_health,
-    )
+    try:
+        from export_validation import (
+            RANDOM_SOURCE_OPS,
+            compare_waveform_structure,
+            random_source_ops,
+            waveform_metrics,
+        )
+        from export_validation import (
+            validate_waveform_health as _validate_waveform_health,
+        )
+    except ModuleNotFoundError:
+        import importlib.util
 
+        _validation_spec = importlib.util.spec_from_file_location(
+            "_build_kokoro_export_validation",
+            Path(__file__).with_name("export_validation.py"),
+        )
+        if _validation_spec is None or _validation_spec.loader is None:
+            raise
+        _validation_module = importlib.util.module_from_spec(_validation_spec)
+        _validation_spec.loader.exec_module(_validation_module)
+        RANDOM_SOURCE_OPS = _validation_module.RANDOM_SOURCE_OPS
+        random_source_ops = _validation_module.random_source_ops
+        compare_waveform_structure = _validation_module.compare_waveform_structure
+        _validate_waveform_health = _validation_module.validate_waveform_health
+        waveform_metrics = _validation_module.waveform_metrics
 PROFILE_FILE = Path(__file__).with_name("kokoro_profiles.json")
 STYLE_WIDTH = 256
 
@@ -60,6 +86,7 @@ def validate_waveform_health(
     max_abs_dc: float,
     min_frame_rms_cv: float,
     max_stationary_tone_ratio: float,
+    max_dc_to_rms_ratio: float | None = None,
 ) -> dict[str, float]:
     return _validate_waveform_health(
         audio,
@@ -68,6 +95,7 @@ def validate_waveform_health(
         max_audio_abs=max_audio_abs,
         max_abs_dc=max_abs_dc,
         min_frame_rms_cv=min_frame_rms_cv,
+        max_dc_to_rms_ratio=max_dc_to_rms_ratio,
         max_stationary_tone_ratio=max_stationary_tone_ratio,
         error_type=BuildError,
     )
@@ -375,6 +403,247 @@ def _validate_duration_audio_consistency(
     }
 
 
+def install_exact_onnx_istft(model: Any) -> dict[str, Any]:
+    try:
+        from scripts.onnx_istft import ExactOnnxISTFT
+    except ModuleNotFoundError:
+        try:
+            from onnx_istft import ExactOnnxISTFT
+        except ModuleNotFoundError:
+            import importlib.util
+
+            istft_spec = importlib.util.spec_from_file_location(
+                "_build_kokoro_onnx_istft",
+                Path(__file__).with_name("onnx_istft.py"),
+            )
+            if istft_spec is None or istft_spec.loader is None:
+                raise
+            istft_module = importlib.util.module_from_spec(istft_spec)
+            istft_spec.loader.exec_module(istft_module)
+            ExactOnnxISTFT = istft_module.ExactOnnxISTFT
+
+    generator = model.decoder.generator
+    current = generator.stft
+    filter_length = int(current.filter_length)
+    hop_length = int(current.hop_length)
+    win_length = int(current.win_length)
+
+    exact_stft = ExactOnnxISTFT(
+        filter_length=filter_length,
+        hop_length=hop_length,
+        win_length=win_length,
+        center=True,
+    )
+    exact_stft.set_native_transform(current.transform)
+    generator.stft = exact_stft
+    return {
+        "backend": "exact-convtranspose-istft-v1",
+        "filter_length": filter_length,
+        "hop_length": hop_length,
+        "win_length": win_length,
+        "window": "hann-periodic",
+        "center": True,
+        "one_sided_bin_scaling": True,
+        "window_envelope_normalization": True,
+    }
+
+
+def _capture_reference_case(
+    model: Any,
+    case: Mapping[str, Any],
+    voice: np.ndarray,
+    *,
+    max_phonemes: int,
+    seed: int,
+    name: str,
+) -> dict[str, Any]:
+    import torch
+
+    tokens, style, speed = _parity_inputs(case, voice, max_phonemes=max_phonemes)
+    torch.manual_seed(seed)
+    with torch.no_grad():
+        audio, duration = model(tokens, style, speed)
+    return {
+        "name": name,
+        "tokens": tokens,
+        "style": style,
+        "speed": speed,
+        "audio": np.asarray(_as_numpy(audio)),
+        "duration": np.asarray(_as_numpy(duration)),
+    }
+
+
+def _capture_native_reference_cases(
+    model: Any,
+    cases: list[Mapping[str, Any]],
+    voice: np.ndarray,
+    *,
+    max_phonemes: int,
+    seed: int,
+) -> list[dict[str, Any]]:
+    return [
+        _capture_reference_case(
+            model,
+            case,
+            voice,
+            max_phonemes=max_phonemes,
+            seed=seed,
+            name=str(case.get("name", "case")),
+        )
+        for case in cases
+    ]
+
+
+def _validate_patched_pytorch_case(
+    model: Any,
+    native_case: Mapping[str, Any],
+    *,
+    seed: int,
+    sample_rate: int,
+    validation: Mapping[str, Any],
+) -> dict[str, Any]:
+    import torch
+
+    torch.manual_seed(seed)
+    with torch.no_grad():
+        patched_audio, patched_duration = model(
+            native_case["tokens"], native_case["style"], native_case["speed"]
+        )
+    patched_audio_np = np.asarray(_as_numpy(patched_audio))
+    patched_duration_np = np.asarray(_as_numpy(patched_duration))
+    native_audio_np = np.asarray(native_case["audio"])
+    native_duration_np = np.asarray(native_case["duration"])
+    try:
+        np.testing.assert_allclose(
+            patched_audio_np, native_audio_np, rtol=1e-4, atol=1e-5
+        )
+        np.testing.assert_array_equal(patched_duration_np, native_duration_np)
+    except AssertionError as exc:
+        raise BuildError(
+            f"Native/patched PyTorch parity failed for {native_case['name']!r}: {exc}"
+        ) from exc
+
+    health_kwargs = _health_kwargs(validation)
+    return {
+        "name": str(native_case["name"]),
+        "native": validate_waveform_health(
+            native_audio_np, sample_rate, **health_kwargs
+        ),
+        "patched": validate_waveform_health(
+            patched_audio_np, sample_rate, **health_kwargs
+        ),
+        "waveform_structure": compare_waveform_structure(
+            native_audio_np, patched_audio_np, sample_rate
+        ),
+        "duration": _validate_duration_audio_consistency(
+            patched_audio_np,
+            patched_duration_np,
+            token_count=int(native_case["tokens"].shape[1]),
+        ),
+        "max_abs_error": float(
+            np.max(np.abs(patched_audio_np - native_audio_np), initial=0.0)
+        ),
+    }
+
+
+def _health_kwargs(validation: Mapping[str, Any]) -> dict[str, float]:
+    return {
+        "min_audio_rms": float(validation.get("min_audio_rms", 0.0005)),
+        "max_audio_abs": float(validation.get("max_audio_abs", 1.0)),
+        "max_abs_dc": float(validation.get("max_abs_dc", 0.05)),
+        "max_dc_to_rms_ratio": float(
+            validation.get("max_dc_to_rms_ratio", float("inf"))
+        ),
+        "min_frame_rms_cv": float(validation.get("min_frame_rms_cv", 0.03)),
+        "max_stationary_tone_ratio": float(
+            validation.get("max_stationary_tone_ratio", 0.35)
+        ),
+    }
+
+
+def _validate_patched_pytorch_against_native(
+    model: Any,
+    native_cases: list[Mapping[str, Any]],
+    *,
+    sample_rate: int,
+    validation: Mapping[str, Any],
+    seed: int,
+) -> dict[str, Any]:
+    cases = [
+        _validate_patched_pytorch_case(
+            model,
+            native_case,
+            seed=seed,
+            sample_rate=sample_rate,
+            validation=validation,
+        )
+        for native_case in native_cases
+    ]
+    return {
+        "cases": cases,
+        "max_abs_error": max((case["max_abs_error"] for case in cases), default=0.0),
+    }
+
+
+def _validate_onnx_case(
+    session: Any,
+    native_case: Mapping[str, Any],
+    patched_case: Mapping[str, Any],
+    *,
+    sample_rate: int,
+    validation: Mapping[str, Any],
+) -> dict[str, Any]:
+    actual_audio, actual_duration = session.run(
+        ["audio", "duration"],
+        {
+            "tokens": native_case["tokens"].numpy(),
+            "style": native_case["style"].numpy(),
+            "speed": native_case["speed"].numpy(),
+        },
+    )
+    actual_audio_np = np.asarray(actual_audio)
+    actual_duration_np = np.asarray(actual_duration)
+    native_duration_np = np.asarray(native_case["duration"])
+    try:
+        np.testing.assert_array_equal(actual_duration_np, native_duration_np)
+    except AssertionError as exc:
+        raise BuildError(
+            f"Duration parity failed for {native_case['name']!r}: {exc}"
+        ) from exc
+
+    health_kwargs = _health_kwargs(validation)
+    native_audio_np = np.asarray(native_case["audio"])
+    structure = compare_waveform_structure(
+        native_audio_np, actual_audio_np, sample_rate
+    )
+    min_correlation = float(validation.get("min_envelope_correlation", 0.0))
+    if structure["envelope_correlation"] < min_correlation:
+        raise BuildError(
+            f"ONNX envelope correlation {structure['envelope_correlation']:.6f} "
+            f"is below {min_correlation:.6f}"
+        )
+    cv_ratio = structure["frame_rms_cv_ratio"]
+    min_cv_ratio = float(validation.get("min_frame_rms_cv_ratio", 0.0))
+    max_cv_ratio = float(validation.get("max_frame_rms_cv_ratio", float("inf")))
+    if not min_cv_ratio <= cv_ratio <= max_cv_ratio:
+        raise BuildError(
+            f"ONNX frame RMS CV ratio {cv_ratio:.6f} is outside "
+            f"[{min_cv_ratio:.6f}, {max_cv_ratio:.6f}]"
+        )
+    return {
+        "name": str(native_case["name"]),
+        "native": waveform_metrics(native_audio_np, sample_rate),
+        "patched": patched_case["patched"],
+        "onnx": validate_waveform_health(actual_audio_np, sample_rate, **health_kwargs),
+        "waveform_structure": structure,
+        "timing": _validate_duration_audio_consistency(
+            actual_audio_np,
+            actual_duration_np,
+            token_count=int(native_case["tokens"].shape[1]),
+        ),
+    }
+
+
 def _validate_parity_case(
     session: Any,
     model: Any,
@@ -490,18 +759,19 @@ def export_checkpoint_to_onnx(
         config = json.load(f)
 
     n_token = int(config.get("n_token", len(config.get("vocab", {})) or 178))
-    model = (
+    native_model = (
         KModel(
             repo_id="not-used-local-checkpoint",
             model=str(checkpoint),
             config=config,
-            disable_complex=True,
+            disable_complex=False,
         )
         .to("cpu")
         .eval()
     )
-    onnx_model = KModelForONNX(model).eval()
-    cases = list((validation or {}).get("cases") or [])
+    native_onnx_wrapper = KModelForONNX(native_model).eval()
+    validation_config = validation or {}
+    cases = list(validation_config.get("cases") or [])
     if cases:
         if voice is None:
             raise BuildError("Export validation requires a voice pack")
@@ -514,6 +784,7 @@ def export_checkpoint_to_onnx(
         ).unsqueeze(0)
         style = torch.rand(1, STYLE_WIDTH, dtype=torch.float32)
         speed = torch.tensor([1.0], dtype=torch.float32)
+
     parity_cases = cases
     if not parity_cases and voice is not None:
         probe_length = max(8, int(seq_len))
@@ -526,10 +797,36 @@ def export_checkpoint_to_onnx(
             }
         ]
 
+    export_seed = int(validation_config.get("export_seed", 0))
+    native_cases: list[dict[str, Any]] = []
+    if parity_cases:
+        if voice is None:
+            raise BuildError("Export validation requires a voice pack")
+        native_cases = _capture_native_reference_cases(
+            native_onnx_wrapper,
+            parity_cases,
+            voice,
+            max_phonemes=510,
+            seed=export_seed,
+        )
+
+    istft_metadata = install_exact_onnx_istft(native_model)
+    export_model = KModelForONNX(native_model).eval()
+    patched_validation = {"cases": [], "max_abs_error": 0.0}
+    if native_cases:
+        patched_validation = _validate_patched_pytorch_against_native(
+            export_model,
+            native_cases,
+            sample_rate=int(validation_config.get("sample_rate", 24000)),
+            validation=validation_config,
+            seed=export_seed,
+        )
+    native_model.decoder.generator.stft.use_onnx_transform()
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with torch.no_grad():
         torch.onnx.export(
-            onnx_model,
+            export_model,
             (tokens, style, speed),
             str(out_path),
             input_names=["tokens", "style", "speed"],
@@ -543,7 +840,6 @@ def export_checkpoint_to_onnx(
             dynamo=False,
         )
     exported_model = onnx.load(str(out_path), load_external_data=True)
-    validation_config = validation or {}
     detected_random_ops = validate_random_source_graph(
         exported_model,
         requires_random_source_ops=bool(
@@ -566,22 +862,30 @@ def export_checkpoint_to_onnx(
             "samples_per_frame": 600,
             "validated": bool(parity_cases),
         },
+        "decoder_reconstruction": {
+            "reference_backend": "torch.istft",
+            **istft_metadata,
+            "native_patched_validation": {
+                "max_abs_error": patched_validation["max_abs_error"],
+                "cases": patched_validation["cases"],
+            },
+        },
     }
-    if parity_cases:
+    if native_cases:
         session = ort.InferenceSession(
             str(out_path), providers=["CPUExecutionProvider"]
         )
         validation_cases = [
-            _validate_parity_case(
+            _validate_onnx_case(
                 session,
-                onnx_model,
-                case,
-                voice,
-                max_phonemes=510,
+                native_case,
+                patched_case,
                 sample_rate=int(validation_config.get("sample_rate", 24000)),
                 validation=validation_config,
             )
-            for case in parity_cases
+            for native_case, patched_case in zip(
+                native_cases, patched_validation["cases"]
+            )
         ]
         result["validation"] = {"cases": validation_cases}
         result["waveform_validation"] = {"cases": validation_cases}

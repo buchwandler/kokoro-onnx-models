@@ -134,7 +134,28 @@ def _thorsten_provenance() -> dict[str, object]:
             "opset": 17,
             "outputs": ["audio", "duration"],
             "random_source_ops": ["RandomNormalLike"],
-            "waveform_validation": {"cases": [{"name": "hallo"}]},
+            "decoder_reconstruction": {
+                "reference_backend": "torch.istft",
+                "backend": "exact-convtranspose-istft-v1",
+                "filter_length": 20,
+                "hop_length": 5,
+                "win_length": 20,
+                "window": "hann-periodic",
+                "center": True,
+                "one_sided_bin_scaling": True,
+                "window_envelope_normalization": True,
+                "native_patched_validation": {"max_abs_error": 1.0e-7},
+            },
+            "waveform_validation": {
+                "cases": [
+                    {
+                        "name": "hallo",
+                        "native": {},
+                        "patched": {},
+                        "onnx": {},
+                    }
+                ]
+            },
         },
     }
 
@@ -154,6 +175,40 @@ def test_thorsten_provenance_rejects_missing_and_unsupported_random_ops() -> Non
 
     exporter["random_source_ops"] = ["RandomNormalLike"]
     verify_candidate._validate_checkpoint_provenance(manifest)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("reference_backend", "custom", "reference backend"),
+        ("one_sided_bin_scaling", False, "one_sided_bin_scaling"),
+        ("window_envelope_normalization", False, "window_envelope_normalization"),
+    ],
+)
+def test_thorsten_provenance_rejects_invalid_decoder_reconstruction(
+    field: str, value: object, message: str
+) -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    decoder = manifest["provenance"]["exporter"]["decoder_reconstruction"]
+    decoder[field] = value
+    with pytest.raises(verify_candidate.CandidateError, match=message):
+        verify_candidate._validate_checkpoint_provenance(manifest)
+
+
+def test_thorsten_provenance_rejects_missing_native_metrics() -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    del manifest["provenance"]["exporter"]["waveform_validation"]["cases"][0]["native"]
+    with pytest.raises(verify_candidate.CandidateError, match="native metrics"):
+        verify_candidate._validate_checkpoint_provenance(manifest)
+
+
+def test_thorsten_provenance_rejects_excessive_reconstruction_error() -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    manifest["provenance"]["exporter"]["decoder_reconstruction"][
+        "native_patched_validation"
+    ]["max_abs_error"] = 1.0e-3
+    with pytest.raises(verify_candidate.CandidateError, match="exceeds"):
+        verify_candidate._validate_checkpoint_provenance(manifest)
 
 
 def test_verify_candidate_rejects_size_mismatch(tmp_path: Path) -> None:

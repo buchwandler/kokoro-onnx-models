@@ -24,6 +24,10 @@ The available workspace graphs were inspected with ONNX using the accepted rando
 | `sv-joakim`   | `RandomNormalLike`, `RandomUniformLike` |
 | `ar-nabra`    | `RandomNormalLike`, `RandomUniformLike` |
 
-The regenerated `build/de-thorsten` bundle now contains exporter provenance, both frozen waveform-validation cases, and the accepted random operators. The pre-existing `build/sv-joakim` bundle has no exporter provenance, so its graph presence does not prove that it was produced by the repaired exporter. The corrected Thorsten build measured DC offset, frame-RMS variation, and stationary-tone ratio across native PyTorch and ONNX Runtime outputs; the profile thresholds were calibrated to the observed stochastic output while still rejecting the stationary-tone regression fixture.
+The pre-existing `model-files-german-thorsten-v1.1.1` release passed structural and weak waveform validation but produced DC-biased noise in pykokoro. It is retired and must not be selected or overwritten.
 
-No changes were made to mirrored or prebuilt profiles. Other checkpoint profiles require fresh builds and profile-specific audio validation before publication; this task does not publish unvalidated releases.
+The v1.1.2 candidate uses the repository-owned `exact-convtranspose-istft-v1` decoder reconstruction and native `torch.istft` reference validation. A local candidate was built and verified with both frozen cases, exact duration parity, native-versus-patched reconstruction error below `1e-4`, ONNX Runtime waveform metrics, and retained random-source graph checks. The candidate still requires the documented manual listening gate before publication.
+
+The corrected candidate measured low DC offset and DC-to-RMS ratio across the frozen cases. The profile thresholds were calibrated to measured seeded native and stochastic ONNX outputs while rejecting the deterministic DC-biased noise fixture.
+
+No changes were made to mirrored or prebuilt profiles. Other checkpoint profiles require fresh builds and profile-specific audio validation before publication.

@@ -116,6 +116,7 @@ def _health_kwargs() -> dict[str, float]:
         "min_audio_rms": 0.0005,
         "max_audio_abs": 1.0,
         "max_abs_dc": 0.05,
+        "max_dc_to_rms_ratio": 0.2,
         "min_frame_rms_cv": 0.03,
         "max_stationary_tone_ratio": 0.35,
     }
@@ -131,6 +132,13 @@ def _speech_like_fixture() -> np.ndarray:
         np.sin(phase) + 0.35 * np.sin(2 * phase) + 0.15 * np.sin(3 * phase)
     )
     return (audio + 0.003 * rng.normal(size=t.size)).astype(np.float32)
+
+
+def test_waveform_health_rejects_dc_biased_noise() -> None:
+    rng = np.random.default_rng(7)
+    audio = 0.043 + rng.normal(0.0, 0.028, 24_000 * 2)
+    with pytest.raises(build_kokoro.BuildError, match="DC-to-RMS|DC offset"):
+        build_kokoro.validate_waveform_health(audio, 24_000, **_health_kwargs())
 
 
 def test_waveform_health_rejects_stationary_tone() -> None:
@@ -259,10 +267,17 @@ def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     }
     assert "model.pth" not in json.dumps(profile)
     assert "voices/thorsten.pt" not in json.dumps(profile)
-    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.1"
-    assert profile["release"]["model_version"] == "1.1.1"
-    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.1.onnx"
+    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.2"
+    assert profile["release"]["model_version"] == "1.1.2"
+    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.2.onnx"
+    assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.2.json"
+    assert (
+        profile["release"]["voice_assets"][0]["filename"]
+        == "voices-german-thorsten-v1.1.2.npz"
+    )
     assert profile["export_validation"]["requires_random_source_ops"] is True
+    assert profile["export_validation"]["export_seed"] == 20260828
+    assert profile["export_validation"]["max_dc_to_rms_ratio"] == 0.7
     assert "atol" not in profile["export_validation"]
     assert "rtol" not in profile["export_validation"]
 

@@ -1661,8 +1661,8 @@
     "de-thorsten": {
       "kind": "build",
       "profile": "de-thorsten",
-      "tag": "model-files-german-thorsten-v1.1.1",
-      "model_version": "1.1.1",
+      "tag": "model-files-german-thorsten-v1.1.2",
+      "model_version": "1.1.2",
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1685,20 +1685,20 @@
       "assets": [
         {
           "source": "model.onnx",
-          "name": "kokoro-german-thorsten-v1.1.1.onnx",
+          "name": "kokoro-german-thorsten-v1.1.2.onnx",
           "role": "model",
           "quality": "fp32",
           "format": "onnx"
         },
         {
           "source": "voices.npz",
-          "name": "voices-german-thorsten-v1.1.1.npz",
+          "name": "voices-german-thorsten-v1.1.2.npz",
           "role": "voices",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "name": "voices-german-thorsten-v1.1.1.raw.bin",
+          "name": "voices-german-thorsten-v1.1.2.raw.bin",
           "role": "voices",
           "format": "raw-float32-le"
         },
@@ -1710,7 +1710,7 @@
         },
         {
           "source": "config.json",
-          "name": "config-german-thorsten-v1.1.1.json",
+          "name": "config-german-thorsten-v1.1.2.json",
           "role": "config",
           "format": "json"
         }
