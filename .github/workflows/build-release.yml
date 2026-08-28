@@ -111,7 +111,7 @@ jobs:
       - name: Staged pykokoro consumer gate
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
         run: |
-          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --with soundfile python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
       - name: Require human listening record
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
         run: |

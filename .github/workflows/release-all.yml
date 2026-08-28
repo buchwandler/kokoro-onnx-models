@@ -64,7 +64,7 @@ jobs:
         if: ${{ matrix.kind == 'build' && matrix.profile == 'de-thorsten' }}
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten --runs 5 --seed 20260828 --keep-build
-          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --with soundfile python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
           test -f ".local-test/compare/de-thorsten/report.json"
       - name: Verify candidate
         run: |
