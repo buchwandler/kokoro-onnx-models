@@ -111,46 +111,136 @@ def test_verify_source_hash_rejects_mismatch(tmp_path: Path) -> None:
         build_kokoro.verify_source_hash(path, "0" * 64, label="model checkpoint")
 
 
-def test_parity_validation_rejects_waveform_mismatch(monkeypatch) -> None:
+def _health_kwargs() -> dict[str, float]:
+    return {
+        "min_audio_rms": 0.0005,
+        "max_audio_abs": 1.0,
+        "max_abs_dc": 0.05,
+        "min_frame_rms_cv": 0.03,
+        "max_stationary_tone_ratio": 0.35,
+    }
+
+
+def _speech_like_fixture() -> np.ndarray:
+    sample_rate = 24_000
+    t = np.arange(sample_rate * 2, dtype=np.float64) / sample_rate
+    rng = np.random.default_rng(1234)
+    envelope = 0.01 + 0.09 * (0.5 + 0.5 * np.sin(2 * np.pi * 0.8 * t))
+    phase = 2 * np.pi * (180 * t + 25 * t**2)
+    audio = envelope * (
+        np.sin(phase)
+        + 0.35 * np.sin(2 * phase)
+        + 0.15 * np.sin(3 * phase)
+    )
+    return (audio + 0.003 * rng.normal(size=t.size)).astype(np.float32)
+
+
+def test_waveform_health_rejects_stationary_tone() -> None:
+    sample_rate = 24_000
+    t = np.arange(sample_rate * 2, dtype=np.float64) / sample_rate
+    audio = (
+        0.12 * np.sin(2 * np.pi * 4_800 * t)
+        + 0.06 * np.sin(2 * np.pi * 9_600 * t)
+    ).astype(np.float32)
+
+    with pytest.raises(
+        build_kokoro.BuildError,
+        match="stationary-tone|frame RMS variation",
+    ):
+        build_kokoro.validate_waveform_health(
+            audio, sample_rate, **_health_kwargs()
+        )
+
+
+def test_waveform_health_accepts_non_stationary_fixture() -> None:
+    metrics = build_kokoro.validate_waveform_health(
+        _speech_like_fixture(), 24_000, **_health_kwargs()
+    )
+    assert metrics["frame_rms_cv"] >= 0.03
+    assert metrics["stationary_tone_ratio"] <= 0.35
+
+
+def _run_fake_parity_case(monkeypatch, actual_duration: np.ndarray):
+    fake_torch = type("Torch", (), {"no_grad": staticmethod(nullcontext)})
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+    audio = _speech_like_fixture()
+
     class FakeTensor:
         def __init__(self, value):
             self.value = value
+            self.shape = value.shape
 
         def numpy(self):
             return self.value
-
-    fake_torch = type("Torch", (), {"no_grad": staticmethod(nullcontext)})
-    monkeypatch.setitem(sys.modules, "torch", fake_torch)
-    monkeypatch.setattr(build_kokoro, "deterministic_inference", nullcontext)
     monkeypatch.setattr(
         build_kokoro,
         "_parity_inputs",
         lambda case, voice, max_phonemes: (
-            FakeTensor(np.zeros((1, 3))),
-            FakeTensor(np.zeros((1, 256))),
-            FakeTensor(np.zeros(1)),
+            FakeTensor(np.zeros((1, 3), dtype=np.int64)),
+            FakeTensor(np.zeros((1, 256), dtype=np.float32)),
+            FakeTensor(np.zeros(1, dtype=np.float32)),
         ),
     )
 
     class Model:
         def __call__(self, tokens, style, speed):
-            return np.array([0.0, 1.0]), np.array([1])
+            return audio, np.array([20, 30, 30], dtype=np.int64)
 
     class Session:
         def run(self, output_names, inputs):
-            return np.array([0.0, 0.5]), np.array([1])
+            return audio[::-1].copy(), actual_duration
 
-    with pytest.raises(build_kokoro.BuildError, match="parity failed"):
-        build_kokoro._validate_parity_case(
-            Session(),
-            Model(),
-            {"name": "mismatch"},
-            np.zeros((510, 1, 256)),
-            max_phonemes=510,
-            atol=1e-4,
-            rtol=1e-4,
-            max_audio_abs=1.0,
+    return build_kokoro._validate_parity_case(
+        Session(),
+        Model(),
+        {"name": "stochastic"},
+        np.zeros((510, 1, 256), dtype=np.float32),
+        max_phonemes=510,
+        sample_rate=24_000,
+        validation=_health_kwargs() | {"min_rms_ratio": 0.1, "max_rms_ratio": 10.0},
+    )
+
+
+def test_stochastic_audio_mismatch_is_allowed(monkeypatch) -> None:
+    result = _run_fake_parity_case(
+        monkeypatch, np.array([20, 30, 30], dtype=np.int64)
+    )
+    assert result["rms_ratio"] == pytest.approx(1.0, rel=0.01)
+
+
+def test_duration_mismatch_still_fails(monkeypatch) -> None:
+    with pytest.raises(build_kokoro.BuildError, match="Duration parity failed"):
+        _run_fake_parity_case(
+            monkeypatch, np.array([20, 30, 31], dtype=np.int64)
         )
+
+
+def test_random_source_graph_validation() -> None:
+    pytest.importorskip("onnx")
+    from onnx import TensorProto, helper
+
+    def graph_with(nodes):
+        graph = helper.make_graph(
+            nodes,
+            "random-test",
+            [helper.make_tensor_value_info("input", TensorProto.FLOAT, [1])],
+            [helper.make_tensor_value_info("output", TensorProto.FLOAT, [1])],
+        )
+        return helper.make_model(graph)
+
+    identity = graph_with([helper.make_node("Identity", ["input"], ["output"])])
+    with pytest.raises(build_kokoro.BuildError, match="stochastic source"):
+        build_kokoro.validate_random_source_graph(
+            identity, requires_random_source_ops=True
+        )
+
+    random_model = graph_with(
+        [helper.make_node("RandomNormalLike", ["input"], ["random"]),
+         helper.make_node("Identity", ["random"], ["output"])],
+    )
+    assert build_kokoro.validate_random_source_graph(
+        random_model, requires_random_source_ops=True
+    ) == ["RandomNormalLike"]
 
 
 def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
@@ -175,6 +265,12 @@ def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     }
     assert "model.pth" not in json.dumps(profile)
     assert "voices/thorsten.pt" not in json.dumps(profile)
+    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.1"
+    assert profile["release"]["model_version"] == "1.1.1"
+    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.1.onnx"
+    assert profile["export_validation"]["requires_random_source_ops"] is True
+    assert "atol" not in profile["export_validation"]
+    assert "rtol" not in profile["export_validation"]
 
 
 def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:

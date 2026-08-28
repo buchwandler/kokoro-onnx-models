@@ -27,11 +27,21 @@ import shutil
 import sys
 import zipfile
 from collections.abc import Mapping
-from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+try:
+    from scripts.export_validation import RANDOM_SOURCE_OPS, random_source_ops
+    from scripts.export_validation import (
+        validate_waveform_health as _validate_waveform_health,
+    )
+except ModuleNotFoundError:
+    from export_validation import RANDOM_SOURCE_OPS, random_source_ops
+    from export_validation import (
+        validate_waveform_health as _validate_waveform_health,
+    )
 
 PROFILE_FILE = Path(__file__).with_name("kokoro_profiles.json")
 STYLE_WIDTH = 256
@@ -40,25 +50,39 @@ STYLE_WIDTH = 256
 class BuildError(RuntimeError):
     pass
 
+def validate_waveform_health(
+    audio: np.ndarray,
+    sample_rate: int,
+    *,
+    min_audio_rms: float,
+    max_audio_abs: float,
+    max_abs_dc: float,
+    min_frame_rms_cv: float,
+    max_stationary_tone_ratio: float,
+) -> dict[str, float]:
+    return _validate_waveform_health(
+        audio,
+        sample_rate,
+        min_audio_rms=min_audio_rms,
+        max_audio_abs=max_audio_abs,
+        max_abs_dc=max_abs_dc,
+        min_frame_rms_cv=min_frame_rms_cv,
+        max_stationary_tone_ratio=max_stationary_tone_ratio,
+        error_type=BuildError,
+    )
 
-@contextmanager
-def deterministic_inference() -> Any:
-    import torch
+def validate_random_source_graph(
+    model: Any, *, requires_random_source_ops: bool
+) -> list[str]:
+    detected = random_source_ops(model)
+    if requires_random_source_ops and not detected:
+        raise BuildError(
+            "Exported ONNX graph has no stochastic source operator; expected one of "
+            + ", ".join(sorted(RANDOM_SOURCE_OPS))
+        )
+    return detected
 
-    original_rand = torch.rand
-    original_randn_like = torch.randn_like
-    torch.rand = lambda *size, **kwargs: torch.zeros(*size, **kwargs)
 
-    def deterministic_randn_like(input: Any, **kwargs: Any) -> Any:
-        values = torch.arange(input.numel(), dtype=input.dtype, device=input.device)
-        return torch.sin(values).reshape(input.shape)
-
-    torch.randn_like = deterministic_randn_like
-    try:
-        yield
-    finally:
-        torch.rand = original_rand
-        torch.randn_like = original_randn_like
 
 
 def load_profiles(path: Path = PROFILE_FILE) -> dict[str, dict[str, Any]]:
@@ -358,14 +382,13 @@ def _validate_parity_case(
     voice: np.ndarray,
     *,
     max_phonemes: int,
-    atol: float,
-    rtol: float,
-    max_audio_abs: float,
+    sample_rate: int,
+    validation: Mapping[str, Any],
 ) -> dict[str, Any]:
     import torch
 
     tokens, style, speed = _parity_inputs(case, voice, max_phonemes=max_phonemes)
-    with deterministic_inference(), torch.no_grad():
+    with torch.no_grad():
         expected_audio, expected_duration = model(tokens, style, speed)
     actual_audio, actual_duration = session.run(
         ["audio", "duration"],
@@ -375,10 +398,11 @@ def _validate_parity_case(
             "speed": speed.numpy(),
         },
     )
-    expected_audio_np = _as_numpy(expected_audio)
-    expected_duration_np = _as_numpy(expected_duration)
+    expected_audio_np = np.asarray(_as_numpy(expected_audio))
+    expected_duration_np = np.asarray(_as_numpy(expected_duration))
     actual_audio_np = np.asarray(actual_audio)
     actual_duration_np = np.asarray(actual_duration)
+
     for label, values in (
         ("PyTorch audio", expected_audio_np),
         ("ONNX audio", actual_audio_np),
@@ -395,29 +419,50 @@ def _validate_parity_case(
             f"Duration shape mismatch for {case.get('name', 'case')!r}: "
             f"PyTorch {expected_duration_np.shape}, ONNX {actual_duration_np.shape}"
         )
-    if np.max(np.abs(expected_audio_np), initial=0) > max_audio_abs:
-        raise BuildError(f"PyTorch audio exceeds bound {max_audio_abs}")
-    if np.max(np.abs(actual_audio_np), initial=0) > max_audio_abs:
-        raise BuildError(f"ONNX audio exceeds bound {max_audio_abs}")
     try:
-        np.testing.assert_allclose(
-            actual_audio_np, expected_audio_np, atol=atol, rtol=rtol
-        )
         np.testing.assert_array_equal(actual_duration_np, expected_duration_np)
     except AssertionError as exc:
         raise BuildError(
-            f"PyTorch/ONNX parity failed for {case.get('name', 'case')!r}: {exc}"
+            f"Duration parity failed for {case.get('name', 'case')!r}: {exc}"
         ) from exc
+
+    health_kwargs = {
+        "min_audio_rms": float(validation.get("min_audio_rms", 0.0005)),
+        "max_audio_abs": float(validation.get("max_audio_abs", 1.0)),
+        "max_abs_dc": float(validation.get("max_abs_dc", 0.05)),
+        "min_frame_rms_cv": float(validation.get("min_frame_rms_cv", 0.03)),
+        "max_stationary_tone_ratio": float(
+            validation.get("max_stationary_tone_ratio", 0.35)
+        ),
+    }
+    pytorch_health = validate_waveform_health(
+        expected_audio_np, sample_rate, **health_kwargs
+    )
+    onnx_health = validate_waveform_health(
+        actual_audio_np, sample_rate, **health_kwargs
+    )
+
     timing = _validate_duration_audio_consistency(
         actual_audio_np,
         actual_duration_np,
         token_count=int(tokens.shape[1]),
     )
+    min_rms_ratio = float(validation.get("min_rms_ratio", 0.10))
+    max_rms_ratio = float(validation.get("max_rms_ratio", 10.0))
+    rms_ratio = onnx_health["rms"] / max(
+        pytorch_health["rms"], np.finfo(np.float64).eps
+    )
+    if not min_rms_ratio <= rms_ratio <= max_rms_ratio:
+        raise BuildError(
+            f"ONNX/PyTorch RMS ratio {rms_ratio:.6f} is outside "
+            f"[{min_rms_ratio:.6f}, {max_rms_ratio:.6f}]"
+        )
+
     return {
         "name": str(case.get("name", "case")),
-        "audio_samples": int(actual_audio_np.size),
-        "audio_peak": float(np.max(np.abs(actual_audio_np), initial=0)),
-        "audio_rms": float(np.sqrt(np.mean(np.square(actual_audio_np)))),
+        "pytorch": pytorch_health,
+        "onnx": onnx_health,
+        "rms_ratio": float(rms_ratio),
         "timing": timing,
     }
 
@@ -482,7 +527,7 @@ def export_checkpoint_to_onnx(
         ]
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with deterministic_inference(), torch.no_grad():
+    with torch.no_grad():
         torch.onnx.export(
             onnx_model,
             (tokens, style, speed),
@@ -497,6 +542,14 @@ def export_checkpoint_to_onnx(
             opset_version=opset,
             dynamo=False,
         )
+    exported_model = onnx.load(str(out_path), load_external_data=True)
+    validation_config = validation or {}
+    detected_random_ops = validate_random_source_graph(
+        exported_model,
+        requires_random_source_ops=bool(
+            validation_config.get("requires_random_source_ops")
+        ),
+    )
 
     result: dict[str, Any] = {
         "kokoro_version": str(getattr(kokoro, "__version__", "unknown")),
@@ -507,6 +560,7 @@ def export_checkpoint_to_onnx(
         "opset": opset,
         "inputs": ["tokens", "style", "speed"],
         "outputs": ["audio", "duration"],
+        "random_source_ops": detected_random_ops,
         "timing": {
             "output": "duration",
             "samples_per_frame": 600,
@@ -517,24 +571,20 @@ def export_checkpoint_to_onnx(
         session = ort.InferenceSession(
             str(out_path), providers=["CPUExecutionProvider"]
         )
-        result["parity"] = {
-            "atol": float((validation or {}).get("atol", 1e-4)),
-            "rtol": float((validation or {}).get("rtol", 1e-4)),
-            "max_audio_abs": float((validation or {}).get("max_audio_abs", 1.0)),
-            "cases": [
-                _validate_parity_case(
-                    session,
-                    onnx_model,
-                    case,
-                    voice,
-                    max_phonemes=510,
-                    atol=float((validation or {}).get("atol", 1e-4)),
-                    rtol=float((validation or {}).get("rtol", 1e-4)),
-                    max_audio_abs=float((validation or {}).get("max_audio_abs", 1.0)),
-                )
-                for case in parity_cases
-            ],
-        }
+        validation_cases = [
+            _validate_parity_case(
+                session,
+                onnx_model,
+                case,
+                voice,
+                max_phonemes=510,
+                sample_rate=int(validation_config.get("sample_rate", 24000)),
+                validation=validation_config,
+            )
+            for case in parity_cases
+        ]
+        result["validation"] = {"cases": validation_cases}
+        result["waveform_validation"] = {"cases": validation_cases}
     return result
 
 

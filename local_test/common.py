@@ -32,6 +32,18 @@ from pykokoro import GenerationConfig, KokoroPipeline, PipelineConfig
 from pykokoro.tokenizer import TokenizerConfig
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+try:
+    from scripts.export_validation import (
+        validate_waveform_health as _validate_waveform_health,
+    )
+except ModuleNotFoundError:
+    from export_validation import (
+        validate_waveform_health as _validate_waveform_health,
+    )
+
 LOCAL_ROOT = ROOT / ".local-test"
 ASSET_ROOT = LOCAL_ROOT / "assets"
 OUTPUT_ROOT = LOCAL_ROOT / "wav"
@@ -293,6 +305,38 @@ SPECS: dict[str, LocalTestSpec] = {
 }
 
 
+def validate_local_waveform_health(
+    spec_key: str, audio: np.ndarray, sample_rate: int
+) -> dict[str, float] | None:
+    if spec_key != "de-thorsten":
+        return None
+
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    validation = profiles[spec_key].get("export_validation") or {}
+    metric_kwargs = {
+        "min_audio_rms": 0.0,
+        "max_audio_abs": float("inf"),
+        "max_abs_dc": float("inf"),
+        "min_frame_rms_cv": 0.0,
+        "max_stationary_tone_ratio": 1.0,
+    }
+    metrics = _validate_waveform_health(audio, sample_rate, **metric_kwargs)
+    _validate_waveform_health(
+        audio,
+        sample_rate,
+        min_audio_rms=float(validation.get("min_audio_rms", 0.0005)),
+        max_audio_abs=float(validation.get("max_audio_abs", 1.0)),
+        max_abs_dc=float(validation.get("max_abs_dc", 0.05)),
+        min_frame_rms_cv=float(validation.get("min_frame_rms_cv", 0.03)),
+        max_stationary_tone_ratio=float(
+            validation.get("max_stationary_tone_ratio", 0.35)
+        ),
+    )
+    return metrics
+
+
 def _parser(spec: LocalTestSpec) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=f"Local pykokoro pre-release smoke test: {spec.display_name}"
@@ -503,11 +547,16 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         )
     model_path = _find_one(asset_dir, ("model.onnx", "*.onnx"), "ONNX model")
     preferred_voices = asset_dir / "voices.npz"
-    original_voices = (
-        preferred_voices
-        if preferred_voices.is_file()
-        else _find_one(asset_dir, ("voices.bin", "*.bin", "*.npz"), "voice archive")
-    )
+    if preferred_voices.is_file():
+        original_voices = preferred_voices
+    else:
+        npz_candidates = sorted(asset_dir.glob("*.npz"))
+        if len(npz_candidates) == 1:
+            original_voices = npz_candidates[0]
+        else:
+            original_voices = _find_one(
+                asset_dir, ("voices.bin", "*.bin"), "voice archive"
+            )
     voices_path, exact_voice_format = _prepare_voice_archive(
         original_voices,
         spec=spec,
@@ -578,6 +627,33 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
                     raise RuntimeError("synthesis returned an empty waveform")
                 if not np.isfinite(result.audio).all():
                     raise RuntimeError("synthesis returned NaN/Inf samples")
+                health_error: Exception | None = None
+                if spec.key == "de-thorsten":
+                    try:
+                        metrics = _validate_waveform_health(
+                            result.audio,
+                            result.sample_rate,
+                            min_audio_rms=0.0,
+                            max_audio_abs=float("inf"),
+                            max_abs_dc=float("inf"),
+                            min_frame_rms_cv=0.0,
+                            max_stationary_tone_ratio=1.0,
+                        )
+                        for name in (
+                            "peak",
+                            "rms",
+                            "dc",
+                            "frame_rms_cv",
+                            "stationary_tone_ratio",
+                        ):
+                            print(f"    {name}: {metrics[name]:.6f}")
+                        validate_local_waveform_health(
+                            spec.key, result.audio, result.sample_rate
+                        )
+                    except ValueError as exc:
+                        health_error = exc
+                        print(f"    waveform health FAILED: {exc}")
+
                 duration = len(result.audio) / result.sample_rate
                 print(
                     f"    ok: {len(result.audio)} samples, "
@@ -590,6 +666,8 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
                     output = args.output_dir / f"{voice}.wav"
                     sf.write(output, result.audio, result.sample_rate)
                     print(f"    wrote: {output}")
+                if health_error is not None:
+                    raise RuntimeError(str(health_error))
                 success += 1
             except Exception as exc:  # noqa: BLE001
                 failures.append((voice, f"{type(exc).__name__}: {exc}"))

@@ -81,9 +81,32 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     assert thorsten["release"]["default_voice"] == "thorsten"
     assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
     assert (
-        catalog["releases"]["de-thorsten"]["tag"] == "model-files-german-thorsten-v1.1"
+        catalog["releases"]["de-thorsten-v1.1.1"]["tag"]
+        == "model-files-german-thorsten-v1.1.1"
+    )
+    assert (
+        catalog["releases"]["de-thorsten"]["tag"]
+        == "model-files-german-thorsten-v1.1"
     )
 
+
+
+def test_build_profile_and_release_asset_names_match() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    catalog = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    profile_release = profiles["de-thorsten"]["release"]
+    release = catalog["releases"]["de-thorsten-v1.1.1"]
+
+    assert release["tag"] == profile_release["tag"]
+    assert release["model_version"] == profile_release["model_version"]
+    release_names = {asset["name"] for asset in release["assets"]}
+    assert profile_release["model_filename"] in release_names
+    assert profile_release["config_filename"] in release_names
+    for voice in profile_release["voice_assets"]:
+        assert voice["filename"] in release_names
+    assert not any("thorsten-v1.0" in name for name in release_names)
 
 def test_thai_wayu_is_pinned_split_mirror() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())

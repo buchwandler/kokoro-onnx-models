@@ -110,6 +110,54 @@ def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
         verify_candidate.verify_candidate(candidate)
 
 
+
+def _thorsten_provenance() -> dict[str, object]:
+    return {
+        "source_artifacts": {
+            "model": {
+                "path": "model_ep5.pth",
+                "sha256": "0" * 64,
+                "config_sha256": "1" * 64,
+            },
+            "voices": {
+                "thorsten": {
+                    "path": "voices/thorsten_ep5.pt",
+                    "sha256": "2" * 64,
+                }
+            },
+        },
+        "exporter": {
+            "kokoro_version": "0.9.4",
+            "torch_version": "2.13.0",
+            "onnx_version": "1.22.0",
+            "onnxruntime_version": "1.29.0",
+            "python_version": "3.13.14",
+            "opset": 17,
+            "outputs": ["audio", "duration"],
+            "random_source_ops": ["RandomNormalLike"],
+            "waveform_validation": {"cases": [{"name": "hallo"}]},
+        },
+    }
+
+
+def test_thorsten_provenance_rejects_missing_and_unsupported_random_ops() -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    exporter = manifest["provenance"]["exporter"]
+    del exporter["random_source_ops"]
+    with pytest.raises(
+        verify_candidate.CandidateError, match="random_source_ops"
+    ):
+        verify_candidate._validate_checkpoint_provenance(manifest)
+
+    exporter["random_source_ops"] = ["Identity"]
+    with pytest.raises(
+        verify_candidate.CandidateError, match="unsupported random operators"
+    ):
+        verify_candidate._validate_checkpoint_provenance(manifest)
+
+    exporter["random_source_ops"] = ["RandomNormalLike"]
+    verify_candidate._validate_checkpoint_provenance(manifest)
+
 def test_verify_candidate_rejects_size_mismatch(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
     manifest_path = candidate / "release-manifest.json"

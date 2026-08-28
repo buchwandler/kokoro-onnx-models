@@ -417,21 +417,21 @@
     },
     "release": {
       "enabled": true,
-      "tag": "model-files-german-thorsten-v1.1",
-      "model_version": "1.1",
-      "model_filename": "kokoro-german-thorsten-v1.1.onnx",
-      "config_filename": "config-german-thorsten-v1.1.json",
+      "tag": "model-files-german-thorsten-v1.1.1",
+      "model_version": "1.1.1",
+      "model_filename": "kokoro-german-thorsten-v1.1.1.onnx",
+      "config_filename": "config-german-thorsten-v1.1.1.json",
       "voices": ["thorsten"],
       "default_voice": "thorsten",
       "voice_assets": [
         {
           "source": "voices.npz",
-          "filename": "voices-german-thorsten-v1.1.npz",
+          "filename": "voices-german-thorsten-v1.1.1.npz",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "filename": "voices-german-thorsten-v1.1.raw.bin",
+          "filename": "voices-german-thorsten-v1.1.1.raw.bin",
           "format": "raw-float32-le"
         }
       ]
@@ -477,9 +477,14 @@
           "speed": 1.0
         }
       ],
-      "atol": 0.001,
-      "rtol": 0.001,
-      "max_audio_abs": 1.0
+      "min_audio_rms": 0.0005,
+      "max_audio_abs": 1.0,
+      "max_abs_dc": 0.1,
+      "min_frame_rms_cv": 0.005,
+      "max_stationary_tone_ratio": 0.7,
+      "min_rms_ratio": 0.10,
+      "max_rms_ratio": 10.0,
+      "requires_random_source_ops": true
     }
   },
   "kk-anuarsv": {

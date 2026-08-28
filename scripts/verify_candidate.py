@@ -8,6 +8,11 @@ import re
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.export_validation import RANDOM_SOURCE_OPS
+except ModuleNotFoundError:
+    from export_validation import RANDOM_SOURCE_OPS
+
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ALLOWED_FILES = {"release-manifest.json", "SHA256SUMS", "release-notes.md"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -393,6 +398,8 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
         "python_version",
         "opset",
         "outputs",
+        "random_source_ops",
+        "waveform_validation",
     ):
         _require(
             field in exporter,
@@ -402,6 +409,22 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     _require(
         exporter["outputs"] == ["audio", "duration"],
         "Thorsten exporter outputs are incomplete",
+    )
+    random_ops = exporter.get("random_source_ops")
+    _require(
+        isinstance(random_ops, list) and bool(random_ops),
+        "Thorsten exporter provenance has no stochastic source operators",
+    )
+    _require(
+        set(random_ops) <= RANDOM_SOURCE_OPS,
+        "Thorsten exporter provenance contains unsupported random operators",
+    )
+    waveform_validation = exporter.get("waveform_validation")
+    _require(
+        isinstance(waveform_validation, dict)
+        and isinstance(waveform_validation.get("cases"), list)
+        and bool(waveform_validation["cases"]),
+        "Thorsten exporter provenance has no waveform validation cases",
     )
 
 

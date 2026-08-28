@@ -276,7 +276,9 @@ def verify_registry(
                     distribution["provider"] != "github-release",
                     f"{model_id}: forbidden mirror has GitHub distribution",
                 )
-    for release_key in release_entries:
+    for release_key, release in release_entries.items():
+        if release.get("publish") is False:
+            continue
         _require(
             release_key in models,
             f"Release catalog key {release_key!r} is missing from model registry",
