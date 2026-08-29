@@ -46,9 +46,7 @@ def test_incident_passes_legacy_metrics_but_fails_broadband_detector() -> None:
     )
     metrics = spectral_metrics(audio, SAMPLE_RATE)
     assert legacy["stationary_tone_ratio"] <= 0.7
-    assert stationary_broadband_noise(
-        metrics, seconds=2.0, sample_rate=SAMPLE_RATE
-    )
+    assert stationary_broadband_noise(metrics, seconds=2.0, sample_rate=SAMPLE_RATE)
     with pytest.raises(ValueError, match="stationary broadband noise"):
         validate_waveform_health(
             audio,
@@ -64,9 +62,7 @@ def test_incident_passes_legacy_metrics_but_fails_broadband_detector() -> None:
 
 def test_native_speech_fixture_is_not_stationary_broadband_noise() -> None:
     metrics = spectral_metrics(_speech_fixture(), SAMPLE_RATE)
-    assert not stationary_broadband_noise(
-        metrics, seconds=2.0, sample_rate=SAMPLE_RATE
-    )
+    assert not stationary_broadband_noise(metrics, seconds=2.0, sample_rate=SAMPLE_RATE)
 
 
 def test_spectral_metrics_expose_required_fields() -> None:

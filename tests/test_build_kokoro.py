@@ -41,9 +41,7 @@ def test_install_exact_onnx_istft_returns_installed_instance(monkeypatch) -> Non
         transform=object(),
     )
     model = types.SimpleNamespace(
-        decoder=types.SimpleNamespace(
-            generator=types.SimpleNamespace(stft=native_stft)
-        )
+        decoder=types.SimpleNamespace(generator=types.SimpleNamespace(stft=native_stft))
     )
 
     metadata, replacement = build_kokoro.install_exact_onnx_istft(model)
@@ -52,6 +50,7 @@ def test_install_exact_onnx_istft_returns_installed_instance(monkeypatch) -> Non
     assert replacement.native_transform is native_stft.transform
     assert metadata["backend"] == "exact-convtranspose-istft-v1"
     assert native_stft is not replacement
+
 
 def test_normalizes_rank2_voice() -> None:
     got = build_kokoro.normalize_voice(

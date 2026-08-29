@@ -340,6 +340,7 @@ def validate_local_waveform_health(
     )
     return metrics
 
+
 def _verify_prepared_manifest(asset_dir: Path) -> dict[str, object] | None:
     manifest_path = asset_dir / "release-manifest.json"
     if not manifest_path.is_file():
@@ -377,7 +378,7 @@ def _prepared_asset_path(
 ) -> Path:
     assets = manifest.get("assets")
     if not isinstance(assets, list):
-        raise RuntimeError("Prepared release manifest has no asset list")
+        raise TypeError("Prepared release manifest has no asset list")
     matches = [
         asset["name"]
         for asset in assets
@@ -593,7 +594,9 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
 
     prepared_manifest = _verify_prepared_manifest(asset_dir)
     if prepared_manifest is not None:
-        print(f"verified prepared release manifest: {asset_dir / 'release-manifest.json'}")
+        print(
+            f"verified prepared release manifest: {asset_dir / 'release-manifest.json'}"
+        )
     required_paths = {
         filename: asset_dir / filename for filename in spec.required_files
     }

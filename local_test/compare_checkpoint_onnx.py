@@ -138,6 +138,7 @@ def _stage_record(
         )
     return record
 
+
 _DISTRIBUTION_METRICS = (
     "rms",
     "frame_rms_cv",
@@ -146,7 +147,7 @@ _DISTRIBUTION_METRICS = (
     "high_band_energy_ratio_4k_nyquist",
     "spectral_flatness_mean",
     "normalized_spectral_flux_mean",
- )
+)
 _DISTRIBUTION_FLOORS = {
     "rms": 0.005,
     "frame_rms_cv": 0.05,
@@ -155,7 +156,7 @@ _DISTRIBUTION_FLOORS = {
     "high_band_energy_ratio_4k_nyquist": 0.05,
     "spectral_flatness_mean": 0.05,
     "normalized_spectral_flux_mean": 0.05,
- }
+}
 
 
 def _metric_envelope(records: list[Mapping[str, Any]]) -> dict[str, dict[str, float]]:
@@ -165,13 +166,17 @@ def _metric_envelope(records: list[Mapping[str, Any]]) -> dict[str, dict[str, fl
         median = float(np.median(values))
         mad = float(np.median(np.abs(values - median)))
         margin = max(3.0 * mad, _DISTRIBUTION_FLOORS[name])
-        envelope[name] = {"median": median, "lower": median - margin, "upper": median + margin}
+        envelope[name] = {
+            "median": median,
+            "lower": median - margin,
+            "upper": median + margin,
+        }
     return envelope
 
 
 def _check_metric_envelope(
     record: Mapping[str, Any], envelope: Mapping[str, Mapping[str, float]]
- ) -> None:
+) -> None:
     for name, bounds in envelope.items():
         value = float(record["metrics"][name])
         if not bounds["lower"] <= value <= bounds["upper"]:

@@ -6,10 +6,10 @@ import sys
 import types
 import wave
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
-from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPARE_PATH = ROOT / "local_test" / "compare_checkpoint_onnx.py"
@@ -96,9 +96,7 @@ def test_native_loader_disables_complex_decoder(monkeypatch, tmp_path: Path) -> 
         "audit_loaded_checkpoint",
         return_value={"strict": True, "components": {}},
     ):
-        build_kokoro.load_checkpoint_native(
-            tmp_path / "model.pth", {"n_token": 178}
-        )
+        build_kokoro.load_checkpoint_native(tmp_path / "model.pth", {"n_token": 178})
     assert calls == [False]
 
 

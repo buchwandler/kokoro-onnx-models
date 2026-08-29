@@ -173,7 +173,11 @@ def _thorsten_provenance() -> dict[str, object]:
                         "loaded_tensor_mismatches": [],
                     }
                     for component in (
-                        "bert", "bert_encoder", "predictor", "text_encoder", "decoder"
+                        "bert",
+                        "bert_encoder",
+                        "predictor",
+                        "text_encoder",
+                        "decoder",
                     )
                 },
             },
@@ -229,15 +233,19 @@ def test_thorsten_provenance_rejects_missing_native_metrics() -> None:
 
 @pytest.mark.parametrize(
     ("field", "message"),
-    [("native_delegate_validation", "native-delegate"), ("native_patched_validation", "native/patched")],
- )
+    [
+        ("native_delegate_validation", "native-delegate"),
+        ("native_patched_validation", "native/patched"),
+    ],
+)
 def test_thorsten_provenance_requires_both_validation_phases(
     field: str, message: str
- ) -> None:
+) -> None:
     manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
     del manifest["provenance"]["exporter"]["decoder_reconstruction"][field]
     with pytest.raises(verify_candidate.CandidateError, match=message):
         verify_candidate._validate_checkpoint_provenance(manifest)
+
 
 def test_thorsten_provenance_rejects_excessive_reconstruction_error() -> None:
     manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}

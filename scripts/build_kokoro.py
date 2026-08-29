@@ -467,8 +467,7 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
         candidates = {
             "none": dict(raw_state),
             "strip_module": {
-                key[7:] if key.startswith("module.") else key: value
-                for key, value in raw_state.items()
+                key.removeprefix("module."): value for key, value in raw_state.items()
             },
         }
         selected: tuple[str, dict[str, Any]] | None = None
@@ -476,9 +475,7 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
         for normalization, candidate in candidates.items():
             missing = sorted(set(target_state) - set(candidate))
             default_initialized = sorted(
-                key
-                for key in missing
-                if key.endswith(".norm.weight") or key.endswith(".norm.bias")
+                key for key in missing if key.endswith((".norm.weight", ".norm.bias"))
             )
             required_missing = sorted(set(missing) - set(default_initialized))
             unexpected = sorted(set(candidate) - set(target_state))
@@ -525,6 +522,7 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
             **details,
         }
     return report
+
 
 def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
     """Load a checkpoint with the upstream-native Torch decoder."""
@@ -606,12 +604,13 @@ def run_patched_pytorch_outputs(
         )
     return np.asarray(_as_numpy(audio)), np.asarray(_as_numpy(duration))
 
+
 def validate_native_reference_cases(
     native_cases: list[Mapping[str, Any]],
     *,
     sample_rate: int,
     validation: Mapping[str, Any],
- ) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Validate checkpoint output before any export-specific mutation."""
     health_kwargs = _health_kwargs(validation)
     records: list[dict[str, Any]] = []
@@ -659,7 +658,9 @@ def run_patched_pytorch_case(
         np.max(np.abs(patched_audio_np - native_audio_np), initial=0.0)
     )
     max_allowed_error = validation.get("max_native_patched_abs_error")
-    if max_allowed_error is not None and sample_max_abs_error > float(max_allowed_error):
+    if max_allowed_error is not None and sample_max_abs_error > float(
+        max_allowed_error
+    ):
         raise BuildError(
             f"Native/patched waveform mismatch for {native_case['name']!r}: "
             f"{sample_max_abs_error:.8g} > {float(max_allowed_error):.8g}"
@@ -710,9 +711,7 @@ def _health_kwargs(validation: Mapping[str, Any]) -> dict[str, Any]:
             validation.get("noise_min_high_band_ratio", 0.60)
         ),
         "noise_min_flatness": float(validation.get("noise_min_flatness", 0.05)),
-        "noise_max_frame_rms_cv": float(
-            validation.get("noise_max_frame_rms_cv", 0.08)
-        ),
+        "noise_max_frame_rms_cv": float(validation.get("noise_max_frame_rms_cv", 0.08)),
         "noise_max_spectral_flux": float(
             validation.get("noise_max_spectral_flux", 0.05)
         ),
@@ -986,9 +985,7 @@ def export_checkpoint_to_onnx(
             seed=export_seed,
         )
     if export_model_base.decoder.generator.stft is not export_stft:
-        raise BuildError(
-            "Export iSTFT replacement was lost before enabling ONNX mode"
-        )
+        raise BuildError("Export iSTFT replacement was lost before enabling ONNX mode")
     export_stft.use_onnx_transform()
     if not export_stft.onnx_transform_enabled:
         raise BuildError("Export iSTFT did not enter ONNX-safe mode")

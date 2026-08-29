@@ -387,7 +387,8 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     model = source.get("model") or {}
     voice = (source.get("voices") or {}).get("thorsten") or {}
     _require(
-        model.get("path") == "model.pth", "Thorsten checkpoint path is not the documented default",
+        model.get("path") == "model.pth",
+        "Thorsten checkpoint path is not the documented default",
     )
     _require(
         voice.get("path") == "voices/thorsten.pt",
@@ -403,11 +404,13 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
             f"Thorsten provenance is missing a valid {label} SHA-256",
         )
     _require(
-        model.get("sha256") == "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
+        model.get("sha256")
+        == "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
         "Thorsten model SHA-256 is not the documented default",
     )
     _require(
-        voice.get("sha256") == "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
+        voice.get("sha256")
+        == "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
         "Thorsten voice SHA-256 is not the documented default",
     )
     exporter = provenance.get("exporter") or {}
@@ -435,9 +438,9 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     )
     components = checkpoint_load.get("components")
     _require(
-        isinstance(components, dict) and set(components) >= {
-            "bert", "bert_encoder", "predictor", "text_encoder", "decoder"
-        },
+        isinstance(components, dict)
+        and set(components)
+        >= {"bert", "bert_encoder", "predictor", "text_encoder", "decoder"},
         "Thorsten checkpoint load audit is incomplete",
     )
     for component, details in components.items():
@@ -505,8 +508,7 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
         "Thorsten decoder is missing native/patched validation",
     )
     _require(
-        isinstance(native_patched.get("cases"), list)
-        and bool(native_patched["cases"]),
+        isinstance(native_patched.get("cases"), list) and bool(native_patched["cases"]),
         "Thorsten native/patched validation has no cases",
     )
     max_abs_error = native_patched.get("max_abs_error")

@@ -65,7 +65,7 @@ def frame_rms(
 
 def _spectral_frames(
     values: np.ndarray, sample_rate: int, *, frame_ms: float, hop_ms: float
- ) -> tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int]:
     frame_size = max(1, round(sample_rate * frame_ms / 1000.0))
     hop_size = max(1, round(sample_rate * hop_ms / 1000.0))
     if values.size < frame_size:
@@ -82,7 +82,7 @@ def spectral_metrics(
     frame_ms: float = 50.0,
     hop_ms: float = 25.0,
     high_band_hz: float = 4000.0,
- ) -> dict[str, float]:
+) -> dict[str, float]:
     values = _audio_values(audio, sample_rate, allow_empty=False)
     frames, frame_size = _spectral_frames(
         values, sample_rate, frame_ms=frame_ms, hop_ms=hop_ms
@@ -122,8 +122,7 @@ def spectral_metrics(
         "zcr_mean": float(np.mean(zcr)),
         "spectral_centroid_mean_hz": float(np.mean(centroids)),
         "spectral_centroid_cv": float(
-            np.std(centroids)
-            / max(float(np.mean(centroids)), np.finfo(np.float64).eps)
+            np.std(centroids) / max(float(np.mean(centroids)), np.finfo(np.float64).eps)
         ),
         "spectral_bandwidth_mean_hz": float(np.mean(bandwidths)),
         "spectral_flatness_mean": float(np.mean(flatness)),
@@ -155,7 +154,7 @@ def stationary_broadband_noise(
     max_frame_rms_cv: float = 0.08,
     max_spectral_flux: float = 0.05,
     min_broadband_votes: int = 3,
- ) -> bool:
+) -> bool:
     stationary = (
         metrics["spectral_centroid_cv"] < max_centroid_cv
         and metrics["frame_rms_cv"] < max_frame_rms_cv
@@ -167,7 +166,12 @@ def stationary_broadband_noise(
         metrics["high_band_energy_ratio_4k_nyquist"] >= min_high_band_ratio,
         metrics["spectral_flatness_mean"] >= min_flatness,
     )
-    return seconds >= min_seconds and stationary and sum(broadband_votes) >= min_broadband_votes
+    return (
+        seconds >= min_seconds
+        and stationary
+        and sum(broadband_votes) >= min_broadband_votes
+    )
+
 
 def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
     values = _audio_values(audio, sample_rate, allow_empty=False)

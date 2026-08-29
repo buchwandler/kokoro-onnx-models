@@ -112,6 +112,7 @@ def test_exact_onnx_istft_uses_registered_kernels() -> None:
         "window_envelope_kernel",
     }
 
+
 def test_exact_onnx_istft_reports_transform_mode() -> None:
     module = ExactOnnxISTFT(filter_length=20, hop_length=5, win_length=20)
     assert module.onnx_transform_enabled

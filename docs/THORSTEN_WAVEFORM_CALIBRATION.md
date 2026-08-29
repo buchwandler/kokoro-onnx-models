@@ -21,10 +21,10 @@ checks remain enabled.
 
 ## Deterministic fixtures
 
-| Fixture | Seed | Duration | Detector result | Other gate |
-| --- | ---: | ---: | --- | --- |
-| high-frequency differenced noise, incident-like | 20260828 | 2 s | reject | legacy metrics pass with incident thresholds |
-| modulated harmonic speech-like signal plus noise | 1234 | 2 s | accept | legacy metrics pass |
+| Fixture                                          |     Seed | Duration | Detector result | Other gate                                   |
+| ------------------------------------------------ | -------: | -------: | --------------- | -------------------------------------------- |
+| high-frequency differenced noise, incident-like  | 20260828 |      2 s | reject          | legacy metrics pass with incident thresholds |
+| modulated harmonic speech-like signal plus noise |     1234 |      2 s | accept          | legacy metrics pass                          |
 
 The incident-like fixture is generated in `tests/test_export_validation.py`:
 
