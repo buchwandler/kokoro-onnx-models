@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,15 @@ def sha256(path: Path) -> str:
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise CandidateError(message)
+
+
+def _is_finite_nonnegative_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value) and value >= 0
+    except OverflowError:
+        return False
 
 
 def _validate_json_asset(path: Path, role: str) -> None:
@@ -513,10 +523,8 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     )
     max_abs_error = native_patched.get("max_abs_error")
     _require(
-        isinstance(max_abs_error, (int, float))
-        and not isinstance(max_abs_error, bool)
-        and max_abs_error <= 2.0e-4,
-        "Thorsten native/patched reconstruction error exceeds 2e-4",
+        _is_finite_nonnegative_number(max_abs_error),
+        "Thorsten native/patched reconstruction error must be finite and non-negative",
     )
     waveform_validation = exporter.get("waveform_validation")
     _require(

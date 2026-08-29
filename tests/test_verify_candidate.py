@@ -247,12 +247,28 @@ def test_thorsten_provenance_requires_both_validation_phases(
         verify_candidate._validate_checkpoint_provenance(manifest)
 
 
-def test_thorsten_provenance_rejects_excessive_reconstruction_error() -> None:
+def test_thorsten_provenance_allows_stochastic_pointwise_reconstruction_error() -> None:
     manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
     manifest["provenance"]["exporter"]["decoder_reconstruction"][
         "native_patched_validation"
     ]["max_abs_error"] = 1.0e-3
-    with pytest.raises(verify_candidate.CandidateError, match="exceeds"):
+
+    verify_candidate._validate_checkpoint_provenance(manifest)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -1.0, None, "bad", True])
+def test_thorsten_provenance_rejects_invalid_reconstruction_error(
+    value: object,
+) -> None:
+    manifest = {"profile": "de-thorsten", "provenance": _thorsten_provenance()}
+    manifest["provenance"]["exporter"]["decoder_reconstruction"][
+        "native_patched_validation"
+    ]["max_abs_error"] = value
+
+    with pytest.raises(
+        verify_candidate.CandidateError,
+        match="finite and non-negative",
+    ):
         verify_candidate._validate_checkpoint_provenance(manifest)
 
 

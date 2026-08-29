@@ -9,6 +9,36 @@ torch = pytest.importorskip("torch")
 from scripts.onnx_istft import ExactOnnxISTFT
 
 
+def test_exact_onnx_stft_transform_matches_torch_stft() -> None:
+    torch.manual_seed(7)
+    waveform = torch.randn(2, 4096, dtype=torch.float32)
+    window = torch.hann_window(20, periodic=True)
+
+    expected = torch.stft(
+        waveform,
+        n_fft=20,
+        hop_length=5,
+        win_length=20,
+        window=window,
+        return_complex=True,
+    )
+
+    module = ExactOnnxISTFT(
+        filter_length=20,
+        hop_length=5,
+        win_length=20,
+    )
+    magnitude, phase = module.transform(waveform)
+    actual = torch.polar(magnitude, phase)
+
+    torch.testing.assert_close(
+        actual,
+        expected,
+        rtol=1e-4,
+        atol=1e-5,
+    )
+
+
 @pytest.mark.parametrize(
     ("n_fft", "hop", "win_length"),
     [(20, 5, 20), (512, 128, 512), (800, 200, 800), (1024, 256, 1024)],
