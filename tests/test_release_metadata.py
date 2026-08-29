@@ -63,10 +63,10 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     assert swedish["release"]["default_voice"] == "Alice"
     assert swedish["postprocess"]["q"] == 35
     assert thorsten["license"] == "Apache-2.0"
-    assert thorsten["model"]["path"] == "model_ep5.pth"
+    assert thorsten["model"]["path"] == "model.pth"
     assert (
         thorsten["model"]["sha256"]
-        == "0bbe3f8d6a97b74352aae58f344531eb291bb8b4738bf3c9476e97ec63d68ded"
+        == "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce"
     )
     assert (
         thorsten["model"]["config_sha256"]
@@ -74,15 +74,15 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     )
     assert thorsten["voices"]["items"] == {
         "thorsten": {
-            "path": "voices/thorsten_ep5.pt",
-            "sha256": "63ead702015953db38cf5640bb19b1d32fed6a5e9e597372388cc17498f0eccd",
+            "path": "voices/thorsten.pt",
+            "sha256": "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
         }
     }
     assert thorsten["release"]["default_voice"] == "thorsten"
     assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
     assert (
         catalog["releases"]["de-thorsten"]["tag"]
-        == "model-files-german-thorsten-v1.1.3"
+        == "model-files-german-thorsten-v1.1.4"
     )
 
 

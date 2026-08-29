@@ -483,8 +483,8 @@
     "sample_rate": 24000,
     "model": {
       "kind": "checkpoint",
-      "path": "model_ep5.pth",
-      "sha256": "0bbe3f8d6a97b74352aae58f344531eb291bb8b4738bf3c9476e97ec63d68ded",
+      "path": "model.pth",
+      "sha256": "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
       "config": "config.json",
       "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
     },
@@ -492,8 +492,8 @@
       "kind": "fixed_pt",
       "items": {
         "thorsten": {
-          "path": "voices/thorsten_ep5.pt",
-          "sha256": "63ead702015953db38cf5640bb19b1d32fed6a5e9e597372388cc17498f0eccd"
+          "path": "voices/thorsten.pt",
+          "sha256": "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7"
         }
       }
     },
@@ -505,21 +505,21 @@
     },
     "release": {
       "enabled": true,
-      "tag": "model-files-german-thorsten-v1.1.3",
-      "model_version": "1.1.3",
-      "model_filename": "kokoro-german-thorsten-v1.1.3.onnx",
-      "config_filename": "config-german-thorsten-v1.1.3.json",
+      "tag": "model-files-german-thorsten-v1.1.4",
+      "model_version": "1.1.4",
+      "model_filename": "kokoro-german-thorsten-v1.1.4.onnx",
+      "config_filename": "config-german-thorsten-v1.1.4.json",
       "voices": ["thorsten"],
       "default_voice": "thorsten",
       "voice_assets": [
         {
           "source": "voices.npz",
-          "filename": "voices-german-thorsten-v1.1.3.npz",
+          "filename": "voices-german-thorsten-v1.1.4.npz",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "filename": "voices-german-thorsten-v1.1.3.raw.bin",
+          "filename": "voices-german-thorsten-v1.1.4.raw.bin",
           "format": "raw-float32-le"
         }
       ]

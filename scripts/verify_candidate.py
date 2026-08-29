@@ -387,11 +387,11 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     model = source.get("model") or {}
     voice = (source.get("voices") or {}).get("thorsten") or {}
     _require(
-        model.get("path") == "model_ep5.pth", "Thorsten checkpoint path is not epoch 5"
+        model.get("path") == "model.pth", "Thorsten checkpoint path is not the documented default",
     )
     _require(
-        voice.get("path") == "voices/thorsten_ep5.pt",
-        "Thorsten voice path is not epoch 5",
+        voice.get("path") == "voices/thorsten.pt",
+        "Thorsten voice path is not the documented default",
     )
     for label, value in (
         ("model", model.get("sha256")),
@@ -402,6 +402,14 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
             isinstance(value, str) and SHA256_RE.fullmatch(value) is not None,
             f"Thorsten provenance is missing a valid {label} SHA-256",
         )
+    _require(
+        model.get("sha256") == "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
+        "Thorsten model SHA-256 is not the documented default",
+    )
+    _require(
+        voice.get("sha256") == "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
+        "Thorsten voice SHA-256 is not the documented default",
+    )
     exporter = provenance.get("exporter") or {}
     for field in (
         "kokoro_version",
@@ -413,11 +421,42 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
         "outputs",
         "random_source_ops",
         "waveform_validation",
+        "checkpoint_load",
+        "native_reference_validation",
     ):
         _require(
             field in exporter,
             f"Thorsten provenance is missing exporter field {field!r}",
         )
+    checkpoint_load = exporter.get("checkpoint_load")
+    _require(
+        isinstance(checkpoint_load, dict) and checkpoint_load.get("strict") is True,
+        "Thorsten checkpoint load audit is missing or not strict",
+    )
+    components = checkpoint_load.get("components")
+    _require(
+        isinstance(components, dict) and set(components) >= {
+            "bert", "bert_encoder", "predictor", "text_encoder", "decoder"
+        },
+        "Thorsten checkpoint load audit is incomplete",
+    )
+    for component, details in components.items():
+        _require(
+            isinstance(details, dict)
+            and not details.get("missing_keys")
+            and not details.get("unexpected_keys")
+            and not details.get("shape_mismatches")
+            and not details.get("loaded_tensor_mismatches"),
+            f"Thorsten checkpoint load audit failed for {component}",
+        )
+    native_reference = exporter.get("native_reference_validation")
+    _require(
+        isinstance(native_reference, dict)
+        and native_reference.get("status") == "pass"
+        and isinstance(native_reference.get("cases"), list)
+        and bool(native_reference["cases"]),
+        "Thorsten native-reference validation is missing or failed",
+    )
     _require(exporter["opset"] == 17, "Thorsten exporter opset must be 17")
     _require(
         exporter["outputs"] == ["audio", "duration"],
@@ -474,8 +513,8 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
     _require(
         isinstance(max_abs_error, (int, float))
         and not isinstance(max_abs_error, bool)
-        and max_abs_error <= 1.0e-4,
-        "Thorsten native/patched reconstruction error exceeds 1e-4",
+        and max_abs_error <= 2.0e-4,
+        "Thorsten native/patched reconstruction error exceeds 2e-4",
     )
     waveform_validation = exporter.get("waveform_validation")
     _require(

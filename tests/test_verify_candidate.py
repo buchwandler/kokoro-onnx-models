@@ -106,7 +106,7 @@ def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
     manifest = json.loads(manifest_path.read_text())
     manifest["profile"] = "de-thorsten"
     manifest_path.write_text(json.dumps(manifest))
-    with pytest.raises(verify_candidate.CandidateError, match="epoch 5"):
+    with pytest.raises(verify_candidate.CandidateError, match="documented default"):
         verify_candidate.verify_candidate(candidate)
 
 
@@ -114,15 +114,15 @@ def _thorsten_provenance() -> dict[str, object]:
     return {
         "source_artifacts": {
             "model": {
-                "path": "model_ep5.pth",
-                "sha256": "0" * 64,
+                "path": "model.pth",
+                "sha256": "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
                 "config_sha256": "1" * 64,
             },
             "voices": {
                 "thorsten": {
-                    "path": "voices/thorsten_ep5.pt",
-                    "sha256": "2" * 64,
-                }
+                    "path": "voices/thorsten.pt",
+                    "sha256": "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
+                },
             },
         },
         "exporter": {
@@ -162,6 +162,24 @@ def _thorsten_provenance() -> dict[str, object]:
                         "onnx": {},
                     }
                 ]
+            },
+            "checkpoint_load": {
+                "strict": True,
+                "components": {
+                    component: {
+                        "missing_keys": [],
+                        "unexpected_keys": [],
+                        "shape_mismatches": [],
+                        "loaded_tensor_mismatches": [],
+                    }
+                    for component in (
+                        "bert", "bert_encoder", "predictor", "text_encoder", "decoder"
+                    )
+                },
+            },
+            "native_reference_validation": {
+                "status": "pass",
+                "cases": [{"name": "hallo"}],
             },
         },
     }

@@ -1661,8 +1661,8 @@
     "de-thorsten": {
       "kind": "build",
       "profile": "de-thorsten",
-      "tag": "model-files-german-thorsten-v1.1.3",
-      "model_version": "1.1.3",
+      "tag": "model-files-german-thorsten-v1.1.4",
+      "model_version": "1.1.4",
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1685,34 +1685,44 @@
       "assets": [
         {
           "source": "model.onnx",
-          "name": "kokoro-german-thorsten-v1.1.3.onnx",
+          "name": "kokoro-german-thorsten-v1.1.4.onnx",
           "role": "model",
           "quality": "fp32",
-          "format": "onnx"
+          "format": "onnx",
+          "size": 325510011,
+          "sha256": "51bdee34625167ac7ec5d3224b97ff7cacbbe9aa8b67762088beebe44e338b04"
         },
         {
           "source": "voices.npz",
-          "name": "voices-german-thorsten-v1.1.3.npz",
+          "name": "voices-german-thorsten-v1.1.4.npz",
           "role": "voices",
-          "format": "numpy-npz"
+          "format": "numpy-npz",
+          "size": 522510,
+          "sha256": "cebba0f7695cf7361cf87196c68d18af7b3aaf31460223a258491e34fc89db80"
         },
         {
           "source": "voices.raw.bin",
-          "name": "voices-german-thorsten-v1.1.3.raw.bin",
+          "name": "voices-german-thorsten-v1.1.4.raw.bin",
           "role": "voices",
-          "format": "raw-float32-le"
+          "format": "raw-float32-le",
+          "size": 522240,
+          "sha256": "3195c20800f7684494a94b64f30928b9b22ffab1aa46175c784c93ba084e44c5"
         },
         {
           "source": "bundle.json",
           "name": "bundle.json",
           "role": "bundle",
-          "format": "json"
+          "format": "json",
+          "size": 45990,
+          "sha256": "071821e221d7fb37fcf3e7f7cee5e5671a50477e09ac69ccf89e9f7879c98d53"
         },
         {
           "source": "config.json",
-          "name": "config-german-thorsten-v1.1.3.json",
+          "name": "config-german-thorsten-v1.1.4.json",
           "role": "config",
-          "format": "json"
+          "format": "json",
+          "size": 2351,
+          "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
         }
       ]
     },

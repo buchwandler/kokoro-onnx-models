@@ -7,7 +7,7 @@
 #   "onnx",
 #   "onnxruntime",
 #   "torch",
-#   "kokoro==0.9.4",
+#   "kokoro @ git+https://github.com/semidark/kokoro.git@b96fef9",
 # ]
 # ///
 """Build Kokoro-family ONNX + sherpa-onnx raw voice bundles from HF profiles.
@@ -451,13 +451,88 @@ def install_exact_onnx_istft(model: Any) -> tuple[dict[str, Any], Any]:
     return metadata, exact_stft
 
 
+def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]:
+    """Require every checkpoint component to load without silent omissions."""
+    import torch
+
+    raw = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    if not isinstance(raw, Mapping):
+        raise BuildError("Checkpoint root is not a component mapping")
+
+    report: dict[str, Any] = {"strict": True, "components": {}}
+    for component_name, raw_state in raw.items():
+        if not hasattr(model, component_name) or not isinstance(raw_state, Mapping):
+            raise BuildError(f"Invalid checkpoint component {component_name!r}")
+        target_state = getattr(model, component_name).state_dict()
+        candidates = {
+            "none": dict(raw_state),
+            "strip_module": {
+                key[7:] if key.startswith("module.") else key: value
+                for key, value in raw_state.items()
+            },
+        }
+        selected: tuple[str, dict[str, Any]] | None = None
+        failures: dict[str, dict[str, list[str]]] = {}
+        for normalization, candidate in candidates.items():
+            missing = sorted(set(target_state) - set(candidate))
+            default_initialized = sorted(
+                key
+                for key in missing
+                if key.endswith(".norm.weight") or key.endswith(".norm.bias")
+            )
+            required_missing = sorted(set(missing) - set(default_initialized))
+            unexpected = sorted(set(candidate) - set(target_state))
+            shape_mismatches = sorted(
+                key
+                for key in set(target_state) & set(candidate)
+                if tuple(target_state[key].shape) != tuple(candidate[key].shape)
+            )
+            loaded_mismatches = sorted(
+                key
+                for key in set(target_state) & set(candidate)
+                if key not in shape_mismatches
+                and not torch.equal(
+                    target_state[key].detach().cpu(),
+                    candidate[key].detach().cpu(),
+                )
+            )
+            failures[normalization] = {
+                "missing_keys": required_missing,
+                "default_initialized_keys": default_initialized,
+                "unexpected_keys": unexpected,
+                "shape_mismatches": shape_mismatches,
+                "loaded_tensor_mismatches": loaded_mismatches,
+            }
+            if not any(
+                failures[normalization][name]
+                for name in (
+                    "missing_keys",
+                    "unexpected_keys",
+                    "shape_mismatches",
+                    "loaded_tensor_mismatches",
+                )
+            ):
+                selected = (normalization, failures[normalization])
+                break
+        if selected is None:
+            raise BuildError(
+                f"Checkpoint component {component_name!r} was not loaded exactly: "
+                f"{failures}"
+            )
+        normalization, details = selected
+        report["components"][component_name] = {
+            "normalization": normalization,
+            **details,
+        }
+    return report
+
 def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
-    """Load a checkpoint with Kokoro's upstream-native Torch decoder."""
+    """Load a checkpoint with the upstream-native Torch decoder."""
     from kokoro import KModel
 
-    return (
+    model = (
         KModel(
-            repo_id="not-used-local-checkpoint",
+            repo_id="hexgrad/Kokoro-82M",
             model=str(checkpoint),
             config=dict(config),
             disable_complex=False,
@@ -465,6 +540,8 @@ def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
         .to("cpu")
         .eval()
     )
+    model._checkpoint_load_audit = audit_loaded_checkpoint(model, checkpoint)
+    return model
 
 
 def _capture_reference_case(
@@ -529,6 +606,31 @@ def run_patched_pytorch_outputs(
         )
     return np.asarray(_as_numpy(audio)), np.asarray(_as_numpy(duration))
 
+def validate_native_reference_cases(
+    native_cases: list[Mapping[str, Any]],
+    *,
+    sample_rate: int,
+    validation: Mapping[str, Any],
+ ) -> list[dict[str, Any]]:
+    """Validate checkpoint output before any export-specific mutation."""
+    health_kwargs = _health_kwargs(validation)
+    records: list[dict[str, Any]] = []
+    for case in native_cases:
+        audio = np.asarray(case["audio"])
+        duration = np.asarray(case["duration"])
+        records.append(
+            {
+                "name": str(case["name"]),
+                "health": validate_waveform_health(audio, sample_rate, **health_kwargs),
+                "timing": validate_duration_audio_consistency(
+                    audio,
+                    duration,
+                    token_count=int(case["tokens"].shape[1]),
+                ),
+            }
+        )
+    return records
+
 
 def run_patched_pytorch_case(
     model: Any,
@@ -553,12 +655,21 @@ def run_patched_pytorch_case(
         native_audio_np, patched_audio_np, sample_rate
     )
     health_kwargs = _health_kwargs(validation)
+    sample_max_abs_error = float(
+        np.max(np.abs(patched_audio_np - native_audio_np), initial=0.0)
+    )
+    max_allowed_error = validation.get("max_native_patched_abs_error")
+    if max_allowed_error is not None and sample_max_abs_error > float(max_allowed_error):
+        raise BuildError(
+            f"Native/patched waveform mismatch for {native_case['name']!r}: "
+            f"{sample_max_abs_error:.8g} > {float(max_allowed_error):.8g}"
+        )
     return {
         "name": str(native_case["name"]),
         "native": validate_waveform_health(
             native_audio_np,
             sample_rate,
-            **(health_kwargs | {"reject_stationary_broadband_noise": False}),
+            **health_kwargs,
         ),
         "patched": validate_waveform_health(
             patched_audio_np, sample_rate, **health_kwargs
@@ -569,10 +680,8 @@ def run_patched_pytorch_case(
             patched_duration_np,
             token_count=int(native_case["tokens"].shape[1]),
         ),
-        "max_abs_error": 0.0,
-        "sample_max_abs_error": float(
-            np.max(np.abs(patched_audio_np - native_audio_np), initial=0.0)
-        ),
+        "max_abs_error": sample_max_abs_error,
+        "sample_max_abs_error": sample_max_abs_error,
     }
 
 
@@ -592,14 +701,15 @@ def _health_kwargs(validation: Mapping[str, Any]) -> dict[str, Any]:
             validation.get("reject_stationary_broadband_noise", True)
         ),
         "noise_min_seconds": float(validation.get("noise_min_seconds", 1.0)),
-        "noise_min_zcr": float(validation.get("noise_min_zcr", 0.45)),
+        "noise_min_zcr": float(validation.get("noise_min_zcr", 0.39)),
         "noise_min_centroid_fraction": float(
-            validation.get("noise_min_centroid_fraction", 0.23)
+            validation.get("noise_min_centroid_fraction", 0.22)
         ),
         "noise_max_centroid_cv": float(validation.get("noise_max_centroid_cv", 0.05)),
         "noise_min_high_band_ratio": float(
-            validation.get("noise_min_high_band_ratio", 0.65)
+            validation.get("noise_min_high_band_ratio", 0.60)
         ),
+        "noise_min_flatness": float(validation.get("noise_min_flatness", 0.05)),
         "noise_max_frame_rms_cv": float(
             validation.get("noise_max_frame_rms_cv", 0.08)
         ),
@@ -855,6 +965,14 @@ def export_checkpoint_to_onnx(
             seed=export_seed,
         )
 
+    native_reference_validation: list[dict[str, Any]] = []
+    if native_cases:
+        native_reference_validation = validate_native_reference_cases(
+            native_cases,
+            sample_rate=int(validation_config.get("sample_rate", 24000)),
+            validation=validation_config,
+        )
+
     export_model_base = load_checkpoint_native(checkpoint, config)
     istft_metadata, export_stft = install_exact_onnx_istft(export_model_base)
     export_model = KModelForONNX(export_model_base).eval()
@@ -922,6 +1040,13 @@ def export_checkpoint_to_onnx(
             "output": "duration",
             "samples_per_frame": 600,
             "validated": bool(parity_cases),
+        },
+        "checkpoint_load": getattr(
+            native_model, "_checkpoint_load_audit", {"strict": False}
+        ),
+        "native_reference_validation": {
+            "status": "pass" if native_reference_validation else "not-run",
+            "cases": native_reference_validation,
         },
         "decoder_reconstruction": {
             "reference_backend": "torch.istft",

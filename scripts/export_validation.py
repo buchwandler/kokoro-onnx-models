@@ -147,23 +147,27 @@ def stationary_broadband_noise(
     seconds: float,
     sample_rate: int,
     min_seconds: float = 1.0,
-    min_zcr: float = 0.45,
-    min_centroid_fraction: float = 0.23,
+    min_zcr: float = 0.39,
+    min_centroid_fraction: float = 0.22,
     max_centroid_cv: float = 0.05,
-    min_high_band_ratio: float = 0.65,
+    min_high_band_ratio: float = 0.60,
+    min_flatness: float = 0.05,
     max_frame_rms_cv: float = 0.08,
     max_spectral_flux: float = 0.05,
+    min_broadband_votes: int = 3,
  ) -> bool:
-    return (
-        seconds >= min_seconds
-        and metrics["zcr_mean"] > min_zcr
-        and metrics["spectral_centroid_mean_hz"] > min_centroid_fraction * sample_rate
-        and metrics["spectral_centroid_cv"] < max_centroid_cv
-        and metrics["high_band_energy_ratio_4k_nyquist"] > min_high_band_ratio
+    stationary = (
+        metrics["spectral_centroid_cv"] < max_centroid_cv
         and metrics["frame_rms_cv"] < max_frame_rms_cv
         and metrics["normalized_spectral_flux_mean"] < max_spectral_flux
     )
-
+    broadband_votes = (
+        metrics["zcr_mean"] >= min_zcr,
+        metrics["spectral_centroid_mean_hz"] >= min_centroid_fraction * sample_rate,
+        metrics["high_band_energy_ratio_4k_nyquist"] >= min_high_band_ratio,
+        metrics["spectral_flatness_mean"] >= min_flatness,
+    )
+    return seconds >= min_seconds and stationary and sum(broadband_votes) >= min_broadband_votes
 
 def waveform_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
     values = _audio_values(audio, sample_rate, allow_empty=False)
@@ -244,10 +248,11 @@ def validate_waveform_health(
     max_dc_to_rms_ratio: float | None = None,
     reject_stationary_broadband_noise: bool = True,
     noise_min_seconds: float = 1.0,
-    noise_min_zcr: float = 0.45,
-    noise_min_centroid_fraction: float = 0.23,
+    noise_min_zcr: float = 0.39,
+    noise_min_centroid_fraction: float = 0.22,
     noise_max_centroid_cv: float = 0.05,
-    noise_min_high_band_ratio: float = 0.65,
+    noise_min_high_band_ratio: float = 0.60,
+    noise_min_flatness: float = 0.05,
     noise_max_frame_rms_cv: float = 0.08,
     noise_max_spectral_flux: float = 0.05,
     error_type: type[ErrorT] = ValueError,
@@ -325,6 +330,7 @@ def validate_waveform_health(
         min_centroid_fraction=noise_min_centroid_fraction,
         max_centroid_cv=noise_max_centroid_cv,
         min_high_band_ratio=noise_min_high_band_ratio,
+        min_flatness=noise_min_flatness,
         max_frame_rms_cv=noise_max_frame_rms_cv,
         max_spectral_flux=noise_max_spectral_flux,
     ):

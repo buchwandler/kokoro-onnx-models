@@ -284,30 +284,30 @@ def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     assert profile["repo_id"] == "Thorsten-Voice/Kokoro"
     assert profile["model"] == {
         "kind": "checkpoint",
-        "path": "model_ep5.pth",
-        "sha256": "0bbe3f8d6a97b74352aae58f344531eb291bb8b4738bf3c9476e97ec63d68ded",
+        "path": "model.pth",
+        "sha256": "36dde15c4a800cfd1ab540ccb4476dbab604fe03ff7c937d976ebbf3b49e59ce",
         "config": "config.json",
         "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
     }
     assert profile["voices"]["items"] == {
         "thorsten": {
-            "path": "voices/thorsten_ep5.pt",
-            "sha256": "63ead702015953db38cf5640bb19b1d32fed6a5e9e597372388cc17498f0eccd",
+            "path": "voices/thorsten.pt",
+            "sha256": "9d98b775ebce1cfc369e8f9a3ee8ee260cd612dffb477cba85749112362306d7",
         }
     }
     assert profile["onnx_contract"]["outputs"] == {
         "audio": "float32",
         "duration": "int64",
     }
-    assert "model.pth" not in json.dumps(profile)
-    assert "voices/thorsten.pt" not in json.dumps(profile)
-    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.3"
-    assert profile["release"]["model_version"] == "1.1.3"
-    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.3.onnx"
-    assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.3.json"
+    assert "model.pth" in json.dumps(profile)
+    assert "voices/thorsten.pt" in json.dumps(profile)
+    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.4"
+    assert profile["release"]["model_version"] == "1.1.4"
+    assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.4.onnx"
+    assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.4.json"
     assert (
         profile["release"]["voice_assets"][0]["filename"]
-        == "voices-german-thorsten-v1.1.3.npz"
+        == "voices-german-thorsten-v1.1.4.npz"
     )
     assert profile["export_validation"]["requires_random_source_ops"] is True
     assert profile["export_validation"]["export_seed"] == 20260828
@@ -366,7 +366,7 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         ),
         (
             "Thorsten-Voice/Kokoro",
-            "model_ep5.pth",
+            "model.pth",
             "734e593d320a3d876bede7020f773dfd481a0cc7",
         ),
         (

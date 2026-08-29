@@ -259,7 +259,7 @@ SPECS: dict[str, LocalTestSpec] = {
         required_files=("config.json",),
         frontend="German Kokoro G2P with Thorsten ʏ -> y cleanup",
         exact_pykokoro_expected=False,
-        notes="Uses the v1.1.2 exact-iSTFT candidate; listen before publication.",
+        notes="Uses the v1.1.4 exact-iSTFT candidate; listen before publication.",
     ),
     "ru-zaakirio-base": LocalTestSpec(
         key="ru-zaakirio-base",
