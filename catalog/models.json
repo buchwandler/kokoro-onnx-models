@@ -107,7 +107,12 @@
           "provenance": {
             "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
             "source_revision": "dd4401a9add81ac692d20e240d22ec9dda82cc29",
-            "transform": "raw-float32-le-to-numpy-npz-v1"
+            "transform": {
+              "type": "voice-pack",
+              "version": 1,
+              "source_manifest": "source-assets.json"
+            },
+            "source_manifest": "source-assets.json"
           },
           "artifacts": [
             {
@@ -212,6 +217,15 @@
                 "style_width": 256,
                 "voice_count": 54
               }
+            },
+            {
+              "id": "metadata-source-assets",
+              "role": "metadata",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/source-assets.json",
+              "local_name": "source-assets.json",
+              "format": "json",
+              "size": 13450,
+              "sha256": "9f3cf769cbbd45565214fc0d5d35da1370bab83ca29e2d18bdd6bdc5239a8e94"
             }
           ]
         }
