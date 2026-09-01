@@ -35,9 +35,9 @@ def test_main_mirrors_and_verifies_release(
         [
             sys.executable,
             "scripts/verify_candidate.py",
-            str(dist / "model-files-v1.0"),
+            str(dist / "model-files-v1.0-timestamped"),
             "--expected-tag",
-            "model-files-v1.0",
+            "model-files-v1.0-timestamped",
             "--expected-profile",
             "v1.0",
         ],

@@ -106,7 +106,7 @@ metadata rather than scattered hard-coded branches.
 
 ## Release workflow
 
-The runtime inventory is `catalog/models.json`. Kokoro v1.0 and v1.1-zh are mirrored from pinned ONNX Community revisions and published as separate immutable profile releases.
+The runtime inventory is `catalog/models.json`. Kokoro v1.0 is mirrored from the timestamped ONNX Community distribution (`onnx-community/Kokoro-82M-v1.0-ONNX-timestamped`) so its native token durations are available; v1.1-zh is mirrored from its pinned ONNX Community revision. Each is published as a separate immutable profile release.
 
 For a local candidate build and verification, see [`docs/LOCAL_RELEASE_TESTING.md`](docs/LOCAL_RELEASE_TESTING.md). Maintainers can build every publishable catalog entry through GitHub Actions using **Actions > release-all > Run workflow**. The workflow builds the complete candidate matrix before its protected `publish-all` job publishes independent release tags.
 
@@ -114,8 +114,8 @@ For a single local mirror candidate:
 
 ```bash
 python scripts/mirror_release.py v1.0
-python scripts/verify_candidate.py dist/model-files-v1.0 \
-  --expected-tag model-files-v1.0 \
+python scripts/verify_candidate.py dist/model-files-v1.0-timestamped \
+  --expected-tag model-files-v1.0-timestamped
   --expected-profile v1.0
 ```
 

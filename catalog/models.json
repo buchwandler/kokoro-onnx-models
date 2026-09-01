@@ -78,114 +78,122 @@
           "speed": "float32"
         },
         "outputs": {
-          "audio": "float32"
+          "waveform": "float32",
+          "durations": "float32"
         },
-        "max_tokens": 510
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "durations",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        }
       },
       "license": {
         "declared": "Apache-2.0",
         "redistribution": "allowed-with-upstream-terms",
-        "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX"
+        "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped"
       },
       "mirror_policy": "required",
       "distributions": [
         {
-          "id": "github-model-files-v1.0",
+          "id": "github-model-files-v1.0-timestamped",
           "provider": "github-release",
           "transport": "https",
           "release_key": "v1.0",
-          "release_tag": "model-files-v1.0",
+          "release_tag": "model-files-v1.0-timestamped",
           "runtime_ready": true,
           "provenance": {
-            "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX",
-            "source_revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+            "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
+            "source_revision": "dd4401a9add81ac692d20e240d22ec9dda82cc29",
             "transform": "raw-float32-le-to-numpy-npz-v1"
           },
           "artifacts": [
             {
               "id": "model-kokoro-v1.0",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.onnx",
               "local_name": "kokoro-v1.0.onnx",
               "format": "onnx",
-              "size": 325532232,
-              "sha256": "8fbea51ea711f2af382e88c833d9e288c6dc82ce5e98421ea61c058ce21a34cb",
+              "size": 325532171,
+              "sha256": "651ea8291843a92276a4a003581a215cb07d15e47dde6fcfb1b768f9a1682054",
               "quality": "fp32"
             },
             {
               "id": "model-kokoro-v1.0.fp16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.fp16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.fp16.onnx",
               "local_name": "kokoro-v1.0.fp16.onnx",
               "format": "onnx",
-              "size": 163234740,
-              "sha256": "ba4527a874b42b21e35f468c10d326fdff3c7fc8cac1f85e9eb6c0dfc35c334a",
+              "size": 163232776,
+              "sha256": "220724d5c5e0cc01be30f38faa6cf0c895a7cde6e7773e91db2973c8c7e5123c",
               "quality": "fp16"
             },
             {
               "id": "model-kokoro-v1.0.q8",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q8.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.q8.onnx",
               "local_name": "kokoro-v1.0.q8.onnx",
               "format": "onnx",
-              "size": 92361116,
-              "sha256": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+              "size": 92361055,
+              "sha256": "c0c02b3299fd97c34ea92a98e6d41eaa1a739c8f77bf685aac34bd7b34c1132c",
               "quality": "q8"
             },
             {
               "id": "model-kokoro-v1.0.q8f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q8f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.q8f16.onnx",
               "local_name": "kokoro-v1.0.q8f16.onnx",
               "format": "onnx",
-              "size": 86033585,
-              "sha256": "04c658aec1b6008857c2ad10f8c589d4180d0ec427e7e6118ceb487e215c3cd0",
+              "size": 86072942,
+              "sha256": "db06e3f12daac36b13638ff6f6c4541241705405dac6d23126a7827dadf4c677",
               "quality": "q8f16"
             },
             {
               "id": "model-kokoro-v1.0.q4",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q4.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.q4.onnx",
               "local_name": "kokoro-v1.0.q4.onnx",
               "format": "onnx",
-              "size": 305215966,
-              "sha256": "04cf570cf9c4153694f76347ed4b9a48c1b59ff1de0999e6605d123966b197c7",
+              "size": 305215905,
+              "sha256": "08dfea732b1c159378be5711f9f366c1bf99d35f9feade2504c8814117b7211a",
               "quality": "q4"
             },
             {
               "id": "model-kokoro-v1.0.q4f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.q4f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.q4f16.onnx",
               "local_name": "kokoro-v1.0.q4f16.onnx",
               "format": "onnx",
-              "size": 154586422,
-              "sha256": "d1a508a6a29671ead84fac99c7401fbd3c21a583fc6ed1406d1ec974d53bf45f",
+              "size": 154584426,
+              "sha256": "cc96fd126a19f87b06cf19c206a7e1d7599e5f63bd1b0151c9929e523083596b",
               "quality": "q4f16"
             },
             {
               "id": "model-kokoro-v1.0.uint8",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.uint8.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.uint8.onnx",
               "local_name": "kokoro-v1.0.uint8.onnx",
               "format": "onnx",
-              "size": 177464632,
-              "sha256": "6607a397d77b8514065420b7c1e7320117f7aabfdb45ce15f0050c5b0fe75aea",
+              "size": 177464571,
+              "sha256": "b44c5c0d90458a8d9175cea933ff6d8a6351b74f1e651060df48672f5a167e4f",
               "quality": "uint8"
             },
             {
               "id": "model-kokoro-v1.0.uint8f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/kokoro-v1.0.uint8f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/kokoro-v1.0.uint8f16.onnx",
               "local_name": "kokoro-v1.0.uint8f16.onnx",
               "format": "onnx",
-              "size": 114209226,
-              "sha256": "883333e03c597584b532eebea0f8310f25f0c9ade58fe864792c12d969944a9a",
+              "size": 114182909,
+              "sha256": "191cab6b6d0a8d12801a3f8d28ee4429d81200b627d17cd08f9976db65630e2c",
               "quality": "uint8f16"
             },
             {
               "id": "vocab-vocab-v1.0",
               "role": "vocab",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/vocab-v1.0.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/vocab-v1.0.json",
               "local_name": "vocab-v1.0.json",
               "format": "json",
               "size": 1385,
@@ -194,7 +202,7 @@
             {
               "id": "voices-voices-v1.0",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0/voices-v1.0.npz",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped/voices-v1.0.npz",
               "local_name": "voices-v1.0.npz",
               "format": "numpy-npz",
               "size": 25930751,

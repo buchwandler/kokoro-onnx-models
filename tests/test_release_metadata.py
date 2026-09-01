@@ -18,7 +18,7 @@ PREPARE_SPEC.loader.exec_module(prepare_release)
 def test_catalog_target_repo() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
-    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0"
+    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
@@ -30,7 +30,9 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
     )
 
     assert voices["format"] == "onnx"
-    assert spec["source_repository"] == "onnx-community/Kokoro-82M-v1.0-ONNX"
+    assert spec["source_repository"] == "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped"
+    assert spec["source_revision"] == "dd4401a9add81ac692d20e240d22ec9dda82cc29"
+    assert spec["onnx_contract"]["outputs"] == {"waveform": "float32", "durations": "float32"}
     assert len(spec["runtime"]["voices"]) == 54
     assert spec["runtime"]["default_voice"] == "af_heart"
     assert spec["voice_pack"]["target"] == "voices-v1.0.npz"
@@ -240,8 +242,8 @@ def test_v1_sources_and_registry_provenance_are_current() -> None:
     for key, repository, revision in (
         (
             "v1.0",
-            "onnx-community/Kokoro-82M-v1.0-ONNX",
-            "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+            "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
+            "dd4401a9add81ac692d20e240d22ec9dda82cc29",
         ),
         (
             "v1.1-zh",
