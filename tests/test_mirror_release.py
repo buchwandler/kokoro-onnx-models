@@ -164,6 +164,51 @@ def test_main_preserves_bytes_when_mapping_source_to_target(
     }
 
 
+def test_main_derives_vocabulary_transform_before_publishing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tokenizer = json.dumps({"model": {"vocab": {"a": 1, "b": 2}}}).encode()
+    vocabulary = b'{\n  "a": 1,\n  "b": 2\n}\n'
+    catalog = {
+        "target_repository": "target/repo",
+        "releases": {
+            "test": {
+                "kind": "mirror",
+                "source_type": "huggingface",
+                "source_repository": "source/repo",
+                "source_revision": "revision",
+                "tag": "tag",
+                "license": "Apache-2.0",
+                "assets": [
+                    {
+                        "source": "tokenizer.json",
+                        "name": "vocab.json",
+                        "transform": "vocabulary",
+                        "source_size": len(tokenizer),
+                        "source_sha256": asset_hash(tokenizer),
+                        "size": len(vocabulary),
+                        "sha256": asset_hash(vocabulary),
+                    }
+                ],
+            }
+        },
+    }
+    catalog_path = tmp_path / "releases.json"
+    catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+    monkeypatch.setattr(mirror_release, "CATALOG", catalog_path)
+
+    def fake_download(url: str, path: Path) -> None:
+        path.write_bytes(tokenizer)
+
+    monkeypatch.setattr(mirror_release, "download", fake_download)
+    monkeypatch.setattr(
+        "sys.argv", ["mirror_release.py", "test", "--dist", str(tmp_path / "dist")]
+    )
+
+    assert mirror_release.main() == 0
+    output = tmp_path / "dist" / "tag" / "vocab.json"
+    assert output.read_bytes() == vocabulary
+
 def test_mismatch_is_rejected_before_any_asset_is_published(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

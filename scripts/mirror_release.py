@@ -501,9 +501,12 @@ def main() -> int:
                 ) as file:
                     transformed = Path(file.name)
                 try:
-                    transform_provenance.append(
-                        transform_model_asset(temporary, transformed, asset)
-                    )
+                    if asset.transform == "vocabulary":
+                        _derive_vocab(temporary, transformed, spec)
+                    else:
+                        transform_provenance.append(
+                            transform_model_asset(temporary, transformed, asset)
+                        )
                 except BaseException:
                     transformed.unlink(missing_ok=True)
                     temporary.unlink(missing_ok=True)
@@ -567,13 +570,6 @@ def main() -> int:
             + "\n",
             encoding="utf-8",
         )
-
-    for asset in assets:
-        if asset.transform == "vocabulary":
-            source_path = out / f".{asset.name}.source"
-            source_path.write_bytes((out / asset.name).read_bytes())
-            _derive_vocab(source_path, out / asset.name, spec)
-            source_path.unlink()
 
     manifest_assets: list[dict[str, Any]] = []
     for asset in assets:
