@@ -249,19 +249,13 @@ def compare_profile(
         )
     voice = voices[voice_name]
 
-    config_name = str(profile["model"].get("config") or "")
-    if not config_name:
+    config_path = build_kokoro.resolve_model_config(dict(profile), cache_dir)
+    if config_path is None:
         raise build_kokoro.BuildError("Checkpoint comparison requires model.config")
-    config_path = build_kokoro.hf_download(
-        str(profile["repo_id"]),
-        config_name,
-        str(profile.get("revision", "main")),
-        cache_dir,
-    )
     build_kokoro.verify_source_hash(
         config_path,
         profile["model"].get("config_sha256"),
-        label=f"model config {config_name}",
+        label=f"model config {config_path.name}",
     )
     checkpoint_path = build_kokoro.hf_download(
         str(profile["repo_id"]),

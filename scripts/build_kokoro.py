@@ -1117,6 +1117,16 @@ def export_checkpoint_to_onnx(
     return result
 
 
+def resolve_model_config(profile: Mapping[str, Any], cache_dir: Path) -> Path | None:
+    model = profile["model"]
+    config_name = model.get("config")
+    if config_name is None:
+        return None
+    config_repo = str(model.get("config_repo_id", profile["repo_id"]))
+    config_revision = str(model.get("config_revision", profile.get("revision", "main")))
+    return hf_download(config_repo, str(config_name), config_revision, cache_dir)
+
+
 def resolve_model(
     profile: dict[str, Any],
     cache_dir: Path,
@@ -1130,14 +1140,12 @@ def resolve_model(
     repo_id = profile["repo_id"]
     revision = profile.get("revision", "main")
     spec = profile["model"]
-    config_local: Path | None = None
-    if spec.get("config"):
-        config_name = str(spec["config"])
-        config_local = hf_download(repo_id, config_name, revision, cache_dir)
+    config_local = resolve_model_config(profile, cache_dir)
+    if config_local is not None:
         verify_source_hash(
             config_local,
             spec.get("config_sha256"),
-            label=f"model config {config_name}",
+            label=f"model config {config_local.name}",
         )
 
     if spec["kind"] == "onnx":
@@ -1355,6 +1363,10 @@ def source_artifacts(profile: Mapping[str, Any]) -> dict[str, Any]:
         model_artifact["config"] = str(config_name)
         if model.get("config_sha256") is not None:
             model_artifact["config_sha256"] = str(model["config_sha256"])
+        if model.get("config_repo_id") is not None:
+            model_artifact["config_repository"] = str(model["config_repo_id"])
+        if model.get("config_revision") is not None:
+            model_artifact["config_revision"] = str(model["config_revision"])
     voices: dict[str, Any] = {}
     for name, item in (profile.get("voices") or {}).get("items", {}).items():
         if isinstance(item, str):

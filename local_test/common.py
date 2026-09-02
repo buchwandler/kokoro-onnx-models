@@ -272,6 +272,21 @@ SPECS: dict[str, LocalTestSpec] = {
         exact_pykokoro_expected=False,
         notes="Uses the v1.1.4 exact-iSTFT candidate; listen before publication.",
     ),
+    "pt-eu-logus2k": LocalTestSpec(
+        key="pt-eu-logus2k",
+        display_name="Kokoro European Portuguese (logus2k)",
+        language="pt",
+        model_source="github",
+        model_variant="pt-eu-logus2k",
+        expected_speakers=("pt_eu",),
+        required_files=("config.json",),
+        frontend="tts_eu_pt TugaPhone pt-PT Lisbon frontend",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Use tts_eu_pt for frontend parity; the local pykokoro smoke "
+            "is an experimental acoustic gate."
+        ),
+    ),
     "ru-zaakirio-base": LocalTestSpec(
         key="ru-zaakirio-base",
         display_name="Kokoro Russian (Zaakirio base)",

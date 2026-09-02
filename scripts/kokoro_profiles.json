@@ -1022,5 +1022,170 @@
         }
       ]
     }
+  },
+  "pt-eu-logus2k": {
+    "display_name": "Kokoro European Portuguese (logus2k)",
+    "repo_id": "logus2k/kokoro_tts_eu_pt",
+    "revision": "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
+    "license": "Apache-2.0",
+    "language": "pt",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "tuga_kokoro.pth",
+      "sha256": "d6a3e6d445b4721c8deb11618699f958bb1a17ae27dbd5aa36565286d155769f",
+      "config": "config.json",
+      "config_repo_id": "hexgrad/Kokoro-82M",
+      "config_revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "pt_eu": {
+          "path": "tuga_voicepack.pt",
+          "sha256": "a2decde8e4396d813cf63a77d2df879c84a5db60c80df1449de469e2da904fda"
+        }
+      }
+    },
+    "auxiliary_files": [
+      {
+        "path": "README.md",
+        "output": "UPSTREAM_README.md",
+        "role": "attribution",
+        "format": "markdown"
+      }
+    ],
+    "frontend": {
+      "kind": "external",
+      "name": "tts_eu_pt TugaPhone pt-PT Lisbon",
+      "sherpa_text_compatible": false,
+      "note": "Use tts_eu_pt's TugaPhone frontend and text normalization, including its Kokoro vocabulary symbol cleanup."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-portuguese-eu-pt-v1.0",
+      "model_version": "1.0",
+      "model_filename": "kokoro-portuguese-eu-pt-v1.0.onnx",
+      "config_filename": "config-portuguese-eu-pt-v1.0.json",
+      "voices": ["pt_eu"],
+      "default_voice": "pt_eu",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-portuguese-eu-pt-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-portuguese-eu-pt-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "UPSTREAM_README.md",
+          "filename": "UPSTREAM_README.md",
+          "role": "attribution",
+          "format": "markdown"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true,
+      "cases": [
+        {
+          "name": "greeting",
+          "text": "Olá! São dezasseis horas.",
+          "phonemes": "ɔˈla! ˈsɐ̃w dɨzɐˈsɐjz ˈoɾɐʃ.",
+          "tokens": [
+            0, 76, 156, 54, 43, 5, 16, 156, 61, 70, 17, 65, 16, 46, 101, 68, 70,
+            156, 61, 70, 52, 68, 16, 156, 57, 125, 70, 131, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "regional-phonemes",
+          "text": "O português europeu tem sons nasais, vogais abertas e muitos ritmos diferentes.",
+          "phonemes": "u poɾtuˈɡez ewɾuˈpew ˈtɐ̃j̃ ˈsõʒ nɐˈzajʃ, vuˈɡajz ɐˈbɛɾtɐz i ˈmujtuʒ ˈʁitmuʒ difɨˈɾẽtɨʃ.",
+          "tokens": [
+            0, 63, 16, 58, 57, 125, 62, 63, 156, 92, 47, 68, 16, 47, 65, 125,
+            63, 156, 58, 47, 65, 16, 156, 62, 70, 17, 52, 17, 16, 156, 61, 57,
+            17, 147, 16, 56, 70, 156, 68, 43, 52, 131, 3, 16, 64, 63, 156, 92,
+            43, 52, 68, 16, 70, 156, 44, 86, 125, 62, 70, 68, 16, 51, 16, 156,
+            55, 63, 52, 62, 63, 147, 16, 156, 128, 51, 62, 55, 63, 147, 16, 46,
+            51, 48, 101, 156, 125, 47, 17, 62, 101, 131, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "numbers-and-ranges",
+          "text": "D. Afonso I reinou de 1139 a 1185, às 16:54.",
+          "phonemes": "ˈdõ ɐˈfõsu pɾiˈmɐjɾu ʁɐjˈno dɨ ˈmil ˈsẽtu i ˈtɾĩtɐ i ˈnɔv ɐ ˈmil ˈsẽtu i ojˈtẽtɐ i ˈsĩku, aʒ dɨzɐˈsɐjz i sĩˈkwẽtɐ i ˈkwatɾu.",
+          "tokens": [
+            0, 156, 46, 57, 17, 16, 70, 156, 48, 57, 17, 61, 63, 16, 58, 125,
+            51, 156, 55, 70, 52, 125, 63, 16, 128, 70, 52, 156, 56, 57, 16, 46,
+            101, 16, 156, 55, 51, 54, 16, 156, 61, 47, 17, 62, 63, 16, 51, 16,
+            156, 62, 125, 51, 17, 62, 70, 16, 51, 16, 156, 56, 76, 64, 16, 70,
+            16, 156, 55, 51, 54, 16, 156, 61, 47, 17, 62, 63, 16, 51, 16, 57,
+            52, 156, 62, 47, 17, 62, 70, 16, 51, 16, 156, 61, 51, 17, 53, 63, 3,
+            16, 43, 147, 16, 46, 101, 68, 70, 156, 61, 70, 52, 68, 16, 51, 16,
+            61, 51, 17, 156, 53, 65, 47, 17, 62, 70, 16, 51, 16, 156, 53, 65,
+            43, 62, 125, 63, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ],
+      "release_validation_corpus": [
+        { "name": "short-phrase", "text": "Bom dia." },
+        {
+          "name": "medium-sentence",
+          "text": "Olá. Este é um teste de voz em português europeu."
+        },
+        {
+          "name": "numbers-and-ranges",
+          "text": "D. Afonso I reinou de 1139 a 1185, às 16:54."
+        },
+        {
+          "name": "nasals-and-fricatives",
+          "text": "O português europeu tem sons nasais, vogais abertas e muitos ritmos diferentes."
+        },
+        {
+          "name": "punctuation",
+          "text": "A voz fala devagar, depois acelera: mas mantém a pronúncia clara!"
+        }
+      ],
+      "min_audio_rms": 0.0005,
+      "max_audio_abs": 1.0,
+      "max_abs_dc": 0.03,
+      "max_dc_to_rms_ratio": 0.7,
+      "min_frame_rms_cv": 0.015,
+      "max_stationary_tone_ratio": 0.85,
+      "min_envelope_correlation": 0.1,
+      "min_frame_rms_cv_ratio": 0.4,
+      "max_frame_rms_cv_ratio": 2.5,
+      "min_rms_ratio": 0.1,
+      "max_rms_ratio": 10.0
+    }
   }
 }

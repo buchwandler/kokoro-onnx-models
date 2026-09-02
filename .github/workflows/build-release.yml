@@ -99,6 +99,11 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/de-thorsten/report.json"
+      - name: European Portuguese checkpoint A/B gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'pt-eu-logus2k' }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py pt-eu-logus2k --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/pt-eu-logus2k/report.json"
       - name: Swedish checkpoint A/B and staged consumer gate
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'sv-joakim' }}
         env:
@@ -155,6 +160,7 @@ jobs:
           path: |
             dist/${{ needs.prepare.outputs.tag }}
             .local-test/compare/de-thorsten
+            .local-test/compare/pt-eu-logus2k
             .local-test/compare/sv-joakim
             .local-test/compare/vi-ngoc-huyen
             .local-test/compare/ru-zaakirio-base

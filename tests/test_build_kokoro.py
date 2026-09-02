@@ -104,6 +104,7 @@ def test_expected_profiles_exist() -> None:
         "he-hebrew-nc",
         "sv-joakim",
         "de-thorsten",
+        "pt-eu-logus2k",
         "ru-zaakirio-base",
         "ru-zaakirio-dima",
         "kk-anuarsv",
@@ -368,7 +369,7 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         patch.object(build_kokoro, "verify_source_hash"),
     ):
         profiles = build_kokoro.load_profiles()
-        for key in ("sv-joakim", "de-thorsten", "kk-anuarsv"):
+        for key in ("sv-joakim", "de-thorsten", "kk-anuarsv", "pt-eu-logus2k"):
             profile = profiles[key]
             out = tmp_path / key / "model.onnx"
             build_kokoro.resolve_model(
@@ -405,6 +406,16 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
             "AnuarSv/kokoro-tts-kazakh",
             "kokoro_kazakh.pth",
             "90a9283ed61d76c9181a7643819ef1c48b41031d",
+        ),
+        (
+            "hexgrad/Kokoro-82M",
+            "config.json",
+            "f3ff3571791e39611d31c381e3a41a3af07b4987",
+        ),
+        (
+            "logus2k/kokoro_tts_eu_pt",
+            "tuga_kokoro.pth",
+            "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
         ),
     ]
 

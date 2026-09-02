@@ -62,6 +62,7 @@ Supported build profiles:
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
 | `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
+| `pt-eu-logus2k` | European Portuguese | `logus2k/kokoro_tts_eu_pt` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
 | `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
@@ -70,6 +71,7 @@ Supported build profiles:
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
 
 The Thorsten release converts upstream's default epoch-5 `model.pth` and matching `voices/thorsten.pt`. Its German frontend requires the training-time `ʏ -> y` normalization.
+The European Portuguese profile uses the upstream `tts_eu_pt` TugaPhone pt-PT Lisbon frontend and the Kokoro base config pinned from `hexgrad/Kokoro-82M`. Its ONNX release exposes per-token frame durations for timestamp-aware consumers.
 
 Thai Wayu is a split ONNX serving bundle (prosody + curves + decoder), not a single KModelForONNX graph. The release contains all graph components, source parameters, the upstream ONNX manifest, and voice/style archives.
 

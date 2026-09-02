@@ -17,7 +17,23 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 15
+    assert len(registry["models"]) == 16
+
+
+def test_european_portuguese_registry_exposes_token_durations() -> None:
+    model = load_registry()["models"]["pt-eu-logus2k"]
+    assert model["frontend"] == "tts-eu-pt-v1"
+    assert model["runtime"]["default_voice"] == "pt_eu"
+    assert model["onnx_contract"]["timing"] == {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": True,
+    }
+    distribution = model["distributions"][0]
+    assert distribution["release_key"] == "pt-eu-logus2k"
+    assert any(asset["role"] == "model" for asset in distribution["artifacts"])
 
 
 def test_ngoc_huyen_registry_exposes_token_durations() -> None:

@@ -1812,6 +1812,124 @@
           }
         }
       ]
+    },
+    "pt-eu-logus2k": {
+      "model_version": "1.0",
+      "display_name": "Kokoro European Portuguese (logus2k)",
+      "runtime_available": true,
+      "language_codes": ["pt"],
+      "frontend": "tts-eu-pt-v1",
+      "frontend_display_name": "tts_eu_pt TugaPhone pt-PT Lisbon",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "single-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "pt_eu",
+        "voices": ["pt_eu"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "logus2k/kokoro_tts_eu_pt"
+      },
+      "mirror_policy": "preferred",
+      "distributions": [
+        {
+          "id": "github-model-files-portuguese-eu-pt-v1.0",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "pt-eu-logus2k",
+          "release_tag": "model-files-portuguese-eu-pt-v1.0",
+          "runtime_ready": true,
+          "provenance": {
+            "source_repository": "logus2k/kokoro_tts_eu_pt",
+            "source_revision": "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
+            "transform": null,
+            "source_manifest": null
+          },
+          "artifacts": [
+            {
+              "id": "attribution-UPSTREAM_README",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/UPSTREAM_README.md",
+              "local_name": "UPSTREAM_README.md",
+              "format": "markdown",
+              "size": 6776,
+              "sha256": "84188e1eef74f126114a7bc99bf8751fae7de5db9d7bb70e4c01e2a486c0281a"
+            },
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 94395,
+              "sha256": "633e6baf51ce59141fa95118e214e63bb80a01ef6a5b00deec2a3bac83e37e4c"
+            },
+            {
+              "id": "config-config-portuguese-eu-pt-v1.0",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/config-portuguese-eu-pt-v1.0.json",
+              "local_name": "config-portuguese-eu-pt-v1.0.json",
+              "format": "json",
+              "size": 2351,
+              "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+            },
+            {
+              "id": "model-kokoro-portuguese-eu-pt-v1.0",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/kokoro-portuguese-eu-pt-v1.0.onnx",
+              "local_name": "kokoro-portuguese-eu-pt-v1.0.onnx",
+              "format": "onnx",
+              "size": 325510014,
+              "sha256": "96e6cda91682f7dfbe2313c8c0288908436f074d8a217e8c09a293a04b548d0a",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-portuguese-eu-pt-v1.0",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/voices-portuguese-eu-pt-v1.0.npz",
+              "local_name": "voices-portuguese-eu-pt-v1.0.npz",
+              "format": "numpy-npz",
+              "size": 522504,
+              "sha256": "dc75a534f1b6256e4f2f0cf45a3595a16f7974893e103151fe7329eb3cf93120"
+            },
+            {
+              "id": "voices-voices-portuguese-eu-pt-v1.0.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-portuguese-eu-pt-v1.0/voices-portuguese-eu-pt-v1.0.raw.bin",
+              "local_name": "voices-portuguese-eu-pt-v1.0.raw.bin",
+              "format": "raw-float32-le",
+              "size": 522240,
+              "sha256": "6b91a570c1fe57d4af8ddde39a37d0fb3ebfcdfad7a8621ca0479ae18f53e3c3",
+              "handling": {
+                "dtype": "float32",
+                "shape": [510, 256],
+                "endianness": "little"
+              }
+            }
+          ]
+        }
+      ]
     }
   }
 }
