@@ -451,6 +451,25 @@ def install_exact_onnx_istft(model: Any) -> tuple[dict[str, Any], Any]:
     return metadata, exact_stft
 
 
+def _checkpoint_state_candidates(
+    raw_state: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    base = dict(raw_state)
+    stripped = {key.removeprefix("module."): value for key, value in base.items()}
+    candidates = {"none": base, "strip_module": stripped}
+    for name, source in (("weight_norm", base), ("strip_module_weight_norm", stripped)):
+        translated = dict(source)
+        for key, value in source.items():
+            if key.endswith(".weight_g"):
+                translated[key[:-9] + ".parametrizations.weight.original0"] = value
+                translated.pop(key, None)
+            elif key.endswith(".weight_v"):
+                translated[key[:-9] + ".parametrizations.weight.original1"] = value
+                translated.pop(key, None)
+        candidates[name] = translated
+    return candidates
+
+
 def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]:
     """Require every checkpoint component to load without silent omissions."""
     import torch
@@ -464,12 +483,7 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
         if not hasattr(model, component_name) or not isinstance(raw_state, Mapping):
             raise BuildError(f"Invalid checkpoint component {component_name!r}")
         target_state = getattr(model, component_name).state_dict()
-        candidates = {
-            "none": dict(raw_state),
-            "strip_module": {
-                key.removeprefix("module."): value for key, value in raw_state.items()
-            },
-        }
+        candidates = _checkpoint_state_candidates(raw_state)
         selected: tuple[str, dict[str, Any]] | None = None
         failures: dict[str, dict[str, list[str]]] = {}
         for normalization, candidate in candidates.items():
@@ -526,6 +540,7 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
 
 def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
     """Load a checkpoint with the upstream-native Torch decoder."""
+    import torch
     from kokoro import KModel
 
     model = (
@@ -538,7 +553,15 @@ def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
         .to("cpu")
         .eval()
     )
-    model._checkpoint_load_audit = audit_loaded_checkpoint(model, checkpoint)
+    audit = audit_loaded_checkpoint(model, checkpoint)
+    model._checkpoint_load_audit = audit
+    components = audit["components"]
+    if components:
+        raw = torch.load(checkpoint, map_location="cpu", weights_only=True)
+        for component_name, component in components.items():
+            normalization = component["normalization"]
+            state = _checkpoint_state_candidates(raw[component_name])[normalization]
+            getattr(model, component_name).load_state_dict(state, strict=False)
     return model
 
 
@@ -909,6 +932,7 @@ def export_checkpoint_to_onnx(
     seq_len: int,
     voice: np.ndarray | None = None,
     validation: Mapping[str, Any] | None = None,
+    postprocess: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     import platform
 
@@ -1015,6 +1039,18 @@ def export_checkpoint_to_onnx(
             opset_version=opset,
             dynamo=False,
         )
+    postprocess_metadata: dict[str, Any] | None = None
+    if postprocess and postprocess.get("kind") == "notch_filters":
+        try:
+            from scripts.onnx_notch import embed_notch_filters
+        except ModuleNotFoundError:
+            from onnx_notch import embed_notch_filters
+        postprocess_metadata = embed_notch_filters(
+            out_path,
+            frequencies_hz=[float(value) for value in postprocess["frequencies_hz"]],
+            quality=float(postprocess["q"]),
+            sample_rate=float(validation_config.get("sample_rate", 24000)),
+        )
     exported_model = onnx.load(str(out_path), load_external_data=True)
     detected_random_ops = validate_random_source_graph(
         exported_model,
@@ -1057,6 +1093,7 @@ def export_checkpoint_to_onnx(
                 "cases": patched_validation["cases"],
             },
         },
+        "postprocess": postprocess_metadata,
     }
     if native_cases:
         session = ort.InferenceSession(
@@ -1125,6 +1162,7 @@ def resolve_model(
             seq_len=seq_len,
             voice=voice,
             validation=profile.get("export_validation"),
+            postprocess=profile.get("postprocess"),
         )
         if export_provenance is not None and metadata:
             export_provenance.update(metadata)

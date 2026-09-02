@@ -12,8 +12,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
-      - run: uv run --with pytest --with numpy pytest -q
-      - run: python -m py_compile scripts/build_kokoro.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py scripts/check_registry_immutability.py
+      - run: uv run --extra test pytest -q
+      - run: python -m py_compile scripts/build_kokoro.py scripts/onnx_notch.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py scripts/check_registry_immutability.py
       - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
       - run: python -m json.tool catalog/releases.json >/dev/null
       - run: python -m json.tool catalog/models.json >/dev/null

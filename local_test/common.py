@@ -247,7 +247,7 @@ SPECS: dict[str, LocalTestSpec] = {
         ),
         frontend="kokorog2p Swedish; validate parity with Joakim Swedish frontend",
         exact_pykokoro_expected=False,
-        notes="Uses the current v1.0 pykokoro integration shim until sv-joakim is first-class.",
+        notes="Uses the current pykokoro integration shim until sv-joakim is first-class.",
     ),
     "de-thorsten": LocalTestSpec(
         key="de-thorsten",

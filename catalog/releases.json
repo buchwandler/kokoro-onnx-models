@@ -1622,8 +1622,8 @@
     "sv-joakim": {
       "kind": "build",
       "profile": "sv-joakim",
-      "tag": "model-files-swedish-v1.0",
-      "model_version": "1.0",
+      "tag": "model-files-swedish-v1.1",
+      "model_version": "1.1",
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1643,23 +1643,25 @@
         },
         "max_tokens": 510
       },
+      "source_repository": "Joakim/kokoro-sv-voices",
+      "source_revision": "2c7968d59c2fda1667e9e3ff0dd9967150a53f74",
       "assets": [
         {
           "source": "model.onnx",
-          "name": "kokoro-swedish-v1.0.onnx",
+          "name": "kokoro-swedish-v1.1.onnx",
           "role": "model",
           "quality": "fp32",
           "format": "onnx"
         },
         {
           "source": "voices.npz",
-          "name": "voices-swedish-v1.0.npz",
+          "name": "voices-swedish-v1.1.npz",
           "role": "voices",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "name": "voices-swedish-v1.0.raw.bin",
+          "name": "voices-swedish-v1.1.raw.bin",
           "role": "voices",
           "format": "raw-float32-le"
         },
@@ -1671,7 +1673,7 @@
         },
         {
           "source": "config.json",
-          "name": "config-swedish-v1.0.json",
+          "name": "config-swedish-v1.1.json",
           "role": "config",
           "format": "json"
         }

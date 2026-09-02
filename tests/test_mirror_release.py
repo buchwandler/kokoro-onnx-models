@@ -209,6 +209,7 @@ def test_main_derives_vocabulary_transform_before_publishing(
     output = tmp_path / "dist" / "tag" / "vocab.json"
     assert output.read_bytes() == vocabulary
 
+
 def test_mismatch_is_rejected_before_any_asset_is_published(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

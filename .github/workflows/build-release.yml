@@ -99,6 +99,13 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py de-thorsten --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/de-thorsten/report.json"
+      - name: Swedish checkpoint A/B and staged consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'sv-joakim' }}
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py sv-joakim --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/sv-joakim/report.json"
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -112,6 +119,10 @@ jobs:
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_de_thorsten.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+      - name: Swedish pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'sv-joakim' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_sv_joakim.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
@@ -119,5 +130,6 @@ jobs:
           path: |
             dist/${{ needs.prepare.outputs.tag }}
             .local-test/compare/de-thorsten
+            .local-test/compare/sv-joakim
           compression-level: 0
           if-no-files-found: error

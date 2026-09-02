@@ -390,14 +390,14 @@
       "kind": "notch_filters",
       "frequencies_hz": [2400, 4800, 7200, 9600],
       "q": 35,
-      "optional": true
+      "optional": false
     },
     "release": {
       "enabled": true,
-      "tag": "model-files-swedish-v1.0",
-      "model_version": "1.0",
-      "model_filename": "kokoro-swedish-v1.0.onnx",
-      "config_filename": "config-swedish-v1.0.json",
+      "tag": "model-files-swedish-v1.1",
+      "model_version": "1.1",
+      "model_filename": "kokoro-swedish-v1.1.onnx",
+      "config_filename": "config-swedish-v1.1.json",
       "voices": [
         "Alice",
         "Anton",
@@ -414,12 +414,12 @@
       "voice_assets": [
         {
           "source": "voices.npz",
-          "filename": "voices-swedish-v1.0.npz",
+          "filename": "voices-swedish-v1.1.npz",
           "format": "numpy-npz"
         },
         {
           "source": "voices.raw.bin",
-          "filename": "voices-swedish-v1.0.raw.bin",
+          "filename": "voices-swedish-v1.1.raw.bin",
           "format": "raw-float32-le"
         }
       ]

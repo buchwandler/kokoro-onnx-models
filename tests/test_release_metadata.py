@@ -30,9 +30,14 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
     )
 
     assert voices["format"] == "onnx"
-    assert spec["source_repository"] == "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped"
+    assert (
+        spec["source_repository"] == "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped"
+    )
     assert spec["source_revision"] == "dd4401a9add81ac692d20e240d22ec9dda82cc29"
-    assert spec["onnx_contract"]["outputs"] == {"waveform": "float32", "durations": "float32"}
+    assert spec["onnx_contract"]["outputs"] == {
+        "waveform": "float32",
+        "durations": "float32",
+    }
     assert len(spec["runtime"]["voices"]) == 54
     assert spec["runtime"]["default_voice"] == "af_heart"
     assert spec["voice_pack"]["target"] == "voices-v1.0.npz"
@@ -81,7 +86,7 @@ def test_swedish_and_thorsten_release_metadata() -> None:
         }
     }
     assert thorsten["release"]["default_voice"] == "thorsten"
-    assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.0"
+    assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.1"
     assert (
         catalog["releases"]["de-thorsten"]["tag"]
         == "model-files-german-thorsten-v1.1.4"

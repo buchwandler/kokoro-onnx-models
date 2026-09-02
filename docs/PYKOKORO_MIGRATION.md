@@ -10,7 +10,7 @@ Existing tags and filenames are intentionally preserved for the three retained
 
 | pykokoro variant | Release tag                      |
 | ---------------- | -------------------------------- |
-| `v1.0`           | `model-files-v1.0-timestamped` |
+| `v1.0`           | `model-files-v1.0-timestamped`   |
 | `v1.1-zh`        | `model-files-v1.1`               |
 | `v1.2-de-martin` | `model-files-german-martin-v1.2` |
 

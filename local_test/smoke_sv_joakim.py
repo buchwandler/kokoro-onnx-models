@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the local pre-release smoke test for the Swedish Joakim release."""
+"""Run the local pre-release smoke test for Swedish Joakim v1.1."""
 
 import sys
 

@@ -13,4 +13,4 @@ build = [
   "kokoro @ git+https://github.com/semidark/kokoro.git@b96fef9",
   "onnxruntime>=1.20",
 ]
-test = ["pytest>=8"]
+test = ["pytest>=8", "scipy>=1.11"]
