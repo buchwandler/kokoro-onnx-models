@@ -106,6 +106,13 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py sv-joakim --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/sv-joakim/report.json"
+      - name: Vietnamese Ngọc Huyền checkpoint A/B and staged consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'vi-ngoc-huyen' }}
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py vi-ngoc-huyen --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/vi-ngoc-huyen/report.json"
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -123,6 +130,10 @@ jobs:
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'sv-joakim' }}
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_sv_joakim.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+      - name: Vietnamese Ngọc Huyền pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'vi-ngoc-huyen' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_vi_ngoc_huyen.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
@@ -131,5 +142,6 @@ jobs:
             dist/${{ needs.prepare.outputs.tag }}
             .local-test/compare/de-thorsten
             .local-test/compare/sv-joakim
+            .local-test/compare/vi-ngoc-huyen
           compression-level: 0
           if-no-files-found: error

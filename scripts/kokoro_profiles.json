@@ -179,6 +179,108 @@
       ]
     }
   },
+  "vi-ngoc-huyen": {
+    "display_name": "Kokoro Vietnamese (Ngọc Huyền)",
+    "repo_id": "dinhthuan/kokoro-vi-ngoc-huyen",
+    "revision": "8148f67cdcf732303a24ee8841b8b1817795bafd",
+    "license": "Apache-2.0",
+    "language": "vi",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "model/kokoro_vi_ngoc_huyen.pth",
+      "sha256": "23bfd6f996ab8571452b9647a82bdf5960d3030b5d641c7ea9331e850f20ea0c",
+      "config": "config.json",
+      "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "ngoc_huyen": {
+          "path": "voices/ngoc_huyen.pt",
+          "sha256": "a8c53bd4f10da0ea51feba7095d5a9dfbd481a18ec942ac6005158975f8cc54d"
+        }
+      }
+    },
+    "frontend": {
+      "kind": "external",
+      "name": "vig2p",
+      "sherpa_text_compatible": false,
+      "note": "Vietnamese inference uses vig2p==0.1.0 with the Ngọc Huyền training-time phoneme fixups."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-vietnamese-ngoc-huyen-v1.0",
+      "model_version": "1.0",
+      "model_filename": "kokoro-vietnamese-ngoc-huyen-v1.0.onnx",
+      "voices_filename": "voices-vietnamese-ngoc-huyen-v1.0.bin",
+      "config_filename": "config-vietnamese-ngoc-huyen-v1.0.json",
+      "voices": ["ngoc_huyen"],
+      "default_voice": "ngoc_huyen",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-vietnamese-ngoc-huyen-v1.0.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-vietnamese-ngoc-huyen-v1.0.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "max_audio_abs": 1.1,
+      "cases": [
+        {
+          "name": "ngoc-huyen-greeting",
+          "text": "Xin chào, tôi là giọng đọc Ngọc Huyền.",
+          "phonemes": "sˈin ʧˈaː↘w, tˈoj lˌaː↘ ʝˈɔʔ↓ŋ dˈɔʔ↓k ŋˈɔʔ↓k hwˈiɛ↘n.",
+          "tokens": [
+            0, 61, 156, 51, 56, 16, 133, 156, 43, 158, 173, 65, 3, 16, 62, 156,
+            57, 52, 16, 54, 157, 43, 158, 173, 16, 103, 156, 76, 148, 169, 112,
+            16, 46, 156, 76, 148, 169, 53, 16, 112, 156, 76, 148, 169, 53, 16,
+            50, 65, 156, 51, 86, 173, 56, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "ngoc-huyen-regional-phonemes",
+          "text": "Trường học ở Việt Nam có nhiều tiếng nói khác nhau.",
+          "phonemes": "ʈʂˈyə↘ŋ hˈɔʔ↓k ˈəː↓ vˈiɛʔ↓t nˈaːm kˈɔ↗ ɲˈiɛ↘w tˈiɛ↗ŋ nˈɔ↗j xˈaː↗c ɲˈaw.",
+          "tokens": [
+            0, 132, 130, 156, 67, 83, 173, 112, 16, 50, 156, 76, 148, 169, 53,
+            16, 156, 83, 158, 169, 16, 64, 156, 51, 86, 148, 169, 62, 16, 56,
+            156, 43, 158, 55, 16, 53, 156, 76, 172, 16, 114, 156, 51, 86, 173,
+            65, 16, 62, 156, 51, 86, 172, 112, 16, 56, 156, 76, 172, 52, 16, 66,
+            156, 43, 158, 172, 45, 16, 114, 156, 43, 65, 4, 0
+          ],
+          "speed": 1.0
+        }
+      ]
+    }
+  },
   "ar-nabra": {
     "display_name": "Nabra-82M Arabic",
     "repo_id": "marwanelamami/Nabra-82M-v0.1-ONNX",

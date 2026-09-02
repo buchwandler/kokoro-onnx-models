@@ -1501,6 +1501,66 @@
         }
       ]
     },
+    "vi-ngoc-huyen": {
+      "kind": "build",
+      "profile": "vi-ngoc-huyen",
+      "tag": "model-files-vietnamese-ngoc-huyen-v1.0",
+      "model_version": "1.0",
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "source_repository": "dinhthuan/kokoro-vi-ngoc-huyen",
+      "source_revision": "8148f67cdcf732303a24ee8841b8b1817795bafd",
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-vietnamese-ngoc-huyen-v1.0.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-vietnamese-ngoc-huyen-v1.0.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-vietnamese-ngoc-huyen-v1.0.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-vietnamese-ngoc-huyen-v1.0.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
+    },
     "ar-nabra": {
       "kind": "build",
       "profile": "ar-nabra",

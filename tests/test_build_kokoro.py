@@ -98,6 +98,7 @@ def test_expected_profiles_exist() -> None:
     assert set(profiles) == {
         "vi-contextbox",
         "vi-anphunl",
+        "vi-ngoc-huyen",
         "ar-nabra",
         "de-crane",
         "he-hebrew-nc",
@@ -134,6 +135,27 @@ def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
         "Stina",
     }
     assert profile["postprocess"]["frequencies_hz"] == [2400, 4800, 7200, 9600]
+
+
+def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
+    profile = build_kokoro.load_profiles()["vi-ngoc-huyen"]
+    assert profile["repo_id"] == "dinhthuan/kokoro-vi-ngoc-huyen"
+    assert profile["revision"] == "8148f67cdcf732303a24ee8841b8b1817795bafd"
+    assert profile["model"] == {
+        "kind": "checkpoint",
+        "path": "model/kokoro_vi_ngoc_huyen.pth",
+        "sha256": "23bfd6f996ab8571452b9647a82bdf5960d3030b5d641c7ea9331e850f20ea0c",
+        "config": "config.json",
+        "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+    }
+    assert profile["voices"]["items"]["ngoc_huyen"]["path"] == "voices/ngoc_huyen.pt"
+    assert profile["onnx_contract"]["outputs"] == {
+        "audio": "float32",
+        "duration": "int64",
+    }
+    assert profile["onnx_contract"]["timing"]["output"] == "duration"
+    assert profile["release"]["tag"] == "model-files-vietnamese-ngoc-huyen-v1.0"
+    assert profile["release"]["default_voice"] == "ngoc_huyen"
 
 
 def test_build_defaults_to_opset_17() -> None:

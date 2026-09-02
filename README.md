@@ -56,6 +56,7 @@ Supported build profiles:
 |---|---|---|---|
 | `vi-contextbox` | Vietnamese | `contextboxai/Kokoro-Vietnamese` | yes |
 | `vi-anphunl` | Vietnamese | `anphunl/Kokoro-Vietnamese` | yes |
+| `vi-ngoc-huyen` | Vietnamese | `dinhthuan/kokoro-vi-ngoc-huyen` | yes |
 | `ar-nabra` | Arabic | `marwanelamami/Nabra-82M-v0.1-ONNX` | yes |
 | `de-crane` | German | `crane-local-ai/Kokoro-82M-v1.0-German-ONNX` | yes |
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
@@ -93,6 +94,7 @@ An acoustic model being Kokoro-compatible does not mean the same text frontend
 works for every language. The profile records the expected G2P path:
 
 - Vietnamese requires `vig2p`-compatible preprocessing.
+- `vi-ngoc-huyen` uses the upstream `vig2p==0.1.0` frontend and the single Ngọc Huyền voice.
 - Nabra Arabic requires diacritized MSA plus its Arabic phoneme cleanup.
 - German Kerstin was trained on German IPA; verify `pykokoro`/`kokorog2p` output
   against the model's expected phoneme distribution.

@@ -2,13 +2,14 @@
 
 Date: 2026-08-28
 
-The exporter profile inventory identifies five checkpoint-derived profiles that use the shared `scripts/build_kokoro.py` checkpoint path:
+The exporter profile inventory identifies six checkpoint-derived profiles that use the shared `scripts/build_kokoro.py` checkpoint path:
 
 - `de-thorsten` using `model_ep5.pth`
 - `sv-joakim` using `kokoro_sv.pth`
 - `kk-anuarsv` using `kokoro_kazakh.pth`
 - `vi-contextbox` using `kokoro_vi.pth`
 - `vi-anphunl` using `kokoro_vi.pth`
+- `vi-ngoc-huyen` using `model/kokoro_vi_ngoc_huyen.pth`
 
 These profiles are subject to the repaired exporter on their next build. They are suspect until rebuilt and validated with the upstream-native Torch reference (`disable_complex=False`), the separate export-patched Torch path, ONNX Runtime execution, duration checks, waveform-health checks, and representative listening. The reusable local workflow is documented in `docs/CHECKPOINT_ONNX_AB_COMPARISON.md`.
 
@@ -18,11 +19,12 @@ The profiles `ar-nabra`, `de-crane`, and `he-hebrew-nc` use prebuilt or mirrored
 
 The available workspace graphs were inspected with ONNX using the accepted random-source operator set:
 
-| Build profile | Accepted random-source operators        |
-| ------------- | --------------------------------------- |
-| `de-thorsten` | `RandomNormalLike`, `RandomUniformLike` |
-| `sv-joakim`   | `RandomNormalLike`, `RandomUniformLike` |
-| `ar-nabra`    | `RandomNormalLike`, `RandomUniformLike` |
+| Build profile   | Accepted random-source operators        |
+| --------------- | --------------------------------------- |
+| `de-thorsten`   | `RandomNormalLike`, `RandomUniformLike` |
+| `sv-joakim`     | `RandomNormalLike`, `RandomUniformLike` |
+| `vi-ngoc-huyen` | `RandomNormalLike`, `RandomUniformLike` |
+| `ar-nabra`      | `RandomNormalLike`, `RandomUniformLike` |
 
 The pre-existing `model-files-german-thorsten-v1.1.1` release passed structural and weak waveform validation but produced DC-biased noise in pykokoro. It is retired and must not be selected or overwritten.
 

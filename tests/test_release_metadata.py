@@ -91,6 +91,18 @@ def test_swedish_and_thorsten_release_metadata() -> None:
         catalog["releases"]["de-thorsten"]["tag"]
         == "model-files-german-thorsten-v1.1.4"
     )
+    assert (
+        catalog["releases"]["vi-ngoc-huyen"]["tag"]
+        == "model-files-vietnamese-ngoc-huyen-v1.0"
+    )
+    assert (
+        catalog["releases"]["vi-ngoc-huyen"]["source_repository"]
+        == "dinhthuan/kokoro-vi-ngoc-huyen"
+    )
+    assert catalog["releases"]["vi-ngoc-huyen"]["onnx_contract"]["outputs"] == {
+        "audio": "float32",
+        "duration": "int64",
+    }
 
 
 def test_build_profile_and_release_asset_names_match() -> None:

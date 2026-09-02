@@ -76,6 +76,7 @@ v1.1-zh
 v1.2-de-martin
 vi-contextbox
 vi-anphunl
+vi-ngoc-huyen
 ar-nabra
 de-crane
 he-hebrew-nc
@@ -103,6 +104,7 @@ not erase that distinction.
 | `v1.2-de-martin`   | current pykokoro German frontend                                     | real integration smoke test                                |
 | `vi-contextbox`    | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
 | `vi-anphunl`       | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
+| `vi-ngoc-huyen`    | `vig2p`                                                              | experimental until pykokoro has matching frontend          |
 | `ar-nabra`         | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
 | `de-crane`         | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
 | `he-hebrew-nc`     | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
@@ -337,6 +339,9 @@ frontend-parity test.
 python local_test/prepare_local_assets.py vi-anphunl
 python local_test/smoke_vi_anphunl.py --strict-release-format
 python local_test/smoke_vi_anphunl.py --allow-frontend-mismatch
+
+python local_test/prepare_local_assets.py vi-ngoc-huyen
+python local_test/smoke_vi_ngoc_huyen.py --strict-release-format
 ```
 
 This should be compared against the ContextBoxAI result because the repository

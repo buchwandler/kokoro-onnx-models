@@ -540,7 +540,6 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
 
 def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
     """Load a checkpoint with the upstream-native Torch decoder."""
-    import torch
     from kokoro import KModel
 
     model = (
@@ -557,6 +556,8 @@ def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
     model._checkpoint_load_audit = audit
     components = audit["components"]
     if components:
+        import torch
+
         raw = torch.load(checkpoint, map_location="cpu", weights_only=True)
         for component_name, component in components.items():
             normalization = component["normalization"]

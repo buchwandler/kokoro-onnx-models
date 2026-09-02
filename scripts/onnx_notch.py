@@ -179,7 +179,7 @@ def _filter_once(
     a: np.ndarray,
     name: str,
 ) -> None:
-    from onnx import TensorProto, helper
+    from onnx import helper
 
     padlen = 3 * max(len(a), len(b))
     zero = f"{name}_zero"

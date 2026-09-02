@@ -182,6 +182,17 @@ SPECS: dict[str, LocalTestSpec] = {
         exact_pykokoro_expected=False,
         notes="Current pykokoro has no Vietnamese model profile or vig2p frontend.",
     ),
+    "vi-ngoc-huyen": LocalTestSpec(
+        key="vi-ngoc-huyen",
+        display_name="Kokoro Vietnamese (Ngọc Huyền)",
+        language="vi",
+        model_source="github",
+        model_variant="v1.0",
+        expected_speakers=("ngoc_huyen",),
+        frontend="vig2p Vietnamese; current pykokoro frontend is experimental",
+        exact_pykokoro_expected=False,
+        notes="The release exposes native token durations; use vig2p==0.1.0 for text frontend parity.",
+    ),
     "ar-nabra": LocalTestSpec(
         key="ar-nabra",
         display_name="Nabra-82M Arabic",

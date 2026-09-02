@@ -17,7 +17,22 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 14
+    assert len(registry["models"]) == 15
+
+
+def test_ngoc_huyen_registry_exposes_token_durations() -> None:
+    model = load_registry()["models"]["vi-ngoc-huyen"]
+    assert model["runtime"]["default_voice"] == "ngoc_huyen"
+    assert model["onnx_contract"]["timing"] == {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": True,
+    }
+    distribution = model["distributions"][0]
+    assert distribution["release_key"] == "vi-ngoc-huyen"
+    assert any(asset["role"] == "model" for asset in distribution["artifacts"])
 
 
 def test_russian_is_upstream_only_and_uses_separate_models() -> None:

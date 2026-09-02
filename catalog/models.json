@@ -695,6 +695,115 @@
       "mirror_policy": "preferred",
       "distributions": []
     },
+    "vi-ngoc-huyen": {
+      "model_version": "1.0",
+      "display_name": "Kokoro Vietnamese (Ngọc Huyền)",
+      "runtime_available": true,
+      "language_codes": ["vi"],
+      "frontend": "vig2p-v1",
+      "frontend_display_name": "vig2p Vietnamese",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "single-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "ngoc_huyen",
+        "voices": ["ngoc_huyen"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "dinhthuan/kokoro-vi-ngoc-huyen"
+      },
+      "mirror_policy": "preferred",
+      "distributions": [
+        {
+          "id": "github-model-files-vietnamese-ngoc-huyen-v1.0",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "vi-ngoc-huyen",
+          "release_tag": "model-files-vietnamese-ngoc-huyen-v1.0",
+          "runtime_ready": true,
+          "provenance": {
+            "source_repository": "dinhthuan/kokoro-vi-ngoc-huyen",
+            "source_revision": "8148f67cdcf732303a24ee8841b8b1817795bafd",
+            "transform": null,
+            "source_manifest": null
+          },
+          "artifacts": [
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-ngoc-huyen-v1.0/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 48626,
+              "sha256": "579cb97f928c49051b41aa1347e206a94929de83f683c27e5f7a872a3c1b23be"
+            },
+            {
+              "id": "config-config-vietnamese-ngoc-huyen-v1.0",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-ngoc-huyen-v1.0/config-vietnamese-ngoc-huyen-v1.0.json",
+              "local_name": "config-vietnamese-ngoc-huyen-v1.0.json",
+              "format": "json",
+              "size": 2351,
+              "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+            },
+            {
+              "id": "model-kokoro-vietnamese-ngoc-huyen-v1.0",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-ngoc-huyen-v1.0/kokoro-vietnamese-ngoc-huyen-v1.0.onnx",
+              "local_name": "kokoro-vietnamese-ngoc-huyen-v1.0.onnx",
+              "format": "onnx",
+              "size": 325510000,
+              "sha256": "a0a2a82f689214f3315f0c1840817cc639f5a4a51fe733a15bafc4e904feab3e",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-vietnamese-ngoc-huyen-v1.0",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-ngoc-huyen-v1.0/voices-vietnamese-ngoc-huyen-v1.0.npz",
+              "local_name": "voices-vietnamese-ngoc-huyen-v1.0.npz",
+              "format": "numpy-npz",
+              "size": 522514,
+              "sha256": "43fb78982e8d87b478b4aa616aabe85db8d7b3f444e6e318f2cb0e78dfe7bf35"
+            },
+            {
+              "id": "voices-voices-vietnamese-ngoc-huyen-v1.0.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-ngoc-huyen-v1.0/voices-vietnamese-ngoc-huyen-v1.0.raw.bin",
+              "local_name": "voices-vietnamese-ngoc-huyen-v1.0.raw.bin",
+              "format": "raw-float32-le",
+              "size": 522240,
+              "sha256": "f7823e5598a615ad98146bedaa8dc558d254086e25eda1f7894d264ee33619e2",
+              "handling": {
+                "dtype": "float32",
+                "shape": [510, 256],
+                "endianness": "little"
+              }
+            }
+          ]
+        }
+      ]
+    },
     "ar-nabra": {
       "model_version": "0.1",
       "display_name": "Nabra-82M Arabic",
