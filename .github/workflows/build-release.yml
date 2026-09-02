@@ -113,6 +113,11 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py vi-ngoc-huyen --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/vi-ngoc-huyen/report.json"
+      - name: Russian Zaakirio checkpoint A/B and staged consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && (needs.prepare.outputs.profile == 'ru-zaakirio-base' || needs.prepare.outputs.profile == 'ru-zaakirio-dima') }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py "${{ needs.prepare.outputs.profile }}" --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/${{ needs.prepare.outputs.profile }}/report.json"
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -134,6 +139,15 @@ jobs:
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'vi-ngoc-huyen' }}
         run: |
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_vi_ngoc_huyen.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+      - name: Russian Zaakirio pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && (needs.prepare.outputs.profile == 'ru-zaakirio-base' || needs.prepare.outputs.profile == 'ru-zaakirio-dima') }}
+        run: |
+          if [ "${{ needs.prepare.outputs.profile }}" = "ru-zaakirio-base" ]; then
+            smoke=local_test/smoke_ru_zaakirio_base.py
+          else
+            smoke=local_test/smoke_ru_zaakirio_dima.py
+          fi
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --with ruaccent --project pykokoro --extra cpu python "$smoke" --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
@@ -143,5 +157,7 @@ jobs:
             .local-test/compare/de-thorsten
             .local-test/compare/sv-joakim
             .local-test/compare/vi-ngoc-huyen
+            .local-test/compare/ru-zaakirio-base
+            .local-test/compare/ru-zaakirio-dima
           compression-level: 0
           if-no-files-found: error

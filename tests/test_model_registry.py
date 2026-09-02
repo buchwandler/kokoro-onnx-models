@@ -35,23 +35,25 @@ def test_ngoc_huyen_registry_exposes_token_durations() -> None:
     assert any(asset["role"] == "model" for asset in distribution["artifacts"])
 
 
-def test_russian_is_upstream_only_and_uses_separate_models() -> None:
+def test_russian_uses_separate_checkpoint_build_releases() -> None:
     registry = load_registry()
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     base = registry["models"]["ru-zaakirio-base"]
     dima = registry["models"]["ru-zaakirio-dima"]
-    assert "ru-zaakirio-base" not in releases["releases"]
-    assert "ru-zaakirio-dima" not in releases["releases"]
-    assert base["mirror_policy"] == dima["mirror_policy"] == "forbidden"
-    assert base["distributions"][0]["provider"] == "huggingface"
-    assert dima["distributions"][0]["provider"] == "huggingface"
-    assert base["distributions"][0]["artifacts"][0]["local_name"] == "model.onnx"
-    assert dima["distributions"][0]["artifacts"][0]["local_name"] == "model_dima.onnx"
-    assert {
-        a["format"]
-        for a in base["distributions"][0]["artifacts"]
-        if a["role"] == "voice"
-    } == {"raw-float32-le"}
+
+    assert "ru-zaakirio-base" in releases["releases"]
+    assert "ru-zaakirio-dima" in releases["releases"]
+    assert base["mirror_policy"] == dima["mirror_policy"] == "preferred"
+    assert base["distributions"][0]["provider"] == "github-release"
+    assert dima["distributions"][0]["provider"] == "github-release"
+    assert base["distributions"][0]["release_key"] == "ru-zaakirio-base"
+    assert dima["distributions"][0]["release_key"] == "ru-zaakirio-dima"
+    assert base["distributions"][0]["artifacts"][0]["local_name"] == "bundle.json"
+    assert dima["distributions"][0]["artifacts"][0]["local_name"] == "bundle.json"
+    assert base["runtime"]["voices"] == ["sveta", "masha"]
+    assert dima["runtime"]["voices"] == ["dima"]
+    assert base["onnx_contract"]["outputs"] == {"audio": "float32", "duration": "int64"}
+    assert dima["onnx_contract"]["timing"]["output"] == "duration"
 
 
 def test_all_runtime_artifacts_have_pinned_metadata() -> None:
@@ -82,10 +84,10 @@ def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
         "url"
     ] = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
         "url"
-    ].replace("/d649c57b239b18c4c384378127cbf01dba039bc1/", "/main/")
+    ].replace("https://", "http://", 1)
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
-    with pytest.raises(RegistryError, match="pinned|main"):
+    with pytest.raises(RegistryError, match="https://"):
         verify_registry(path)
 
 
@@ -112,7 +114,7 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
     collect_runtime_metadata.REGISTRY = registry_path
     assert (
         collect_runtime_metadata._collect(
-            registry, "ru-zaakirio-base", "model-fp32", True
+            registry, "ru-zaakirio-base", "bundle-bundle", True
         )
         == 0
     )

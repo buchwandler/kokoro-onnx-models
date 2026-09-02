@@ -221,11 +221,12 @@ def verify_registry(
         "ru-zaakirio-base" in models and "ru-zaakirio-dima" in models,
         "Russian profiles are missing from registry",
     )
-    _require(
-        "ru-zaakirio-base" not in release_entries
-        and "ru-zaakirio-dima" not in release_entries,
-        "Russian profiles must not be release jobs",
-    )
+    for russian_key in ("ru-zaakirio-base", "ru-zaakirio-dima"):
+        _require(
+            russian_key in release_entries
+            and release_entries[russian_key].get("kind") == "build",
+            f"{russian_key}: checkpoint build release is missing",
+        )
     for model_id, model in models.items():
         if model_id in {"v1.0", "v1.1-zh"}:
             release = release_entries[model_id]

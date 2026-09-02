@@ -1594,13 +1594,14 @@
         }
       ]
     },
+
     "ru-zaakirio-base": {
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio base)",
       "runtime_available": true,
       "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
-      "frontend_display_name": "Zaakirio Russian kokorog2p",
+      "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
       "runtime": {
         "layout": "single-onnx-v1",
@@ -1615,83 +1616,91 @@
           "speed": "float32"
         },
         "outputs": {
-          "waveform": "float32",
+          "audio": "float32",
           "duration": "int64"
         },
-        "max_tokens": 510,
         "timing": {
           "kind": "token-duration-v1",
           "output": "duration",
           "unit": "frame",
           "samples_per_frame": 600,
           "includes_boundary_tokens": true
-        }
+        },
+        "max_tokens": 510
       },
       "license": {
-        "declared": "openrail",
-        "redistribution": "upstream-only",
+        "declared": "OpenRAIL model weights; Apache-2.0 code",
+        "redistribution": "allowed-with-upstream-terms",
         "source_repository": "zaakirio/kokoro-ru"
       },
-      "mirror_policy": "forbidden",
+      "mirror_policy": "preferred",
       "distributions": [
         {
-          "id": "hf-d649c57-base",
-          "provider": "huggingface",
+          "id": "github-model-files-russian-zaakirio-base-v2",
+          "provider": "github-release",
           "transport": "https",
-          "repository": "zaakirio/kokoro-ru",
-          "revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+          "release_key": "ru-zaakirio-base",
+          "release_tag": "model-files-russian-zaakirio-base-v2",
           "runtime_ready": true,
           "artifacts": [
             {
-              "id": "model-fp32",
-              "role": "model",
-              "quality": "fp32",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/onnx/model.onnx",
-              "local_name": "model.onnx",
-              "format": "onnx",
-              "size": 325634452,
-              "sha256": "2b784920660089011888fe88f2f48339c01334ad627c91cc0f88d947bc64fcf3"
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-base-v2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 64432,
+              "sha256": "c2a28cc7cc903be7e641727e7c3eecd05e5fb307dc1de53b02629eb23614e58a"
             },
             {
-              "id": "voice-sveta",
-              "role": "voice",
-              "voice": "sveta",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/voices/sveta.bin",
-              "local_name": "sveta.bin",
-              "format": "raw-float32-le",
-              "size": 522240,
-              "sha256": "10df737d434a84a04e9de193ff5e9be8a4bbe4944706a236bb64dab317620508",
-              "handling": {
-                "dtype": "float32",
-                "shape": [510, 256],
-                "endianness": "little"
-              }
-            },
-            {
-              "id": "voice-masha",
-              "role": "voice",
-              "voice": "masha",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/voices/masha.bin",
-              "local_name": "masha.bin",
-              "format": "raw-float32-le",
-              "size": 522240,
-              "sha256": "627c261c34391d16f3b7b21a3aad73e289d97623a4eb5f125a8b7e7fe214b97a",
-              "handling": {
-                "dtype": "float32",
-                "shape": [510, 256],
-                "endianness": "little"
-              }
-            },
-            {
-              "id": "config",
+              "id": "config-config-russian-zaakirio-base-v2",
               "role": "config",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/config.json",
-              "local_name": "config.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-base-v2/config-russian-zaakirio-base-v2.json",
+              "local_name": "config-russian-zaakirio-base-v2.json",
               "format": "json",
               "size": 2542,
               "sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
+            },
+            {
+              "id": "model-kokoro-russian-zaakirio-base-v2",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-base-v2/kokoro-russian-zaakirio-base-v2.onnx",
+              "local_name": "kokoro-russian-zaakirio-base-v2.onnx",
+              "format": "onnx",
+              "size": 325510090,
+              "sha256": "882b6f597334930476ede2f73ad2fae2ae890258627d95ce8128f5ae767088f1",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-base-v2",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-base-v2/voices-russian-zaakirio-base-v2.npz",
+              "local_name": "voices-russian-zaakirio-base-v2.npz",
+              "format": "numpy-npz",
+              "size": 1044986,
+              "sha256": "277eeb7926f09bfd91a64bee5e3cc745eb839ebc142e2e56de827ca5afc92e4d"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-base-v2.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-base-v2/voices-russian-zaakirio-base-v2.raw.bin",
+              "local_name": "voices-russian-zaakirio-base-v2.raw.bin",
+              "format": "raw-float32-le",
+              "size": 1044480,
+              "sha256": "614473e5650e2eaceec2459471cd0cd9ac3431ff2bde7c84cb4bdacef9f00916",
+              "handling": {
+                "dtype": "float32",
+                "shape": [510, 256],
+                "endianness": "little"
+              }
             }
-          ]
+          ],
+          "provenance": {
+            "source_repository": "zaakirio/kokoro-ru",
+            "source_revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+            "transform": null,
+            "source_manifest": null
+          }
         }
       ]
     },
@@ -1701,7 +1710,7 @@
       "runtime_available": true,
       "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
-      "frontend_display_name": "Zaakirio Russian kokorog2p",
+      "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
       "runtime": {
         "layout": "single-onnx-v1",
@@ -1716,49 +1725,75 @@
           "speed": "float32"
         },
         "outputs": {
-          "waveform": "float32",
+          "audio": "float32",
           "duration": "int64"
         },
-        "max_tokens": 510,
         "timing": {
           "kind": "token-duration-v1",
           "output": "duration",
           "unit": "frame",
           "samples_per_frame": 600,
           "includes_boundary_tokens": true
-        }
+        },
+        "max_tokens": 510
       },
       "license": {
-        "declared": "openrail",
-        "redistribution": "upstream-only",
+        "declared": "OpenRAIL model weights; Apache-2.0 code",
+        "redistribution": "allowed-with-upstream-terms",
         "source_repository": "zaakirio/kokoro-ru"
       },
-      "mirror_policy": "forbidden",
+      "mirror_policy": "preferred",
       "distributions": [
         {
-          "id": "hf-d649c57-dima",
-          "provider": "huggingface",
+          "id": "github-model-files-russian-zaakirio-dima-v2",
+          "provider": "github-release",
           "transport": "https",
-          "repository": "zaakirio/kokoro-ru",
-          "revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+          "release_key": "ru-zaakirio-dima",
+          "release_tag": "model-files-russian-zaakirio-dima-v2",
           "runtime_ready": true,
           "artifacts": [
             {
-              "id": "model-fp32",
-              "role": "model",
-              "quality": "fp32",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/onnx/model_dima.onnx",
-              "local_name": "model_dima.onnx",
-              "format": "onnx",
-              "size": 325634452,
-              "sha256": "326bc6d2764263c11a8f5cbcfdcf0a072e441bd0d2dcb4875fa3c25724b201c6"
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 65082,
+              "sha256": "d11fffa989a7f9dee2132213641f8bf61ba47dffb1401af6730fb49a3f43b613"
             },
             {
-              "id": "voice-dima",
-              "role": "voice",
-              "voice": "dima",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/voices/dima.bin",
-              "local_name": "dima.bin",
+              "id": "config-config-russian-zaakirio-dima-v2",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/config-russian-zaakirio-dima-v2.json",
+              "local_name": "config-russian-zaakirio-dima-v2.json",
+              "format": "json",
+              "size": 2542,
+              "sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
+            },
+            {
+              "id": "model-kokoro-russian-zaakirio-dima-v2",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/kokoro-russian-zaakirio-dima-v2.onnx",
+              "local_name": "kokoro-russian-zaakirio-dima-v2.onnx",
+              "format": "onnx",
+              "size": 325510063,
+              "sha256": "7d7103a183c757bb5378b8759b8080690990b6e067feef0af7bb1d6e12b0c40b",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-dima-v2",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/voices-russian-zaakirio-dima-v2.npz",
+              "local_name": "voices-russian-zaakirio-dima-v2.npz",
+              "format": "numpy-npz",
+              "size": 522502,
+              "sha256": "1f72ab156a48ab2bb9605d69e8ba3854be0d4757210380c79254ab1a19a6e825"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-dima-v2.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/voices-russian-zaakirio-dima-v2.raw.bin",
+              "local_name": "voices-russian-zaakirio-dima-v2.raw.bin",
               "format": "raw-float32-le",
               "size": 522240,
               "sha256": "e774e8859604164aa27c393fa4393c3a4ff2162d37911a39574551edbc801dcb",
@@ -1767,17 +1802,14 @@
                 "shape": [510, 256],
                 "endianness": "little"
               }
-            },
-            {
-              "id": "config",
-              "role": "config",
-              "url": "https://huggingface.co/zaakirio/kokoro-ru/resolve/d649c57b239b18c4c384378127cbf01dba039bc1/config.json",
-              "local_name": "config.json",
-              "format": "json",
-              "size": 2542,
-              "sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
             }
-          ]
+          ],
+          "provenance": {
+            "source_repository": "zaakirio/kokoro-ru",
+            "source_revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+            "transform": null,
+            "source_manifest": null
+          }
         }
       ]
     }

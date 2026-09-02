@@ -277,14 +277,14 @@ SPECS: dict[str, LocalTestSpec] = {
         display_name="Kokoro Russian (Zaakirio base)",
         language="ru",
         model_source="huggingface",
-        model_variant="v1.0",
+        model_variant="ru-zaakirio-base",
         expected_speakers=("sveta", "masha"),
+        required_files=("config.json",),
         frontend="kokorog2p Russian; preserve upstream stress and orthoepy behavior",
         exact_pykokoro_expected=False,
         notes=(
-            "Uses the v1.0 local integration shim until pykokoro has a "
-            "first-class ru-zaakirio-base profile. The actual ONNX contract is "
-            "input_ids/style/speed -> waveform."
+            "Uses pykokoro's Russian profile with the release-provided config. "
+            "The actual ONNX contract is input_ids/style/speed -> waveform."
         ),
     ),
     "ru-zaakirio-dima": LocalTestSpec(
@@ -292,8 +292,9 @@ SPECS: dict[str, LocalTestSpec] = {
         display_name="Kokoro Russian (Zaakirio Dima)",
         language="ru",
         model_source="huggingface",
-        model_variant="v1.0",
+        model_variant="ru-zaakirio-dima",
         expected_speakers=("dima",),
+        required_files=("config.json",),
         frontend="kokorog2p Russian; preserve upstream stress and orthoepy behavior",
         exact_pykokoro_expected=False,
         notes=(

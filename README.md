@@ -10,7 +10,7 @@ GitHub Releases are an optional mirror provider for redistribution-compatible mo
 https://github.com/buchwandler/kokoro-onnx-models/releases/download/<tag>/<asset>
 ```
 
-Direct upstream distributions use pinned HTTPS URLs and standard-library downloads; `pykokoro` does not require `huggingface_hub` to consume registry artifacts.
+Direct upstream distributions use pinned HTTPS URLs and standard-library downloads; `pykokoro` does not require `huggingface_hub` to consume registry artifacts. The Zaakirio Russian runtime distributions are served from this repository's checkpoint-built GitHub releases.
 
 ## What belongs here
 
@@ -22,7 +22,7 @@ Direct upstream distributions use pinned HTTPS URLs and standard-library downloa
 
 The runtime registry is the source of truth for usable models. Build-only checkpoints and `.pt` voice sources stay in `scripts/kokoro_profiles.json` as conversion recipes and are not exposed as client runtime artifacts. A registry distribution is selected atomically, so its model, voices, config, and split components cannot be mixed with another provider.
 
-`mirror_policy` distinguishes runtime availability from redistribution: `required`, `preferred`, `optional`, and `forbidden`. Russian Zaakirio is fully usable through its pinned upstream Hugging Face distribution but is forbidden from GitHub mirroring.
+`mirror_policy` distinguishes runtime availability from redistribution: `required`, `preferred`, `optional`, and `forbidden`. Russian Zaakirio is built into separate GitHub releases for its base and Dima checkpoints.
 
 Large model binaries should live in **GitHub Releases**, not in git history.
 
@@ -64,6 +64,8 @@ Supported build profiles:
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
+| `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
+| `ru-zaakirio-dima` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
 
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
 
@@ -78,9 +80,9 @@ remains part of the model lineage.
 
 
 The Zaakirio Russian source has two acoustic checkpoints. Sveta and Masha use the
-base checkpoint, while Dima uses a dedicated checkpoint. They are intentionally
-released as separate profiles so each release has a single unambiguous
-model-to-voice mapping.
+base checkpoint, while Dima uses a dedicated checkpoint. The repository builds and
+releases them as separate profiles so each release has a single unambiguous
+model-to-voice mapping with validated token durations.
 
 Kazakh uses language code `kk`. It is not published under `ka`, which is the
 Georgian language code.

@@ -104,6 +104,8 @@ def test_expected_profiles_exist() -> None:
         "he-hebrew-nc",
         "sv-joakim",
         "de-thorsten",
+        "ru-zaakirio-base",
+        "ru-zaakirio-dima",
         "kk-anuarsv",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
@@ -510,10 +512,31 @@ def test_validate_nabra_named_onnx_contract(tmp_path: Path) -> None:
     )
 
 
-def test_russian_profiles_are_not_build_recipes() -> None:
+def test_russian_profiles_are_checkpoint_build_recipes() -> None:
     profiles = build_kokoro.load_profiles()
-    assert "ru-zaakirio-base" not in profiles
-    assert "ru-zaakirio-dima" not in profiles
+    base = profiles["ru-zaakirio-base"]
+    dima = profiles["ru-zaakirio-dima"]
+
+    assert base["repo_id"] == dima["repo_id"] == "zaakirio/kokoro-ru"
+    assert (
+        base["revision"]
+        == dima["revision"]
+        == ("d649c57b239b18c4c384378127cbf01dba039bc1")
+    )
+    assert base["model"]["kind"] == dima["model"]["kind"] == "checkpoint"
+    assert base["model"]["path"] == "kokoro-ru-v2-base.pth"
+    assert dima["model"]["path"] == "kokoro-ru-v2-dima.pth"
+    assert list(base["voices"]["items"]) == ["sveta", "masha"]
+    assert list(dima["voices"]["items"]) == ["dima"]
+    for profile in (base, dima):
+        assert profile["onnx_contract"]["outputs"] == {
+            "audio": "float32",
+            "duration": "int64",
+        }
+        assert profile["onnx_contract"]["timing"]["output"] == "duration"
+        assert profile["export_validation"]["requires_random_source_ops"] is True
+        assert len(profile["export_validation"]["cases"]) == 3
+        assert profile["release"]["enabled"] is True
 
 
 def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:

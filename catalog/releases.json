@@ -2036,6 +2036,143 @@
           "format": "markdown"
         }
       ]
+    },
+
+    "ru-zaakirio-base": {
+      "kind": "build",
+      "profile": "ru-zaakirio-base",
+      "tag": "model-files-russian-zaakirio-base-v2",
+      "model_version": "2",
+      "onnx_contract": {
+        "inputs": {
+          "input_ids": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "source_repository": "zaakirio/kokoro-ru",
+      "source_revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+      "publish": true,
+      "license": "OpenRAIL model weights; Apache-2.0 code",
+      "language_codes": ["ru"],
+      "frontend": "kokorog2p-ru-v1",
+      "runtime": {
+        "default_voice": "sveta",
+        "voices": ["sveta", "masha"]
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-russian-zaakirio-base-v2.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-russian-zaakirio-base-v2.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-russian-zaakirio-base-v2.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-russian-zaakirio-base-v2.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
+    },
+    "ru-zaakirio-dima": {
+      "kind": "build",
+      "profile": "ru-zaakirio-dima",
+      "tag": "model-files-russian-zaakirio-dima-v2",
+      "model_version": "2",
+      "onnx_contract": {
+        "inputs": {
+          "input_ids": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "source_repository": "zaakirio/kokoro-ru",
+      "source_revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+      "publish": true,
+      "license": "OpenRAIL model weights; Apache-2.0 code",
+      "language_codes": ["ru"],
+      "frontend": "kokorog2p-ru-v1",
+      "runtime": {
+        "default_voice": "dima",
+        "voices": ["dima"]
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-russian-zaakirio-dima-v2.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-russian-zaakirio-dima-v2.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-russian-zaakirio-dima-v2.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-russian-zaakirio-dima-v2.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     }
   }
 }

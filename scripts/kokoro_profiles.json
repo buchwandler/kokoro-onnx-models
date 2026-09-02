@@ -822,5 +822,205 @@
         }
       ]
     }
+  },
+  "ru-zaakirio-base": {
+    "display_name": "Kokoro Russian (Zaakirio base)",
+    "repo_id": "zaakirio/kokoro-ru",
+    "revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+    "license": "OpenRAIL model weights; Apache-2.0 code",
+    "language": "ru",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro-ru-v2-base.pth",
+      "sha256": "3bbee5bc05cfa182afc365b9116eaed8355f939c3c0af8aa0e43fdc45343ca15",
+      "config": "config.json",
+      "config_sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "sveta": {
+          "path": "voices/sveta.pt",
+          "sha256": "248c00e98f7ce20c31ff5537b52ea3d3b204a58845d86da73960f30f112f60a7"
+        },
+        "masha": {
+          "path": "voices/masha.pt",
+          "sha256": "464d64ae793647c3b3f9d1f08ce5b11c641a61799f0bca65f111e6aad5d0a362"
+        }
+      }
+    },
+    "frontend": {
+      "kind": "external",
+      "name": "Zaakirio ru_g2p.py / Russian stress-aware G2P",
+      "sherpa_text_compatible": false,
+      "note": "Russian text requires the upstream ru_g2p.py behavior, including lexical stress, ё restoration, vowel reduction, and orthoepy."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-russian-zaakirio-base-v2",
+      "model_version": "2",
+      "model_filename": "kokoro-russian-zaakirio-base-v2.onnx",
+      "config_filename": "config-russian-zaakirio-base-v2.json",
+      "voices": ["sveta", "masha"],
+      "default_voice": "sveta",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-russian-zaakirio-base-v2.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-russian-zaakirio-base-v2.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true,
+      "cases": [
+        {
+          "name": "stress-homograph",
+          "phonemes": "ˈzamək",
+          "tokens": [0, 156, 68, 43, 55, 83, 53, 0],
+          "speed": 1.0
+        },
+        {
+          "name": "russian-greeting",
+          "phonemes": "ˈzdrastvujtʲe! kak ˈvaʂɨ dʲɪˈla?",
+          "tokens": [
+            0, 156, 68, 46, 60, 43, 61, 62, 64, 63, 52, 62, 164, 47, 5, 16, 53,
+            43, 53, 16, 156, 64, 43, 130, 101, 16, 46, 164, 102, 156, 54, 43, 6,
+            0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "orthoepy",
+          "phonemes": "bɐlʲˈʂovə",
+          "tokens": [0, 44, 70, 54, 164, 156, 130, 57, 64, 83, 0],
+          "speed": 1.0
+        }
+      ]
+    }
+  },
+  "ru-zaakirio-dima": {
+    "display_name": "Kokoro Russian (Zaakirio Dima)",
+    "repo_id": "zaakirio/kokoro-ru",
+    "revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+    "license": "OpenRAIL model weights; Apache-2.0 code",
+    "language": "ru",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro-ru-v2-dima.pth",
+      "sha256": "658ae47e24224257ea9f83c88ea7743c5c9f0922c6bc339805ffebcfdbcb2b24",
+      "config": "config.json",
+      "config_sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "dima": {
+          "path": "voices/dima.pt",
+          "sha256": "80d4d216b5906c232ede48f2c07ab3aee0785e34d1df6ec6dc8cf44767d74c69"
+        }
+      }
+    },
+    "frontend": {
+      "kind": "external",
+      "name": "Zaakirio ru_g2p.py / Russian stress-aware G2P",
+      "sherpa_text_compatible": false,
+      "note": "Russian text requires the upstream ru_g2p.py behavior, including lexical stress, ё restoration, vowel reduction, and orthoepy."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-russian-zaakirio-dima-v2",
+      "model_version": "2",
+      "model_filename": "kokoro-russian-zaakirio-dima-v2.onnx",
+      "config_filename": "config-russian-zaakirio-dima-v2.json",
+      "voices": ["dima"],
+      "default_voice": "dima",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-russian-zaakirio-dima-v2.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-russian-zaakirio-dima-v2.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true,
+      "cases": [
+        {
+          "name": "stress-homograph",
+          "phonemes": "ˈzamək",
+          "tokens": [0, 156, 68, 43, 55, 83, 53, 0],
+          "speed": 1.0
+        },
+        {
+          "name": "russian-greeting",
+          "phonemes": "ˈzdrastvujtʲe! kak ˈvaʂɨ dʲɪˈla?",
+          "tokens": [
+            0, 156, 68, 46, 60, 43, 61, 62, 64, 63, 52, 62, 164, 47, 5, 16, 53,
+            43, 53, 16, 156, 64, 43, 130, 101, 16, 46, 164, 102, 156, 54, 43, 6,
+            0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "orthoepy",
+          "phonemes": "bɐlʲˈʂovə",
+          "tokens": [0, 44, 70, 54, 164, 156, 130, 57, 64, 83, 0],
+          "speed": 1.0
+        }
+      ]
+    }
   }
 }

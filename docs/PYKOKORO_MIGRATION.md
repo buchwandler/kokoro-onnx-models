@@ -14,8 +14,8 @@ Existing tags and filenames are intentionally preserved for the three retained
 | `v1.1-zh`        | `model-files-v1.1`               |
 | `v1.2-de-martin` | `model-files-german-martin-v1.2` |
 
-The runtime source of truth is `catalog/models.json`, not the GitHub release catalog. PyKokoro selects one complete distribution and downloads every artifact from that distribution using plain HTTPS with size and SHA-256 validation. GitHub Releases are the preferred provider for v1.0 and v1.1-zh, while pinned direct Hugging Face distributions remain available for upstream-only models such as Russian Zaakirio.
-Zaakirio Russian is upstream-only: `ru-zaakirio-base` contains `sveta` and `masha`, while `ru-zaakirio-dima` contains `dima`. Both use the pinned `zaakirio/kokoro-ru` revision and are forbidden from GitHub mirroring.
+The runtime source of truth is `catalog/models.json`, not the GitHub release catalog. PyKokoro selects one complete distribution and downloads every artifact from that distribution using plain HTTPS with size and SHA-256 validation. GitHub Releases are the preferred provider for v1.0, v1.1-zh, and the checkpoint-built Zaakirio Russian profiles. Pinned direct Hugging Face distributions remain available only for models that are intentionally upstream-only.
+Zaakirio Russian has separate builds: `ru-zaakirio-base` contains `sveta` and `masha`, while `ru-zaakirio-dima` contains `dima`. Both use the pinned `zaakirio/kokoro-ru` revision and expose validated token durations.
 
 New planned tags:
 
@@ -28,6 +28,8 @@ New planned tags:
 - `model-files-german-thorsten-v1.0`
 - `model-files-thai-wayu-v1`
 - `model-files-kazakh-anuarsv-v1`
+- `model-files-russian-zaakirio-base-v2`
+- `model-files-russian-zaakirio-dima-v2`
 
 Planned first-class `pykokoro` variants:
 `ru-zaakirio-base`, `ru-zaakirio-dima`, and `kk-anuarsv`. Route voices as follows:

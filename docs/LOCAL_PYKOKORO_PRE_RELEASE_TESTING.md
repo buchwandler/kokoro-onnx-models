@@ -7,7 +7,7 @@ artifacts with the current `pykokoro` checkout. The test data must stay local:
 model weights, voice packs, temporary compatibility archives, Hugging Face cache
 data, and generated WAV files must never be committed.
 
-The preparation path now reads `catalog/models.json`, selects one atomic runtime distribution, downloads each exact HTTPS URL, and verifies its size and SHA-256 before staging. This applies to upstream-only Russian distributions as well as GitHub mirrors. The preparation code uses `local_test/registry.py` and does not use `huggingface_hub` for direct registry downloads.
+The preparation path now reads `catalog/models.json`, selects one atomic runtime distribution, downloads each exact HTTPS URL, and verifies its size and SHA-256 before staging. This applies to checkpoint-built Russian distributions as well as GitHub mirrors. The preparation code uses `local_test/registry.py` and does not use `huggingface_hub` for direct registry downloads.
 The tracked test harness is:
 
 ```text
@@ -108,8 +108,8 @@ not erase that distinction.
 | `ar-nabra`         | diacritized MSA → Arabic espeak → Nabra cleanup with dedicated vocab | strict asset/runtime test plus Arabic frontend golden gate |
 | `de-crane`         | German IPA; training data used `espeak-ng` German IPA                | useful smoke test, but model contract must also be checked |
 | `he-hebrew-nc`     | Hebrew-specific G2P/config                                           | experimental and restricted/non-commercial                 |
-| `ru-zaakirio-base` | stress-aware Zaakirio Russian `ru_g2p.py`                            | explicit local v1.0 shim; frontend golden gate required    |
-| `ru-zaakirio-dima` | stress-aware Zaakirio Russian `ru_g2p.py`                            | explicit local v1.0 shim; dedicated Dima model required    |
+| `ru-zaakirio-base` | stress-aware Zaakirio Russian `ru_g2p.py`                            | checkpoint-built release; frontend golden gate required    |
+| `ru-zaakirio-dima` | stress-aware Zaakirio Russian `ru_g2p.py`                            | checkpoint-built release; dedicated Dima model required    |
 | `kk-anuarsv`       | Kazakh `kk` espeak-ng IPA via misaki                                 | explicit local v1.0 shim; Kazakh parity gate required      |
 
 For unsupported frontends the harness refuses to synthesize ordinary text by
@@ -282,12 +282,13 @@ python local_test/smoke_kk_anuarsv.py --strict-release-format
 ```
 
 Expected speakers are `sveta` and `masha` for the base profile, `dima` for the
-Dima profile, and `km_m1` for Kazakh. Every run must produce finite, non-empty
+Dima profile, and `km_m1` for Kazakh, and every run must produce finite, non-empty
 audio at 24 kHz, use the intended acoustic model, and use the intended `ru` or
-`kk` frontend. The Russian profiles remain disabled for publication until the
-exact OpenRAIL weight license is reviewed. The local `v1.0` model variant is an
-experimental acoustic/frontend diagnostic until pykokoro gains first-class
-variants for these profiles. It is not an automatic-release integration pass.
+`kk` frontend. The Russian profiles now use checkpoint-built releases. The
+exact OpenRAIL weight license is reviewed. Install the optional Russian frontend
+dependency before these smoke tests, for example with `uv run --with ruaccent`.
+The local smoke commands use the release-provided Russian config and pykokoro
+profile mappings; they remain dependent on a stress-capable eSpeak installation.
 
 Frontend golden fixtures are maintained separately from audio smoke tests. They
 cover Russian stress-sensitive words, `ё`, homographs, orthoepy, and Kazakh

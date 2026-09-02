@@ -242,14 +242,31 @@ def test_german_v1_1_and_holgern_are_retired() -> None:
     assert "holgern/kokoro-onnx-model" not in text
 
 
-def test_release_catalog_excludes_upstream_only_russian_profiles() -> None:
+def test_release_catalog_contains_russian_checkpoint_builds() -> None:
     catalog = json.loads(
         (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
     )
-    assert "ru-zaakirio-base" not in catalog["releases"]
-    assert "ru-zaakirio-dima" not in catalog["releases"]
-    assert catalog["releases"]["kk-anuarsv"]["publish"] is True
-    assert catalog["releases"]["kk-anuarsv"]["language_codes"] == ["kk"]
+    releases = catalog["releases"]
+    for key, tag, voices in (
+        (
+            "ru-zaakirio-base",
+            "model-files-russian-zaakirio-base-v2",
+            ["sveta", "masha"],
+        ),
+        ("ru-zaakirio-dima", "model-files-russian-zaakirio-dima-v2", ["dima"]),
+    ):
+        release = releases[key]
+        assert release["kind"] == "build"
+        assert release["publish"] is True
+        assert release["tag"] == tag
+        assert release["source_repository"] == "zaakirio/kokoro-ru"
+        assert release["source_revision"] == "d649c57b239b18c4c384378127cbf01dba039bc1"
+        assert release["runtime"]["voices"] == voices
+        assert release["onnx_contract"]["outputs"] == {
+            "audio": "float32",
+            "duration": "int64",
+        }
+        assert release["onnx_contract"]["timing"]["output"] == "duration"
 
 
 def test_v1_sources_and_registry_provenance_are_current() -> None:

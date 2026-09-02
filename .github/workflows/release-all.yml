@@ -78,6 +78,20 @@ jobs:
           uv run --extra build python local_test/compare_checkpoint_onnx.py vi-ngoc-huyen --runs 5 --seed 20260828 --keep-build
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_vi_ngoc_huyen.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
           test -f ".local-test/compare/vi-ngoc-huyen/report.json"
+      - name: Russian Zaakirio pykokoro consumer gate
+        if: ${{ matrix.kind == 'build' && (matrix.profile == 'ru-zaakirio-base' || matrix.profile == 'ru-zaakirio-dima') }}
+        run: |
+          if [ "${{ matrix.profile }}" = "ru-zaakirio-base" ]; then
+            smoke=local_test/smoke_ru_zaakirio_base.py
+          else
+            smoke=local_test/smoke_ru_zaakirio_dima.py
+          fi
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --with ruaccent --project pykokoro --extra cpu python "$smoke" --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
+      - name: Russian Zaakirio checkpoint A/B and staged consumer gate
+        if: ${{ matrix.kind == 'build' && (matrix.profile == 'ru-zaakirio-base' || matrix.profile == 'ru-zaakirio-dima') }}
+        run: |
+          uv run --extra build python local_test/compare_checkpoint_onnx.py "${{ matrix.profile }}" --runs 5 --seed 20260828 --keep-build
+          test -f ".local-test/compare/${{ matrix.profile }}/report.json"
       - name: Verify candidate
         run: |
           python scripts/verify_candidate.py "dist/${{ matrix.tag }}" \
@@ -93,6 +107,8 @@ jobs:
             .local-test/compare/de-thorsten
             .local-test/compare/sv-joakim
             .local-test/compare/vi-ngoc-huyen
+            .local-test/compare/ru-zaakirio-base
+            .local-test/compare/ru-zaakirio-dima
           compression-level: 0
           if-no-files-found: error
 

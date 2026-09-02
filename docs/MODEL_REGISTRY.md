@@ -25,7 +25,7 @@ A release tag is a content identity. Once published, the artifact names, URLs, f
 
 `catalog/releases.json` describes GitHub publication jobs. `scripts/kokoro_profiles.json` describes build and repack recipes, including checkpoint-only sources that are not direct client distributions.
 
-Russian Zaakirio is an upstream-only example. The base profile uses `sveta` and `masha` with `onnx/model.onnx`; the Dima profile uses `dima` with `onnx/model_dima.onnx`. Both use revision `d649c57b239b18c4c384378127cbf01dba039bc1` and raw float32 voice tables.
+Russian Zaakirio uses two checkpoint-built GitHub distributions. The base profile builds `kokoro-ru-v2-base.pth` for `sveta` and `masha`; the Dima profile builds `kokoro-ru-v2-dima.pth` for `dima`. Both use revision `d649c57b239b18c4c384378127cbf01dba039bc1`, named NumPy voice archives, raw float32 voice tables, and validated token durations.
 
 ## Tools
 
