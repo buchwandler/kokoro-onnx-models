@@ -270,8 +270,14 @@ def resolve_prepacked_voices(
     names: list[str],
     *,
     archive_or_raw: bool,
+    expected_sha256: str | None = None,
 ) -> dict[str, np.ndarray]:
     local = hf_download(repo_id, filename, revision, cache_dir)
+    verify_source_hash(
+        local,
+        expected_sha256,
+        label=f"voice source {filename}",
+    )
     if archive_or_raw and zipfile.is_zipfile(local):
         return _read_npz_voice_archive(local, names)
     return _read_raw_voice_file(local, names)
@@ -294,6 +300,7 @@ def resolve_voices(profile: dict[str, Any], cache_dir: Path) -> dict[str, np.nda
             spec["path"],
             list(spec["names"]),
             archive_or_raw=False,
+            expected_sha256=spec.get("sha256"),
         )
     if kind == "archive_or_raw":
         return resolve_prepacked_voices(
@@ -303,6 +310,7 @@ def resolve_voices(profile: dict[str, Any], cache_dir: Path) -> dict[str, np.nda
             spec["path"],
             list(spec["names"]),
             archive_or_raw=True,
+            expected_sha256=spec.get("sha256"),
         )
     raise BuildError(f"Unsupported voices.kind={kind!r}")
 
@@ -1367,16 +1375,25 @@ def source_artifacts(profile: Mapping[str, Any]) -> dict[str, Any]:
             model_artifact["config_repository"] = str(model["config_repo_id"])
         if model.get("config_revision") is not None:
             model_artifact["config_revision"] = str(model["config_revision"])
-    voices: dict[str, Any] = {}
-    for name, item in (profile.get("voices") or {}).get("items", {}).items():
-        if isinstance(item, str):
-            voices[name] = {"path": item}
-        else:
-            voices[name] = {
-                key: str(value)
-                for key, value in item.items()
-                if key in {"path", "sha256"}
-            }
+    voices_spec = profile.get("voices") or {}
+    items = voices_spec.get("items", {})
+    if voices_spec.get("kind") in {"raw", "archive_or_raw"}:
+        path = str(voices_spec["path"])
+        artifact: dict[str, str] = {"path": path}
+        if voices_spec.get("sha256") is not None:
+            artifact["sha256"] = str(voices_spec["sha256"])
+        voices = {str(name): dict(artifact) for name in voices_spec.get("names", [])}
+    else:
+        voices = {}
+        for name, item in items.items():
+            if isinstance(item, str):
+                voices[name] = {"path": item}
+            else:
+                voices[name] = {
+                    key: str(value)
+                    for key, value in item.items()
+                    if key in {"path", "sha256"}
+                }
     return {"model": model_artifact, "voices": voices}
 
 

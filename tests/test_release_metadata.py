@@ -105,6 +105,33 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     }
 
 
+def test_software_mansion_release_entries_are_staged() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
+    for key, voice, language in (
+        ("de-software-mansion-anna", "df_anna", "de"),
+        ("pl-software-mansion-mateusz", "pm_mateusz", "pl"),
+    ):
+        profile = profiles[key]
+        release = releases[key]
+        assert release["kind"] == "build"
+        assert release["profile"] == key
+        assert release["publish"] is False
+        assert release["source_repository"] == profile["repo_id"]
+        assert release["source_revision"] == profile["revision"]
+        assert release["language_codes"] == [language]
+        assert release["runtime"]["default_voice"] == voice
+        assert release["onnx_contract"] == profile["onnx_contract"]
+        names = {asset["name"] for asset in release["assets"]}
+        assert profile["release"]["model_filename"] in names
+        assert profile["release"]["config_filename"] in names
+        assert all(
+            asset["filename"] in names for asset in profile["release"]["voice_assets"]
+        )
+
+
 def test_build_profile_and_release_asset_names_match() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")

@@ -108,6 +108,8 @@ def test_expected_profiles_exist() -> None:
         "ru-zaakirio-base",
         "ru-zaakirio-dima",
         "kk-anuarsv",
+        "de-software-mansion-anna",
+        "pl-software-mansion-mateusz",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
 
@@ -161,6 +163,53 @@ def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
     assert profile["release"]["default_voice"] == "ngoc_huyen"
 
 
+def test_software_mansion_profiles_pin_sources_and_stock_config() -> None:
+    profiles = build_kokoro.load_profiles()
+    expected = {
+        "de-software-mansion-anna": {
+            "checkpoint": (
+                "finetunes/kokoro_german_converted.pth",
+                "b8b2ab322963e7662c6036035c76c34a6a5582f814917407c94d632a1c930f71",
+            ),
+            "voice": (
+                "voices/df_anna.bin",
+                "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+            ),
+            "name": "df_anna",
+        },
+        "pl-software-mansion-mateusz": {
+            "checkpoint": (
+                "finetunes/kokoro_polish_converted.pth",
+                "e3202dc4d1f6e65dddff8a8e8d2e091ce9a3a66cf989c6c581a81b2f1969af49",
+            ),
+            "voice": (
+                "voices/pm_mateusz.bin",
+                "dc8f2919ede945e6962310b5204b912e64689d5698c571822bf75ad704870cb4",
+            ),
+            "name": "pm_mateusz",
+        },
+    }
+    for key, values in expected.items():
+        profile = profiles[key]
+        assert profile["revision"] == "9a8b5878012e01a26dad2618068dc61215994785"
+        assert profile["model"]["path"] == values["checkpoint"][0]
+        assert profile["model"]["sha256"] == values["checkpoint"][1]
+        assert profile["model"]["config"] == "config.json"
+        assert profile["model"]["config_repo_id"] == "hexgrad/Kokoro-82M"
+        assert (
+            profile["model"]["config_revision"]
+            == "f3ff3571791e39611d31c381e3a41a3af07b4987"
+        )
+        assert (
+            profile["model"]["config_sha256"]
+            == "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+        )
+        assert profile["voices"]["path"] == values["voice"][0]
+        assert profile["voices"]["sha256"] == values["voice"][1]
+        assert profile["voices"]["names"] == [values["name"]]
+        assert "xnnpack" not in json.dumps(profile).lower()
+
+
 def test_build_defaults_to_opset_17() -> None:
     args = build_kokoro.build_parser().parse_args(["build", "de-thorsten"])
     assert args.opset == 17
@@ -171,6 +220,63 @@ def test_verify_source_hash_rejects_mismatch(tmp_path: Path) -> None:
     path.write_bytes(b"actual")
     with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
         build_kokoro.verify_source_hash(path, "0" * 64, label="model checkpoint")
+
+
+def test_prepacked_voice_hash_is_verified_before_parsing(tmp_path: Path) -> None:
+    source = tmp_path / "voices.bin"
+    source.write_bytes(b"voice source")
+    with (
+        patch.object(build_kokoro, "hf_download", return_value=source),
+        patch.object(
+            build_kokoro,
+            "_read_raw_voice_file",
+            side_effect=AssertionError("voice parser must not run"),
+        ),
+    ):
+        with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
+            build_kokoro.resolve_prepacked_voices(
+                "repo",
+                "revision",
+                tmp_path / "cache",
+                "voices.bin",
+                ["voice"],
+                archive_or_raw=False,
+                expected_sha256="0" * 64,
+            )
+
+
+def test_prepacked_voice_hash_is_verified_for_archive_or_raw(tmp_path: Path) -> None:
+    source = tmp_path / "voices.bin"
+    source.write_bytes(b"voice source")
+    with patch.object(build_kokoro, "hf_download", return_value=source):
+        with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
+            build_kokoro.resolve_prepacked_voices(
+                "repo",
+                "revision",
+                tmp_path / "cache",
+                "voices.bin",
+                ["voice"],
+                archive_or_raw=True,
+                expected_sha256="0" * 64,
+            )
+
+
+def test_raw_voice_source_artifacts_include_path_and_hash() -> None:
+    profile = {
+        "model": {"path": "model.pth"},
+        "voices": {
+            "kind": "raw",
+            "path": "voices/df_anna.bin",
+            "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+            "names": ["df_anna"],
+        },
+    }
+    assert build_kokoro.source_artifacts(profile)["voices"] == {
+        "df_anna": {
+            "path": "voices/df_anna.bin",
+            "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+        }
+    }
 
 
 def _health_kwargs() -> dict[str, float]:
@@ -369,7 +475,14 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
         patch.object(build_kokoro, "verify_source_hash"),
     ):
         profiles = build_kokoro.load_profiles()
-        for key in ("sv-joakim", "de-thorsten", "kk-anuarsv", "pt-eu-logus2k"):
+        for key in (
+            "sv-joakim",
+            "de-thorsten",
+            "kk-anuarsv",
+            "pt-eu-logus2k",
+            "de-software-mansion-anna",
+            "pl-software-mansion-mateusz",
+        ):
             profile = profiles[key]
             out = tmp_path / key / "model.onnx"
             build_kokoro.resolve_model(
@@ -416,6 +529,26 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
             "logus2k/kokoro_tts_eu_pt",
             "tuga_kokoro.pth",
             "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
+        ),
+        (
+            "hexgrad/Kokoro-82M",
+            "config.json",
+            "f3ff3571791e39611d31c381e3a41a3af07b4987",
+        ),
+        (
+            "software-mansion/react-native-executorch-kokoro",
+            "finetunes/kokoro_german_converted.pth",
+            "9a8b5878012e01a26dad2618068dc61215994785",
+        ),
+        (
+            "hexgrad/Kokoro-82M",
+            "config.json",
+            "f3ff3571791e39611d31c381e3a41a3af07b4987",
+        ),
+        (
+            "software-mansion/react-native-executorch-kokoro",
+            "finetunes/kokoro_polish_converted.pth",
+            "9a8b5878012e01a26dad2618068dc61215994785",
         ),
     ]
 

@@ -1930,6 +1930,88 @@
           ]
         }
       ]
+    },
+    "de-software-mansion-anna": {
+      "model_version": "1",
+      "display_name": "Kokoro German (Software Mansion Anna)",
+      "runtime_available": false,
+      "language_codes": ["de"],
+      "frontend": "phonemis-de-v1",
+      "frontend_display_name": "Software Mansion Phonemis German",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "single-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "df_anna",
+        "voices": ["df_anna"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "software-mansion/react-native-executorch-kokoro"
+      },
+      "mirror_policy": "preferred",
+      "distributions": []
+    },
+    "pl-software-mansion-mateusz": {
+      "model_version": "1",
+      "display_name": "Kokoro Polish (Software Mansion Mateusz)",
+      "runtime_available": false,
+      "language_codes": ["pl"],
+      "frontend": "phonemis-pl-v1",
+      "frontend_display_name": "Software Mansion Phonemis Polish",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "single-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "pm_mateusz",
+        "voices": ["pm_mateusz"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "software-mansion/react-native-executorch-kokoro"
+      },
+      "mirror_policy": "preferred",
+      "distributions": []
     }
   }
 }

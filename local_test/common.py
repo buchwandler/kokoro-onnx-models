@@ -66,6 +66,7 @@ SENTENCES = {
     "vi": "Xin chào. Đây là bài kiểm tra giọng nói cục bộ trước khi phát hành mô hình.",
     "ar": "مَرْحَبًا بِكَ. هَذَا اخْتِبَارٌ مَحَلِّيٌّ لِلصَّوْتِ قَبْلَ إِصْدَارِ النَّمُوذَجِ.",
     "sv": "Hej. Det här är ett lokalt rösttest före publiceringen av modellen.",
+    "pl": "Dzień dobry. To jest lokalny test głosu przed opublikowaniem modelu.",
     "th": "สวัสดี นี่คือการทดสอบเสียงแบบภายในก่อนเผยแพร่โมเดล",
     "he": "שלום. זוהי בדיקת קול מקומית לפני פרסום המודל.",
     "ru": "Здравствуйте! Это локальная проверка русского голоса перед публикацией модели.",
@@ -329,6 +330,36 @@ SPECS: dict[str, LocalTestSpec] = {
         notes=(
             "Uses the v1.0 local integration shim until pykokoro has a "
             "first-class kk-anuarsv profile."
+        ),
+    ),
+    "de-software-mansion-anna": LocalTestSpec(
+        key="de-software-mansion-anna",
+        display_name="Kokoro German Software Mansion Anna",
+        language="de",
+        model_source="github",
+        model_variant="de-software-mansion-anna",
+        expected_speakers=("df_anna",),
+        required_files=("config.json",),
+        frontend="Software Mansion Phonemis German; parity required",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Current kokorog2p German output is not certified against the "
+            "Software Mansion Phonemis frontend."
+        ),
+    ),
+    "pl-software-mansion-mateusz": LocalTestSpec(
+        key="pl-software-mansion-mateusz",
+        display_name="Kokoro Polish Software Mansion Mateusz",
+        language="pl",
+        model_source="github",
+        model_variant="pl-software-mansion-mateusz",
+        expected_speakers=("pm_mateusz",),
+        required_files=("config.json",),
+        frontend="Software Mansion Phonemis Polish; frontend unavailable",
+        exact_pykokoro_expected=False,
+        notes=(
+            "Current kokorog2p does not support Polish; do not use generic "
+            "tokenization until a compatible frontend is integrated."
         ),
     ),
 }

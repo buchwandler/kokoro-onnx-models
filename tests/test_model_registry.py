@@ -17,7 +17,26 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 16
+    assert len(registry["models"]) == 18
+
+
+def test_software_mansion_profiles_are_staged_non_runtime() -> None:
+    registry = load_registry()
+    for model_id, voice, language, frontend in (
+        ("de-software-mansion-anna", "df_anna", "de", "phonemis-de-v1"),
+        ("pl-software-mansion-mateusz", "pm_mateusz", "pl", "phonemis-pl-v1"),
+    ):
+        model = registry["models"][model_id]
+        assert model["language_codes"] == [language]
+        assert model["frontend"] == frontend
+        assert model["runtime_available"] is False
+        assert model["runtime"]["default_voice"] == voice
+        assert model["runtime"]["voices"] == [voice]
+        assert model["distributions"] == []
+        assert model["onnx_contract"]["outputs"] == {
+            "audio": "float32",
+            "duration": "int64",
+        }
 
 
 def test_european_portuguese_registry_exposes_token_durations() -> None:

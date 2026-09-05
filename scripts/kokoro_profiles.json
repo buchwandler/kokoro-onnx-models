@@ -1187,5 +1187,153 @@
       "min_rms_ratio": 0.1,
       "max_rms_ratio": 10.0
     }
+  },
+  "de-software-mansion-anna": {
+    "display_name": "Kokoro German (Software Mansion Anna)",
+    "repo_id": "software-mansion/react-native-executorch-kokoro",
+    "revision": "9a8b5878012e01a26dad2618068dc61215994785",
+    "license": "Apache-2.0",
+    "language": "de",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "finetunes/kokoro_german_converted.pth",
+      "sha256": "b8b2ab322963e7662c6036035c76c34a6a5582f814917407c94d632a1c930f71",
+      "config": "config.json",
+      "config_repo_id": "hexgrad/Kokoro-82M",
+      "config_revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+    },
+    "voices": {
+      "kind": "raw",
+      "path": "voices/df_anna.bin",
+      "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+      "names": ["df_anna"]
+    },
+    "frontend": {
+      "kind": "external",
+      "name": "Software Mansion Phonemis German",
+      "experimental": true,
+      "sherpa_text_compatible": false,
+      "note": "Upstream runtime bundles a German Phonemis frontend. Validate kokorog2p de output against the upstream frontend before treating it as a parity-compatible replacement."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-german-software-mansion-anna-v1",
+      "model_version": "1",
+      "model_filename": "kokoro-german-software-mansion-anna-v1.onnx",
+      "config_filename": "config-german-software-mansion-anna-v1.json",
+      "voices": ["df_anna"],
+      "default_voice": "df_anna",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-german-software-mansion-anna-v1.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-german-software-mansion-anna-v1.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true
+    }
+  },
+  "pl-software-mansion-mateusz": {
+    "display_name": "Kokoro Polish (Software Mansion Mateusz)",
+    "repo_id": "software-mansion/react-native-executorch-kokoro",
+    "revision": "9a8b5878012e01a26dad2618068dc61215994785",
+    "license": "Apache-2.0",
+    "language": "pl",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "finetunes/kokoro_polish_converted.pth",
+      "sha256": "e3202dc4d1f6e65dddff8a8e8d2e091ce9a3a66cf989c6c581a81b2f1969af49",
+      "config": "config.json",
+      "config_repo_id": "hexgrad/Kokoro-82M",
+      "config_revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+      "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+    },
+    "voices": {
+      "kind": "raw",
+      "path": "voices/pm_mateusz.bin",
+      "sha256": "dc8f2919ede945e6962310b5204b912e64689d5698c571822bf75ad704870cb4",
+      "names": ["pm_mateusz"]
+    },
+    "frontend": {
+      "kind": "external",
+      "name": "Software Mansion Phonemis Polish",
+      "experimental": true,
+      "sherpa_text_compatible": false,
+      "note": "Upstream runtime bundles Polish Phonemis resources. Current kokorog2p does not list Polish; do not mark this model runtime-ready for pykokoro text input until a Polish frontend is available."
+    },
+    "release": {
+      "enabled": true,
+      "tag": "model-files-polish-software-mansion-mateusz-v1",
+      "model_version": "1",
+      "model_filename": "kokoro-polish-software-mansion-mateusz-v1.onnx",
+      "config_filename": "config-polish-software-mansion-mateusz-v1.json",
+      "voices": ["pm_mateusz"],
+      "default_voice": "pm_mateusz",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-polish-software-mansion-mateusz-v1.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-polish-software-mansion-mateusz-v1.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true
+    }
   }
 }

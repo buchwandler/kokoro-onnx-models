@@ -2259,6 +2259,142 @@
           "sha256": "84188e1eef74f126114a7bc99bf8751fae7de5db9d7bb70e4c01e2a486c0281a"
         }
       ]
+    },
+    "de-software-mansion-anna": {
+      "kind": "build",
+      "profile": "de-software-mansion-anna",
+      "tag": "model-files-german-software-mansion-anna-v1",
+      "model_version": "1",
+      "source_repository": "software-mansion/react-native-executorch-kokoro",
+      "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
+      "publish": false,
+      "license": "Apache-2.0",
+      "language_codes": ["de"],
+      "frontend": "phonemis-de-v1",
+      "runtime": {
+        "default_voice": "df_anna",
+        "voices": ["df_anna"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-german-software-mansion-anna-v1.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-german-software-mansion-anna-v1.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-german-software-mansion-anna-v1.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-german-software-mansion-anna-v1.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
+    },
+    "pl-software-mansion-mateusz": {
+      "kind": "build",
+      "profile": "pl-software-mansion-mateusz",
+      "tag": "model-files-polish-software-mansion-mateusz-v1",
+      "model_version": "1",
+      "source_repository": "software-mansion/react-native-executorch-kokoro",
+      "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
+      "publish": false,
+      "license": "Apache-2.0",
+      "language_codes": ["pl"],
+      "frontend": "phonemis-pl-v1",
+      "runtime": {
+        "default_voice": "pm_mateusz",
+        "voices": ["pm_mateusz"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-polish-software-mansion-mateusz-v1.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-polish-software-mansion-mateusz-v1.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-polish-software-mansion-mateusz-v1.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-polish-software-mansion-mateusz-v1.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     }
   }
 }
