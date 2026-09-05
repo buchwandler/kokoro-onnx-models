@@ -232,33 +232,35 @@ def test_prepacked_voice_hash_is_verified_before_parsing(tmp_path: Path) -> None
             "_read_raw_voice_file",
             side_effect=AssertionError("voice parser must not run"),
         ),
+        pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"),
     ):
-        with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
-            build_kokoro.resolve_prepacked_voices(
-                "repo",
-                "revision",
-                tmp_path / "cache",
-                "voices.bin",
-                ["voice"],
-                archive_or_raw=False,
-                expected_sha256="0" * 64,
-            )
+        build_kokoro.resolve_prepacked_voices(
+            "repo",
+            "revision",
+            tmp_path / "cache",
+            "voices.bin",
+            ["voice"],
+            archive_or_raw=False,
+            expected_sha256="0" * 64,
+        )
 
 
 def test_prepacked_voice_hash_is_verified_for_archive_or_raw(tmp_path: Path) -> None:
     source = tmp_path / "voices.bin"
     source.write_bytes(b"voice source")
-    with patch.object(build_kokoro, "hf_download", return_value=source):
-        with pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"):
-            build_kokoro.resolve_prepacked_voices(
-                "repo",
-                "revision",
-                tmp_path / "cache",
-                "voices.bin",
-                ["voice"],
-                archive_or_raw=True,
-                expected_sha256="0" * 64,
-            )
+    with (
+        patch.object(build_kokoro, "hf_download", return_value=source),
+        pytest.raises(build_kokoro.BuildError, match="SHA-256 mismatch"),
+    ):
+        build_kokoro.resolve_prepacked_voices(
+            "repo",
+            "revision",
+            tmp_path / "cache",
+            "voices.bin",
+            ["voice"],
+            archive_or_raw=True,
+            expected_sha256="0" * 64,
+        )
 
 
 def test_raw_voice_source_artifacts_include_path_and_hash() -> None:
