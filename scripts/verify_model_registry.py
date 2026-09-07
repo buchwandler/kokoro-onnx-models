@@ -66,7 +66,7 @@ def _validate_artifact(
     )
     _require(
         urlparse(artifact["url"]).scheme == "https",
-        f"{model_id}: artifact URL is not HTTPS: {artifact['url']}",
+        f"{model_id}: artifact URL must use https://: {artifact['url']}",
     )
     _require(
         isinstance(artifact["size"], int)
