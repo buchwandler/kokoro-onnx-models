@@ -98,7 +98,7 @@ jobs:
           uv run --extra build python local_test/compare_checkpoint_onnx.py "${{ matrix.profile }}" --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/${{ matrix.profile }}/report.json"
       - name: Software Mansion checkpoint A/B gate (real fixtures required)
-        if: ${{ matrix.kind == 'build' && (matrix.profile == 'de-software-mansion-anna' || matrix.profile == 'pl-software-mansion-mateusz') }}
+        if: ${{ matrix.kind == 'build' && (matrix.profile == 'de-anna' || matrix.profile == 'pl-mateusz') }}
         run: |
           # compare_checkpoint_onnx.py rejects profiles without frozen cases.
           uv run --extra build python local_test/compare_checkpoint_onnx.py "${{ matrix.profile }}" --runs 5 --seed 20260828 --keep-build
@@ -121,8 +121,8 @@ jobs:
             .local-test/compare/vi-ngoc-huyen
             .local-test/compare/ru-zaakirio-base
             .local-test/compare/ru-zaakirio-dima
-            .local-test/compare/de-software-mansion-anna
-            .local-test/compare/pl-software-mansion-mateusz
+            .local-test/compare/de-anna
+            .local-test/compare/pl-mateusz
           compression-level: 0
           if-no-files-found: error
 

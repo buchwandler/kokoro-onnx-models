@@ -105,7 +105,7 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     }
 
 
-def test_software_mansion_release_entries_are_staged() -> None:
+def test_software_mansion_release_entries_are_published() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
     )
@@ -118,7 +118,7 @@ def test_software_mansion_release_entries_are_staged() -> None:
         release = releases[key]
         assert release["kind"] == "build"
         assert release["profile"] == key
-        assert release["publish"] is False
+        assert release["publish"] is True
         assert release["source_repository"] == profile["repo_id"]
         assert release["source_revision"] == profile["revision"]
         assert release["language_codes"] == [language]

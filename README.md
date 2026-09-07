@@ -62,8 +62,8 @@ Supported build profiles:
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
 | `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
-| `de-anna` | German | `software-mansion/react-native-executorch-kokoro` | no, staged validation |
-| `pl-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | no, frontend pending |
+| `de-anna` | German | `software-mansion/react-native-executorch-kokoro` | yes |
+| `pl-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | yes |
 | `pt-eu-logus2k` | European Portuguese | `logus2k/kokoro_tts_eu_pt` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
@@ -131,10 +131,10 @@ metadata rather than scattered hard-coded branches.
 The runtime inventory is `catalog/models.json`. Kokoro v1.0 is mirrored from the timestamped ONNX Community distribution (`onnx-community/Kokoro-82M-v1.0-ONNX-timestamped`) so its native token durations are available; v1.1-zh is mirrored from its pinned ONNX Community revision. Each is published as a separate immutable profile release.
 
 For a local candidate build and verification, see [`docs/LOCAL_RELEASE_TESTING.md`](docs/LOCAL_RELEASE_TESTING.md). Maintainers can build every publishable catalog entry through GitHub Actions using **Actions > release-all > Run workflow**. The workflow builds the complete candidate matrix before its protected `publish-all` job publishes independent release tags.
-The Software Mansion release catalog entries are currently `publish: false`, and their
-registry placeholders have `runtime_available: false` with no distributions. Do not publish
-or synchronize them until real German frontend parity and Polish frontend support have
-passed consumer smoke tests; synthetic-token export success alone is not runtime readiness.
+The Software Mansion release catalog entries are publishable, but their
+registry placeholders remain `runtime_available: false` with no distributions. Do not synchronize
+them until real German frontend parity and Polish frontend support have passed consumer smoke
+tests; synthetic-token export success alone is not runtime readiness.
 
 For a single local mirror candidate:
 
