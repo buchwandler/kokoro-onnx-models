@@ -1188,7 +1188,7 @@
       "max_rms_ratio": 10.0
     }
   },
-  "de-software-mansion-anna": {
+  "de-anna": {
     "display_name": "Kokoro German (Software Mansion Anna)",
     "repo_id": "software-mansion/react-native-executorch-kokoro",
     "revision": "9a8b5878012e01a26dad2618068dc61215994785",
@@ -1262,7 +1262,7 @@
       "requires_random_source_ops": true
     }
   },
-  "pl-software-mansion-mateusz": {
+  "pl-mateusz": {
     "display_name": "Kokoro Polish (Software Mansion Mateusz)",
     "repo_id": "software-mansion/react-native-executorch-kokoro",
     "revision": "9a8b5878012e01a26dad2618068dc61215994785",

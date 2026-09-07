@@ -111,8 +111,8 @@ def test_software_mansion_release_entries_are_staged() -> None:
     )
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
     for key, voice, language in (
-        ("de-software-mansion-anna", "df_anna", "de"),
-        ("pl-software-mansion-mateusz", "pm_mateusz", "pl"),
+        ("de-anna", "df_anna", "de"),
+        ("pl-mateusz", "pm_mateusz", "pl"),
     ):
         profile = profiles[key]
         release = releases[key]

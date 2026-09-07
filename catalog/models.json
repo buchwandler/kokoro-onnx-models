@@ -1931,7 +1931,7 @@
         }
       ]
     },
-    "de-software-mansion-anna": {
+    "de-anna": {
       "model_version": "1",
       "display_name": "Kokoro German (Software Mansion Anna)",
       "runtime_available": false,
@@ -1972,7 +1972,7 @@
       "mirror_policy": "preferred",
       "distributions": []
     },
-    "pl-software-mansion-mateusz": {
+    "pl-mateusz": {
       "model_version": "1",
       "display_name": "Kokoro Polish (Software Mansion Mateusz)",
       "runtime_available": false,

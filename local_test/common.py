@@ -332,12 +332,12 @@ SPECS: dict[str, LocalTestSpec] = {
             "first-class kk-anuarsv profile."
         ),
     ),
-    "de-software-mansion-anna": LocalTestSpec(
-        key="de-software-mansion-anna",
+    "de-anna": LocalTestSpec(
+        key="de-anna",
         display_name="Kokoro German Software Mansion Anna",
         language="de",
         model_source="github",
-        model_variant="de-software-mansion-anna",
+        model_variant="de-anna",
         expected_speakers=("df_anna",),
         required_files=("config.json",),
         frontend="Software Mansion Phonemis German; parity required",
@@ -347,12 +347,12 @@ SPECS: dict[str, LocalTestSpec] = {
             "Software Mansion Phonemis frontend."
         ),
     ),
-    "pl-software-mansion-mateusz": LocalTestSpec(
-        key="pl-software-mansion-mateusz",
+    "pl-mateusz": LocalTestSpec(
+        key="pl-mateusz",
         display_name="Kokoro Polish Software Mansion Mateusz",
         language="pl",
         model_source="github",
-        model_variant="pl-software-mansion-mateusz",
+        model_variant="pl-mateusz",
         expected_speakers=("pm_mateusz",),
         required_files=("config.json",),
         frontend="Software Mansion Phonemis Polish; frontend unavailable",

@@ -108,8 +108,8 @@ def test_expected_profiles_exist() -> None:
         "ru-zaakirio-base",
         "ru-zaakirio-dima",
         "kk-anuarsv",
-        "de-software-mansion-anna",
-        "pl-software-mansion-mateusz",
+        "de-anna",
+        "pl-mateusz",
     }
     assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
 
@@ -166,7 +166,7 @@ def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
 def test_software_mansion_profiles_pin_sources_and_stock_config() -> None:
     profiles = build_kokoro.load_profiles()
     expected = {
-        "de-software-mansion-anna": {
+        "de-anna": {
             "checkpoint": (
                 "finetunes/kokoro_german_converted.pth",
                 "b8b2ab322963e7662c6036035c76c34a6a5582f814917407c94d632a1c930f71",
@@ -177,7 +177,7 @@ def test_software_mansion_profiles_pin_sources_and_stock_config() -> None:
             ),
             "name": "df_anna",
         },
-        "pl-software-mansion-mateusz": {
+        "pl-mateusz": {
             "checkpoint": (
                 "finetunes/kokoro_polish_converted.pth",
                 "e3202dc4d1f6e65dddff8a8e8d2e091ce9a3a66cf989c6c581a81b2f1969af49",
@@ -482,8 +482,8 @@ def test_checkpoint_profiles_resolve_through_exporter(tmp_path: Path) -> None:
             "de-thorsten",
             "kk-anuarsv",
             "pt-eu-logus2k",
-            "de-software-mansion-anna",
-            "pl-software-mansion-mateusz",
+            "de-anna",
+            "pl-mateusz",
         ):
             profile = profiles[key]
             out = tmp_path / key / "model.onnx"

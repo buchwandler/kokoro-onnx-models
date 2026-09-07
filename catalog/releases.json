@@ -2260,9 +2260,9 @@
         }
       ]
     },
-    "de-software-mansion-anna": {
+    "de-anna": {
       "kind": "build",
-      "profile": "de-software-mansion-anna",
+      "profile": "de-anna",
       "tag": "model-files-german-software-mansion-anna-v1",
       "model_version": "1",
       "source_repository": "software-mansion/react-native-executorch-kokoro",
@@ -2328,9 +2328,9 @@
         }
       ]
     },
-    "pl-software-mansion-mateusz": {
+    "pl-mateusz": {
       "kind": "build",
-      "profile": "pl-software-mansion-mateusz",
+      "profile": "pl-mateusz",
       "tag": "model-files-polish-software-mansion-mateusz-v1",
       "model_version": "1",
       "source_repository": "software-mansion/react-native-executorch-kokoro",

@@ -23,8 +23,8 @@ def test_committed_registry_is_valid() -> None:
 def test_software_mansion_profiles_are_staged_non_runtime() -> None:
     registry = load_registry()
     for model_id, voice, language, frontend in (
-        ("de-software-mansion-anna", "df_anna", "de", "phonemis-de-v1"),
-        ("pl-software-mansion-mateusz", "pm_mateusz", "pl", "phonemis-pl-v1"),
+        ("de-anna", "df_anna", "de", "phonemis-de-v1"),
+        ("pl-mateusz", "pm_mateusz", "pl", "phonemis-pl-v1"),
     ):
         model = registry["models"][model_id]
         assert model["language_codes"] == [language]

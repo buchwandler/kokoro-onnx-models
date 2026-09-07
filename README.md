@@ -62,8 +62,8 @@ Supported build profiles:
 | `he-hebrew-nc` | Hebrew | `thewh1teagle/kokoro-hebrew-nc` | **no** — restricted/non-commercial |
 | `sv-joakim` | Swedish | `Joakim/kokoro-sv-voices` | yes |
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
-| `de-software-mansion-anna` | German | `software-mansion/react-native-executorch-kokoro` | no, staged validation |
-| `pl-software-mansion-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | no, frontend pending |
+| `de-anna` | German | `software-mansion/react-native-executorch-kokoro` | no, staged validation |
+| `pl-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | no, frontend pending |
 | `pt-eu-logus2k` | European Portuguese | `logus2k/kokoro_tts_eu_pt` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
