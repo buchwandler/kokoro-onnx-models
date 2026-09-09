@@ -8,12 +8,11 @@ MODEL_RELEASE_REPOSITORY = "buchwandler/kokoro-onnx-models"
 
 Existing tags and filenames are intentionally preserved for the three retained
 
-| pykokoro variant | Release tag                      |
-| ---------------- | -------------------------------- |
+| pykokoro variant | Release tag                       |
+| ---------------- | --------------------------------- |
 | `v1.0`           | `model-files-v1.0-timestamped-r2` |
-| `v1.1-zh`        | `model-files-v1.1`               |
-| `v1.2-de-martin` | `model-files-german-martin-v1.2` |
-
+| `v1.1-zh`        | `model-files-v1.1`                |
+| `v1.2-de-martin` | `model-files-german-martin-v1.2`  |
 
 The previous `model-files-v1.0-timestamped` tag remains an immutable historical release;
 the r2 tag is the active v1.0 distribution for the expanded voice roster.

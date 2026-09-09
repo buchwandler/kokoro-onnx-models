@@ -48,6 +48,7 @@ class VoiceSource:
     revision: str | None = None
     format: str = "raw-float32-le"
 
+
 def request_json(url: str) -> Any:
     headers = {
         "Accept": "application/vnd.github+json",
@@ -228,7 +229,9 @@ def _voice_sources(spec: dict[str, Any], pack: dict[str, Any]) -> list[VoiceSour
                 sha256=str(item["sha256"]) if item.get("sha256") is not None else None,
                 repository=str(item.get("repository", spec["source_repository"])),
                 revision=str(item.get("revision", spec["source_revision"])),
-                format=str(item.get("format", pack.get("source_format", "raw-float32-le"))),
+                format=str(
+                    item.get("format", pack.get("source_format", "raw-float32-le"))
+                ),
             )
             for item in entries
         ]
@@ -391,7 +394,7 @@ def pack_voice_archive(
     *,
     style_width: int = 256,
     expected_rows: int | None = None,
- ) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Pack validated voices into a reproducible, named NumPy archive."""
     if len({source.name for source, _ in sources}) != len(sources):
         raise SystemExit("Voice pack contains duplicate voice names")
@@ -679,7 +682,9 @@ def main() -> int:
                 "handling": {
                     "dtype": "float32",
                     "style_width": int(voice_pack.get("style_width", 256)),
-                    "rows": int(voice_pack["expected_rows"]) if voice_pack.get("expected_rows") is not None else None,
+                    "rows": int(voice_pack["expected_rows"])
+                    if voice_pack.get("expected_rows") is not None
+                    else None,
                     "voice_count": len(provenance),
                     "members": [item["target_member"] for item in provenance],
                 },

@@ -5,10 +5,10 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
-
 from types import SimpleNamespace
-import pytest
+
 import numpy as np
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "mirror_release.py"
@@ -412,11 +412,10 @@ def test_voice_array_loads_torch_pack_safely(monkeypatch: pytest.MonkeyPatch) ->
             "Unsupported voice source format",
         ),
     ],
- )
+)
 def test_voice_array_rejects_invalid_sources(
     monkeypatch: pytest.MonkeyPatch, source, values, match: str
- ) -> None:
-    import numpy as np
+) -> None:
 
     class FakeTensor:
         def detach(self):
@@ -453,7 +452,7 @@ def test_pack_voice_archive_rejects_wrong_row_count(tmp_path: Path) -> None:
 
 def test_voice_array_rejects_non_finite_torch_values(
     monkeypatch: pytest.MonkeyPatch,
- ) -> None:
+) -> None:
     import numpy as np
 
     class FakeTensor:

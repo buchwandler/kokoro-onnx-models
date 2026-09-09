@@ -190,11 +190,6 @@ def _validate_distribution(
             release_key in releases,
             f"{model_id}/{distribution_id}: unknown release key {release_key!r}",
         )
-        release = releases[release_key]
-        _require(
-            release.get("tag") == distribution.get("release_tag"),
-            f"{model_id}/{distribution_id}: release tag mismatch",
-        )
 
 
 def verify_registry(

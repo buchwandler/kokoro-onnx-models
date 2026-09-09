@@ -46,7 +46,8 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
     remsky = [
         item
         for item in spec["voice_pack"]["source_assets"]
-        if item["name"] in {
+        if item["name"]
+        in {
             "af_ameliaearhart",
             "af_libritts5338",
             "am_libritts1272",
@@ -71,6 +72,7 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
         "bf_janegoodall",
         "bm_davidattenborough",
     }
+
 
 def test_v1_1_zh_has_distinct_quality_matrix_and_voice_inventory() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
