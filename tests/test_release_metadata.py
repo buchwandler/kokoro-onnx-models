@@ -18,7 +18,7 @@ PREPARE_SPEC.loader.exec_module(prepare_release)
 def test_catalog_target_repo() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
-    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped"
+    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r2"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
@@ -38,11 +38,39 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
         "waveform": "float32",
         "durations": "float32",
     }
-    assert len(spec["runtime"]["voices"]) == 54
+    assert len(spec["runtime"]["voices"]) == 61
     assert spec["runtime"]["default_voice"] == "af_heart"
     assert spec["voice_pack"]["target"] == "voices-v1.0.npz"
-    assert spec["voice_pack"]["expected_count"] == 54
-
+    assert spec["voice_pack"]["expected_count"] == 61
+    assert spec["voice_pack"]["expected_rows"] == 510
+    remsky = [
+        item
+        for item in spec["voice_pack"]["source_assets"]
+        if item["name"] in {
+            "af_ameliaearhart",
+            "af_libritts5338",
+            "am_libritts1272",
+            "am_libritts6241",
+            "am_vincentprice",
+            "bf_janegoodall",
+            "bm_davidattenborough",
+        }
+    ]
+    assert len(remsky) == 7
+    assert {item["repository"] for item in remsky} == {"remsky/kokoro-inno-clone-tuner"}
+    assert {item["revision"] for item in remsky} == {
+        "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb"
+    }
+    assert {item["format"] for item in remsky} == {"torch-pt"}
+    assert {item["name"] for item in remsky} == {
+        "af_ameliaearhart",
+        "af_libritts5338",
+        "am_libritts1272",
+        "am_libritts6241",
+        "am_vincentprice",
+        "bf_janegoodall",
+        "bm_davidattenborough",
+    }
 
 def test_v1_1_zh_has_distinct_quality_matrix_and_voice_inventory() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())

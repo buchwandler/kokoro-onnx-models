@@ -85,7 +85,7 @@ jobs:
           ALLOW_RESTRICTED: ${{ inputs.allow_restricted }}
         run: |
           if [ "$KIND" = "mirror" ]; then
-            uv run --with pytest --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
+            uv run --with pytest --with numpy --with 'torch>=2.6' python scripts/mirror_release.py "$RELEASE_KEY"
           else
             uv run scripts/build_kokoro.py build "$PROFILE"
             prep_args=("$PROFILE")
@@ -132,6 +132,10 @@ jobs:
           args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
           if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
           uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
+      - name: Kokoro v1.0 pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'mirror' && needs.prepare.outputs.profile == 'v1.0' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_v1_0.py --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
       - name: Staged pykokoro consumer gate
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-thorsten' }}
         run: |

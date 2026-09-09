@@ -35,8 +35,9 @@ python scripts/mirror_release.py v1.2-de-martin
 ```
 
 Each command creates `dist/<release-tag>/` and a `release-manifest.json`. Upload
-those files to a release with the same tag in this repository. Keeping the tags
-and filenames unchanged makes the initial `pykokoro` migration small.
+those files to a release with the same tag in this repository. The v1.0 mirror uses
+the new immutable `model-files-v1.0-timestamped-r2` revision; the historical
+`model-files-v1.0-timestamped` release remains unchanged.
 
 The `v1.2-de-martin` command mirrors the exact Apache-2.0 German Martin files from
 `Godelaune/Kokoro-82M-ONNX-German-Martin` at `main`: `kokoro-martin.onnx` and
@@ -129,6 +130,13 @@ metadata rather than scattered hard-coded branches.
 ## Release workflow
 
 The runtime inventory is `catalog/models.json`. Kokoro v1.0 is mirrored from the timestamped ONNX Community distribution (`onnx-community/Kokoro-82M-v1.0-ONNX-timestamped`) so its native token durations are available; v1.1-zh is mirrored from its pinned ONNX Community revision. Each is published as a separate immutable profile release.
+Kokoro v1.0 r2 contains the existing 54 stock voices plus seven externally tuned,
+Kokoro-compatible Remsky voice assets. These are voice assets only and do not replace
+or modify the v1.0 timestamped ONNX model.
+The Remsky repository declares Apache-2.0 and its exact pinned revision is recorded in
+`source-assets.json`. Four names refer to real people, so maintainers must complete legal
+and policy review of name, likeness, publicity, personality, and voice rights before
+public redistribution.
 
 For a local candidate build and verification, see [`docs/LOCAL_RELEASE_TESTING.md`](docs/LOCAL_RELEASE_TESTING.md). Maintainers can build every publishable catalog entry through GitHub Actions using **Actions > release-all > Run workflow**. The workflow builds the complete candidate matrix before its protected `publish-all` job publishes independent release tags.
 The Software Mansion release catalog entries are publishable, but their
@@ -140,13 +148,15 @@ For a single local mirror candidate:
 
 ```bash
 python scripts/mirror_release.py v1.0
-python scripts/verify_candidate.py dist/model-files-v1.0-timestamped \
-  --expected-tag model-files-v1.0-timestamped
+python scripts/verify_candidate.py dist/model-files-v1.0-timestamped-r2 \
+  --expected-tag model-files-v1.0-timestamped-r2
   --expected-profile v1.0
 ```
 
-The normal workflow never deletes or overwrites an existing release. A missing tag is published, an equivalent tag is skipped, and a differing tag fails. The one-time replacement of old v1.0/v1.1 releases is a separate maintainer operation.
-
+The normal workflow never deletes or overwrites an existing release. A missing tag is
+published, an equivalent tag is skipped, and a differing tag fails. The v1.0 r2 release
+is a new immutable tag, while `model-files-v1.0-timestamped` remains the historical
+release.
 After publishing a release manually, validate its assets and synchronize the runtime catalog with the published bytes:
 
 ```bash

@@ -70,3 +70,22 @@ def test_immutability_checker_allows_removed_distribution() -> None:
     before = _catalog()
     after = {"models": {"test": {"distributions": []}}}
     check_immutability(before, after)
+
+
+def test_voice_artifact_changes_require_a_new_release_tag() -> None:
+    before = _catalog(tag="model-files-v1.0-timestamped")
+    before_artifact = before["models"]["test"]["distributions"][0]["artifacts"][0]
+    before_artifact["role"] = "voices"
+    before_artifact["local_name"] = "voices-v1.0.npz"
+    after = copy.deepcopy(before)
+    after_artifact = after["models"]["test"]["distributions"][0]["artifacts"][0]
+    after_artifact["size"] = 5
+    after_artifact["sha256"] = "b" * 64
+
+    with pytest.raises(RegistryImmutabilityError, match="immutable"):
+        check_immutability(before, after)
+
+    after["models"]["test"]["distributions"][0]["release_tag"] = (
+        "model-files-v1.0-timestamped-r2"
+    )
+    check_immutability(before, after)

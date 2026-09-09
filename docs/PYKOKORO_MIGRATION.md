@@ -10,10 +10,17 @@ Existing tags and filenames are intentionally preserved for the three retained
 
 | pykokoro variant | Release tag                      |
 | ---------------- | -------------------------------- |
-| `v1.0`           | `model-files-v1.0-timestamped`   |
+| `v1.0`           | `model-files-v1.0-timestamped-r2` |
 | `v1.1-zh`        | `model-files-v1.1`               |
 | `v1.2-de-martin` | `model-files-german-martin-v1.2` |
 
+
+The previous `model-files-v1.0-timestamped` tag remains an immutable historical release;
+the r2 tag is the active v1.0 distribution for the expanded voice roster.
+The Remsky source declares Apache-2.0 and is used only for the seven compatible voice
+assets. Preserve its attribution and pinned revision. The names Amelia Earhart, Vincent
+Price, Jane Goodall, and David Attenborough require legal and policy review before public
+redistribution.
 The runtime source of truth is `catalog/models.json`, not the GitHub release catalog. PyKokoro selects one complete distribution and downloads every artifact from that distribution using plain HTTPS with size and SHA-256 validation. GitHub Releases are the preferred provider for v1.0, v1.1-zh, and the checkpoint-built Zaakirio Russian profiles. Pinned direct Hugging Face distributions remain available only for models that are intentionally upstream-only.
 Zaakirio Russian has separate builds: `ru-zaakirio-base` contains `sveta` and `masha`, while `ru-zaakirio-dima` contains `dima`. Both use the pinned `zaakirio/kokoro-ru` revision and expose validated token durations.
 

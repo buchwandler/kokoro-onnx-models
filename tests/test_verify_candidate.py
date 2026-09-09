@@ -100,6 +100,20 @@ def test_verify_candidate_checks_manifest_assets_and_checksums(tmp_path: Path) -
     assert result["asset_count"] == 3
 
 
+def test_validate_voice_asset_enforces_declared_rows(tmp_path: Path) -> None:
+    path = tmp_path / "voices.npz"
+    np.savez(path, af=np.zeros((2, 1), dtype=np.float32))
+    asset = {
+        "format": "numpy-npz",
+        "handling": {"rows": 2},
+    }
+    verify_candidate._validate_voice_asset(path, asset, {"voices": ["af"]})
+
+    asset["handling"]["rows"] = 3
+    with pytest.raises(verify_candidate.CandidateError, match="3 rows"):
+        verify_candidate._validate_voice_asset(path, asset, {"voices": ["af"]})
+
+
 def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
     manifest_path = candidate / "release-manifest.json"

@@ -23,7 +23,7 @@ def test_main_mirrors_and_verifies_release(
     monkeypatch.setattr(release_test, "run_command", commands.append)
 
     assert release_test.main(["v1.0", "--dist", str(dist)]) == 0
-
+    output = dist / "model-files-v1.0-timestamped-r2"
     assert commands == [
         [
             sys.executable,
@@ -35,9 +35,9 @@ def test_main_mirrors_and_verifies_release(
         [
             sys.executable,
             "scripts/verify_candidate.py",
-            str(dist / "model-files-v1.0-timestamped"),
+            str(output),
             "--expected-tag",
-            "model-files-v1.0-timestamped",
+            "model-files-v1.0-timestamped-r2",
             "--expected-profile",
             "v1.0",
         ],

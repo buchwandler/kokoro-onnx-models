@@ -265,6 +265,8 @@ def _validate_voice_asset(
                     not missing,
                     f"Voice archive {path.name} is missing voices: {', '.join(missing)}",
                 )
+                handling = asset.get("handling") or {}
+                expected_rows = handling.get("rows")
                 for name in archive.files:
                     values = archive[name]
                     _require(
@@ -275,12 +277,16 @@ def _validate_voice_asset(
                         values.dtype == np.float32,
                         f"Voice archive {path.name} voice {name} must use float32",
                     )
-                    handling = asset.get("handling") or {}
                     if "style_width" in handling:
                         width = handling["style_width"]
                         _require(
                             values.ndim in {2, 3} and values.shape[-1] == width,
                             f"Voice archive {path.name} voice {name} must have style width {width}",
+                        )
+                    if expected_rows is not None:
+                        _require(
+                            values.ndim >= 1 and values.shape[0] == expected_rows,
+                            f"Voice archive {path.name} voice {name} must have {expected_rows} rows",
                         )
         except ImportError:
             import zipfile

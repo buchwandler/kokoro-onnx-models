@@ -5,7 +5,7 @@
     "v1.0": {
       "kind": "mirror",
       "profile": "v1.0",
-      "tag": "model-files-v1.0-timestamped",
+      "tag": "model-files-v1.0-timestamped-r2",
       "model_version": "1.0",
       "license": "Apache-2.0",
       "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
@@ -85,7 +85,14 @@
           "zm_yunjian",
           "zm_yunxi",
           "zm_yunxia",
-          "zm_yunyang"
+          "zm_yunyang",
+          "af_ameliaearhart",
+          "af_libritts5338",
+          "am_libritts1272",
+          "am_libritts6241",
+          "am_vincentprice",
+          "bf_janegoodall",
+          "bm_davidattenborough"
         ]
       },
       "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
@@ -183,7 +190,8 @@
         "target": "voices-v1.0.npz",
         "target_format": "numpy-npz",
         "voices_from_runtime": true,
-        "expected_count": 54,
+        "expected_count": 61,
+        "expected_rows": 510,
         "dtype": "float32",
         "style_width": 256,
         "source_assets": [
@@ -510,6 +518,69 @@
             "path": "voices/zm_yunyang.bin",
             "size": 522240,
             "sha256": "261e2c89470534dbbcb8fd98b8fdc495ec94063d9bb6c8277f7be43cccba3f42"
+          },
+          {
+            "name": "af_ameliaearhart",
+            "path": "voices/af_ameliaearhart.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523880,
+            "sha256": "c6425f7d84d0af595ab88222f825edac0c64654e9d04378612a6e6de74181dca"
+          },
+          {
+            "name": "af_libritts5338",
+            "path": "voices/af_libritts5338.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523873,
+            "sha256": "5e9b4aa7df823a754d3677726e8b4a5a12fb0b48ff8117f75195ab6bd3169f64"
+          },
+          {
+            "name": "am_libritts1272",
+            "path": "voices/am_libritts1272.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523873,
+            "sha256": "d788518b99954281f4e9a6c673faf9d4a8999a0ca655f65cf90e3730c68cef5e"
+          },
+          {
+            "name": "am_libritts6241",
+            "path": "voices/am_libritts6241.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523873,
+            "sha256": "d4c46e75f3ee5c30732efa1e4a0e9a115b6a9b48da3e9d58afc5e934057d0157"
+          },
+          {
+            "name": "am_vincentprice",
+            "path": "voices/am_vincentprice.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523873,
+            "sha256": "4b8c5d1bd57f659b8b5785cab7ca5699074c6789c767865e3e6caf709301e8b6"
+          },
+          {
+            "name": "bf_janegoodall",
+            "path": "voices/bf_janegoodall.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523866,
+            "sha256": "e37ae8c058120fbcad9aa3c4101d88c0fa09fdd3753c3be15ce9830b0b4493fb"
+          },
+          {
+            "name": "bm_davidattenborough",
+            "path": "voices/bm_davidattenborough.pt",
+            "repository": "remsky/kokoro-inno-clone-tuner",
+            "revision": "b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb",
+            "format": "torch-pt",
+            "size": 523908,
+            "sha256": "e5fea7a8434b6ec4d10f794e1eea53b2b11cb053f6578707d15643c9f85a220a"
           }
         ]
       }

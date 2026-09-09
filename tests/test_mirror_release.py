@@ -6,7 +6,9 @@ import json
 import sys
 from pathlib import Path
 
+from types import SimpleNamespace
 import pytest
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "mirror_release.py"
@@ -325,3 +327,159 @@ def test_pack_voice_archive_rejects_invalid_voice_bytes(
 
     with pytest.raises(SystemExit):
         mirror_release.pack_voice_archive([(source, path)], tmp_path / "voices.npz")
+
+
+def test_voice_sources_support_per_source_metadata() -> None:
+    sources = mirror_release._voice_sources(
+        {"source_repository": "primary/repo", "source_revision": "primary-rev"},
+        {
+            "source_format": "raw-float32-le",
+            "source_assets": [
+                {
+                    "name": "af_test",
+                    "path": "voices/af_test.pt",
+                    "repository": "example/voices",
+                    "revision": "012345",
+                    "format": "torch-pt",
+                    "size": 123,
+                    "sha256": "a" * 64,
+                }
+            ],
+        },
+    )
+    assert sources == [
+        mirror_release.VoiceSource(
+            name="af_test",
+            path="voices/af_test.pt",
+            size=123,
+            sha256="a" * 64,
+            repository="example/voices",
+            revision="012345",
+            format="torch-pt",
+        )
+    ]
+
+
+def test_voice_array_loads_torch_pack_safely(monkeypatch: pytest.MonkeyPatch) -> None:
+    import numpy as np
+
+    calls = {}
+
+    class FakeTensor:
+        def detach(self):
+            return self
+
+        def cpu(self):
+            return self
+
+        def numpy(self):
+            return np.zeros((510, 1, 256), dtype=np.float32)
+
+    def load(path, **kwargs):
+        calls.update(kwargs)
+        return FakeTensor()
+
+    fake_torch = SimpleNamespace(Tensor=FakeTensor, load=load)
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+
+    array = mirror_release._voice_array(
+        Path("unused.pt"),
+        mirror_release.VoiceSource("voice", "voices/voice.pt", format="torch-pt"),
+        256,
+    )
+
+    assert array.shape == (510, 256)
+    assert array.dtype == np.float32
+    assert calls == {"map_location": "cpu", "weights_only": True}
+
+
+@pytest.mark.parametrize(
+    ("source", "values", "match"),
+    [
+        (
+            mirror_release.VoiceSource("voice", "voice.pt", format="torch-pt"),
+            "not-a-tensor",
+            "plain torch.Tensor",
+        ),
+        (
+            mirror_release.VoiceSource("voice", "voice.pt", format="torch-pt"),
+            np.zeros((510, 255), dtype=np.float32),
+            r"expected \[rows, 256\]",
+        ),
+        (
+            mirror_release.VoiceSource("voice", "voice.pt", format="unknown"),
+            None,
+            "Unsupported voice source format",
+        ),
+    ],
+ )
+def test_voice_array_rejects_invalid_sources(
+    monkeypatch: pytest.MonkeyPatch, source, values, match: str
+ ) -> None:
+    import numpy as np
+
+    class FakeTensor:
+        def detach(self):
+            return self
+
+        def cpu(self):
+            return self
+
+        def numpy(self):
+            return values
+
+    fake_torch = SimpleNamespace(
+        Tensor=FakeTensor,
+        load=lambda path, **kwargs: values if isinstance(values, str) else FakeTensor(),
+    )
+    monkeypatch.setitem(sys.modules, "torch", fake_torch)
+
+    with pytest.raises(SystemExit, match=match):
+        mirror_release._voice_array(Path("unused.pt"), source, 256)
+
+
+def test_pack_voice_archive_rejects_wrong_row_count(tmp_path: Path) -> None:
+    import numpy as np
+
+    path = tmp_path / "voice.bin"
+    np.zeros((509, 256), dtype="<f4").tofile(path)
+    source = mirror_release.VoiceSource("voice", "voices/voice.bin")
+
+    with pytest.raises(SystemExit, match="expected 510"):
+        mirror_release.pack_voice_archive(
+            [(source, path)], tmp_path / "voices.npz", expected_rows=510
+        )
+
+
+def test_voice_array_rejects_non_finite_torch_values(
+    monkeypatch: pytest.MonkeyPatch,
+ ) -> None:
+    import numpy as np
+
+    class FakeTensor:
+        def detach(self):
+            return self
+
+        def cpu(self):
+            return self
+
+        def numpy(self):
+            values = np.zeros((510, 256), dtype=np.float32)
+            values[0, 0] = np.nan
+            return values
+
+    monkeypatch.setitem(
+        sys.modules,
+        "torch",
+        SimpleNamespace(
+            Tensor=FakeTensor,
+            load=lambda path, **kwargs: FakeTensor(),
+        ),
+    )
+
+    with pytest.raises(SystemExit, match="non-finite"):
+        mirror_release._voice_array(
+            Path("unused.pt"),
+            mirror_release.VoiceSource("voice", "voice.pt", format="torch-pt"),
+            256,
+        )

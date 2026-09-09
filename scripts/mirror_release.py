@@ -44,7 +44,9 @@ class VoiceSource:
     path: str
     size: int | None = None
     sha256: str | None = None
-
+    repository: str | None = None
+    revision: str | None = None
+    format: str = "raw-float32-le"
 
 def request_json(url: str) -> Any:
     headers = {
@@ -220,10 +222,13 @@ def _voice_sources(spec: dict[str, Any], pack: dict[str, Any]) -> list[VoiceSour
     if entries is not None:
         sources = [
             VoiceSource(
-                str(item["name"]),
-                str(item.get("path", f"voices/{item['name']}.bin")),
-                int(item["size"]) if item.get("size") is not None else None,
-                str(item["sha256"]) if item.get("sha256") is not None else None,
+                name=str(item["name"]),
+                path=str(item.get("path", f"voices/{item['name']}.bin")),
+                size=int(item["size"]) if item.get("size") is not None else None,
+                sha256=str(item["sha256"]) if item.get("sha256") is not None else None,
+                repository=str(item.get("repository", spec["source_repository"])),
+                revision=str(item.get("revision", spec["source_revision"])),
+                format=str(item.get("format", pack.get("source_format", "raw-float32-le"))),
             )
             for item in entries
         ]
@@ -234,8 +239,11 @@ def _voice_sources(spec: dict[str, Any], pack: dict[str, Any]) -> list[VoiceSour
         ]
         sources = [
             VoiceSource(
-                name,
-                f"{pack.get('source_prefix', 'voices/')}{name}{pack.get('source_suffix', '.bin')}",
+                name=name,
+                path=f"{pack.get('source_prefix', 'voices/')}{name}{pack.get('source_suffix', '.bin')}",
+                repository=spec["source_repository"],
+                revision=spec["source_revision"],
+                format=str(pack.get("source_format", "raw-float32-le")),
             )
             for name in names
         ]
@@ -304,7 +312,15 @@ def _discover_voice_sources(
             "Upstream contains unexpected voices: " + ", ".join(unexpected)
         )
     return [
-        VoiceSource(item.name, item.path, int(found[item.path].get("size", 0)) or None)
+        VoiceSource(
+            name=item.name,
+            path=item.path,
+            size=int(found[item.path].get("size", 0)) or None,
+            sha256=item.sha256,
+            repository=item.repository or repository,
+            revision=item.revision or revision,
+            format=item.format,
+        )
         for item in declared
     ]
 
@@ -320,18 +336,45 @@ def _voice_array(path: Path, source: VoiceSource, style_width: int) -> Any:
         import numpy as np
     except ImportError as exc:
         raise SystemExit("numpy is required to build a voice archive") from exc
-    raw = path.read_bytes()
-    if len(raw) % 4:
-        raise SystemExit(f"Voice {source.name} is not float32-aligned")
-    values = np.frombuffer(raw, dtype="<f4")
-    if values.size == 0 or values.size % style_width:
+
+    if source.format == "raw-float32-le":
+        raw = path.read_bytes()
+        if len(raw) % 4:
+            raise SystemExit(f"Voice {source.name} is not float32-aligned")
+        values = np.frombuffer(raw, dtype="<f4")
+        if values.size == 0 or values.size % style_width:
+            raise SystemExit(
+                f"Voice {source.name} has {values.size} values, "
+                f"incompatible with style width {style_width}"
+            )
+        array = values.reshape((-1, style_width)).copy()
+    elif source.format == "torch-pt":
+        try:
+            import torch
+        except ImportError as exc:
+            raise SystemExit(
+                "torch is required to convert torch-pt voice packs"
+            ) from exc
+        value = torch.load(path, map_location="cpu", weights_only=True)
+        if not isinstance(value, torch.Tensor):
+            raise SystemExit(f"Voice {source.name} is not a plain torch.Tensor")
+        array = value.detach().cpu().numpy()
+        if array.ndim == 3 and array.shape[1] == 1:
+            array = array[:, 0, :]
+        if array.ndim != 2 or array.shape[1] != style_width:
+            raise SystemExit(
+                f"Voice {source.name} has shape {tuple(array.shape)}; "
+                f"expected [rows, {style_width}] or [rows, 1, {style_width}]"
+            )
+        array = np.ascontiguousarray(array, dtype="<f4")
+    else:
         raise SystemExit(
-            f"Voice {source.name} has {values.size} values, incompatible with style width {style_width}"
+            f"Unsupported voice source format for {source.name}: {source.format}"
         )
-    values = values.reshape((-1, style_width))
-    if not np.isfinite(values).all():
+
+    if not np.isfinite(array).all():
         raise SystemExit(f"Voice {source.name} contains non-finite values")
-    return values.copy()
+    return array
 
 
 def _npy_bytes(array: Any) -> bytes:
@@ -343,17 +386,25 @@ def _npy_bytes(array: Any) -> bytes:
 
 
 def pack_voice_archive(
-    sources: list[tuple[VoiceSource, Path]], target: Path, *, style_width: int = 256
-) -> list[dict[str, Any]]:
-    """Pack validated raw voices into a reproducible, named NumPy archive."""
+    sources: list[tuple[VoiceSource, Path]],
+    target: Path,
+    *,
+    style_width: int = 256,
+    expected_rows: int | None = None,
+ ) -> list[dict[str, Any]]:
+    """Pack validated voices into a reproducible, named NumPy archive."""
     if len({source.name for source, _ in sources}) != len(sources):
         raise SystemExit("Voice pack contains duplicate voice names")
     members: list[tuple[str, bytes, VoiceSource, int]] = []
     for source, path in sources:
         array = _voice_array(path, source, style_width)
+        if expected_rows is not None and array.shape[0] != expected_rows:
+            raise SystemExit(
+                f"Voice {source.name} has {array.shape[0]} rows, "
+                f"expected {expected_rows}"
+            )
         payload = _npy_bytes(array)
         members.append((f"{source.name}.npy", payload, source, array.shape[0]))
-
     target.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(
         target, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
@@ -535,7 +586,9 @@ def main() -> int:
                 )
                 temporary = stage_asset(
                     huggingface_url(
-                        spec["source_repository"], spec["source_revision"], voice.path
+                        voice.repository or spec["source_repository"],
+                        voice.revision or spec["source_revision"],
+                        voice.path,
                     ),
                     source_path,
                     voice_asset,
@@ -547,6 +600,11 @@ def main() -> int:
                 voice_staged,
                 target,
                 style_width=int(voice_pack.get("style_width", 256)),
+                expected_rows=(
+                    int(voice_pack["expected_rows"])
+                    if voice_pack.get("expected_rows") is not None
+                    else None
+                ),
             )
         finally:
             shutil.rmtree(out / ".sources", ignore_errors=True)
@@ -556,9 +614,29 @@ def main() -> int:
                 {
                     "schema": 1,
                     "source": source,
-                    "transform": "raw-float32-le-to-numpy-npz-v1",
+                    "transform": "kokoro-voice-pack-to-numpy-npz-v2",
                     "style_width": int(voice_pack.get("style_width", 256)),
-                    "assets": provenance,
+                    "assets": [
+                        {
+                            **item,
+                            "repository": next(
+                                voice.repository or spec["source_repository"]
+                                for voice, path in voice_staged
+                                if path.name == item["path"].replace("/", "_")
+                            ),
+                            "revision": next(
+                                voice.revision or spec["source_revision"]
+                                for voice, path in voice_staged
+                                if path.name == item["path"].replace("/", "_")
+                            ),
+                            "format": next(
+                                voice.format
+                                for voice, path in voice_staged
+                                if path.name == item["path"].replace("/", "_")
+                            ),
+                        }
+                        for item in provenance
+                    ],
                     "output": {
                         "name": str(voice_pack["target"]),
                         "sha256": sha256(target),
@@ -601,6 +679,7 @@ def main() -> int:
                 "handling": {
                     "dtype": "float32",
                     "style_width": int(voice_pack.get("style_width", 256)),
+                    "rows": int(voice_pack["expected_rows"]) if voice_pack.get("expected_rows") is not None else None,
                     "voice_count": len(provenance),
                     "members": [item["target_member"] for item in provenance],
                 },
@@ -641,7 +720,7 @@ def main() -> int:
     if voice_pack:
         manifest["transform"] = {
             "type": "voice-pack",
-            "version": 1,
+            "version": 2,
             "source_manifest": "source-assets.json",
         }
     if transform_provenance:

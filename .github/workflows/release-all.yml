@@ -55,7 +55,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           if [ "$KIND" = "mirror" ]; then
-            uv run --with numpy python scripts/mirror_release.py "$RELEASE_KEY"
+            uv run --with numpy --with 'torch>=2.6' python scripts/mirror_release.py "$RELEASE_KEY"
           else
             uv run scripts/build_kokoro.py build "$PROFILE"
             uv run --with numpy python scripts/prepare_release.py "$PROFILE"
@@ -103,6 +103,10 @@ jobs:
             --expected-tag "${{ matrix.tag }}" \
             --expected-profile "${{ matrix.profile }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: Kokoro v1.0 pykokoro consumer gate
+        if: ${{ matrix.kind == 'mirror' && matrix.profile == 'v1.0' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python local_test/smoke_v1_0.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
