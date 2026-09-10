@@ -184,6 +184,11 @@ jobs:
           set -euo pipefail
           for manifest in candidates/*/release-manifest.json; do
             profile="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile"])' "$manifest")"
+            activate="$(python -c 'import json,sys; print("true" if json.load(open("catalog/releases.json"))["releases"][sys.argv[1]].get("activate_runtime_registry", True) is True else "false")' "$profile")"
+            if [ "$activate" != "true" ]; then
+              echo "Skipping runtime-registry activation for staged profile: $profile"
+              continue
+            fi
             python scripts/update_registry_from_release.py "$(dirname "$manifest")" --profile "$profile" --update
           done
           python scripts/verify_model_registry.py

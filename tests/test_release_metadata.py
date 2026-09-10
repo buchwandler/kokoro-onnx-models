@@ -150,6 +150,7 @@ def test_software_mansion_release_entries_are_published() -> None:
         assert release["profile"] == key
         assert release["publish"] is True
         assert release["source_repository"] == profile["repo_id"]
+        assert release["activate_runtime_registry"] is False
         assert release["source_revision"] == profile["revision"]
         assert release["language_codes"] == [language]
         assert release["runtime"]["default_voice"] == voice

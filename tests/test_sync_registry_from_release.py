@@ -174,6 +174,32 @@ def _sync_fixture(
     return candidate, registry, releases
 
 
+def test_sync_release_does_not_activate_staged_release(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=5,
+        generated_sha="b" * 64,
+        existing_tag="model-files-test-v1",
+        generated_tag="model-files-test-v2",
+    )
+    release_data = json.loads(releases.read_text(encoding="utf-8"))
+    release_data["releases"]["test"]["activate_runtime_registry"] = False
+    releases.write_text(json.dumps(release_data), encoding="utf-8")
+    before = registry.read_text(encoding="utf-8")
+
+    sync_release(
+        candidate,
+        profile="test",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+
+    assert registry.read_text(encoding="utf-8") == before
+
+
 def test_sync_release_allows_identical_existing_release_tag(tmp_path: Path) -> None:
     candidate, registry, releases = _sync_fixture(
         tmp_path,

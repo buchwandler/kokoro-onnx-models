@@ -148,6 +148,12 @@ def sync_release(
     )
     generated = distribution_from_manifest(manifest, release, existing)
     _assert_release_tag_immutable(existing, generated)
+    if update and release.get("activate_runtime_registry", True) is not True:
+        print(
+            f"release {model_id} is publishable but staged; "
+            "runtime registry remains unchanged"
+        )
+        return
     if update:
         model["onnx_contract"] = manifest_contract
         model["distributions"] = [

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from scripts.release_all import (
@@ -24,6 +26,42 @@ def test_publishable_matrix_is_sorted_and_excludes_disabled_and_upstream_only() 
             {"release_key": "z", "profile": "z", "tag": "z-tag", "kind": "build"},
         ]
     }
+
+
+def test_publishable_matrix_includes_staged_releases() -> None:
+    matrix = publishable_matrix(
+        {
+            "releases": {
+                "de-anna": {
+                    "kind": "build",
+                    "tag": "anna-tag",
+                    "publish": True,
+                    "activate_runtime_registry": False,
+                },
+                "pl-mateusz": {
+                    "kind": "build",
+                    "tag": "mateusz-tag",
+                    "publish": True,
+                    "activate_runtime_registry": False,
+                },
+            }
+        }
+    )
+
+    assert [item["release_key"] for item in matrix["include"]] == [
+        "de-anna",
+        "pl-mateusz",
+    ]
+
+
+def test_sync_workflow_skips_staged_runtime_activation() -> None:
+    workflow = (
+        Path(__file__).parents[1] / ".github" / "workflows" / "release-all.yml"
+    ).read_text(encoding="utf-8")
+
+    assert 'get("activate_runtime_registry", True)' in workflow
+    assert 'if [ "$activate" != "true" ]; then' in workflow
+    assert "continue" in workflow
 
 
 def _manifest(digest: str = "a" * 64) -> dict[str, object]:
