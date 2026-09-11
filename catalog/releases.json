@@ -2263,9 +2263,9 @@
     "pt-eu-logus2k": {
       "kind": "build",
       "profile": "pt-eu-logus2k",
-      "tag": "model-files-portuguese-eu-pt-v1.0-r2",
+      "tag": "model-files-portuguese-eu-pt-v1.0-r3",
       "model_version": "1.0",
-      "release_version": 2,
+      "release_version": 3,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -2302,8 +2302,8 @@
           "role": "model",
           "quality": "fp32",
           "format": "onnx",
-          "size": 325510014,
-          "sha256": "96e6cda91682f7dfbe2313c8c0288908436f074d8a217e8c09a293a04b548d0a"
+          "size": 325510089,
+          "sha256": "05c232c1a5c294afebb23656cef11d2c35e08191ce36a5904d72938e8b213ba8"
         },
         {
           "source": "voices.npz",
@@ -2326,8 +2326,8 @@
           "name": "bundle.json",
           "role": "bundle",
           "format": "json",
-          "size": 94395,
-          "sha256": "633e6baf51ce59141fa95118e214e63bb80a01ef6a5b00deec2a3bac83e37e4c"
+          "size": 94470,
+          "sha256": "42a84508b70c32cb2d96eb707143c197d6fb5b8d55904012c43c2ad8f11b51bd"
         },
         {
           "source": "config.json",
