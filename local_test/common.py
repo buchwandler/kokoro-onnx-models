@@ -59,7 +59,7 @@ SENTENCES = {
     "fr-fr": "Bonjour. Ceci est un test vocal local avant la publication du modèle.",
     "de": "Hallo. Die Brücke ist schön, und dies ist ein lokaler Sprachtest vor der Veröffentlichung des Modells.",
     "it": "Ciao. Questa è una prova vocale locale prima della pubblicazione del modello.",
-    "pt": "Olá. Este é um teste local de voz antes da publicação do modelo.",
+    "pt-pt": "Olá. Este é um teste local de voz antes da publicação do modelo.",
     "ja": "こんにちは。これはモデル公開前のローカル音声テストです。",
     "zh": "你好。这是模型发布之前的本地语音测试。",
     "hi": "नमस्ते। यह मॉडल जारी करने से पहले एक स्थानीय आवाज़ परीक्षण है।",
@@ -282,16 +282,17 @@ SPECS: dict[str, LocalTestSpec] = {
     "pt-eu-logus2k": LocalTestSpec(
         key="pt-eu-logus2k",
         display_name="Kokoro European Portuguese (logus2k)",
-        language="pt",
+        language="pt-pt",
         model_source="github",
         model_variant="pt-eu-logus2k",
         expected_speakers=("pt_eu",),
         required_files=("config.json",),
-        frontend="tts_eu_pt TugaPhone pt-PT Lisbon frontend",
+        frontend="KokoroG2P pt-pt + lexhint",
         exact_pykokoro_expected=False,
         notes=(
-            "Use tts_eu_pt for frontend parity; the local pykokoro smoke "
-            "is an experimental acoustic gate."
+            "Requires Lexphon data pt-pt:lexhint; use KokoroG2P pt-pt "
+            "for European Portuguese pronunciation and preserve the model's "
+            "Kokoro vocabulary symbol cleanup during text normalization."
         ),
     ),
     "ru-zaakirio-base": LocalTestSpec(
@@ -658,7 +659,7 @@ def _tokenizer_for(
         "fr-fr",
         "de",
         "it",
-        "pt",
+        "pt-pt",
         "ja",
         "zh",
         "ar",

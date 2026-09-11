@@ -61,6 +61,8 @@ def test_software_mansion_mateusz_remains_staged() -> None:
 
 def test_european_portuguese_registry_exposes_token_durations() -> None:
     model = load_registry()["models"]["pt-eu-logus2k"]
+    assert model["language_codes"] == ["pt-pt"]
+    assert model["runtime_available"] is True
     assert model["frontend"] == "tts-eu-pt-v1"
     assert model["runtime"]["default_voice"] == "pt_eu"
     assert model["onnx_contract"]["timing"] == {
@@ -155,6 +157,8 @@ def test_invalid_voice_metadata_is_rejected(tmp_path: Path) -> None:
     path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(RegistryError, match="outside the roster"):
         verify_registry(path)
+
+
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
     registry = load_registry()
     registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][

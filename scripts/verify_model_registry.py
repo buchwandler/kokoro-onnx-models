@@ -114,7 +114,9 @@ def _validate_voice_metadata(model_id: str, runtime: dict[str, Any]) -> None:
     metadata = runtime.get("voice_metadata")
     if metadata is None:
         return
-    _require(isinstance(metadata, dict), f"{model_id}: voice_metadata must be an object")
+    _require(
+        isinstance(metadata, dict), f"{model_id}: voice_metadata must be an object"
+    )
     voices = runtime["voices"]
     _require(
         set(metadata) <= set(voices),
@@ -143,6 +145,7 @@ def _validate_voice_metadata(model_id: str, runtime: dict[str, Any]) -> None:
             isinstance(detail.get("language_label"), str) and detail["language_label"],
             f"{model_id}/{voice}: missing voice language label",
         )
+
 
 def _validate_distribution(
     model_id: str,

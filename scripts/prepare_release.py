@@ -144,13 +144,19 @@ def _runtime_metadata(
     profile: dict[str, Any], bundle_path: Path, release: dict[str, Any]
 ) -> dict[str, Any]:
     frontend = profile.get("frontend") or {}
-    fallback_voices = list(release.get("voices") or ["default"])
+    release_runtime = release.get("runtime") or {}
+    fallback_voices = list(
+        release_runtime.get("voices") or release.get("voices") or ["default"]
+    )
     contract = dict(profile.get("onnx_contract") or {})
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
     )
     contract.setdefault("outputs", {"audio": "float32"})
-    contract.setdefault("max_tokens", int(release.get("max_tokens", 510)))
+    contract.setdefault(
+        "max_tokens",
+        int(release_runtime.get("max_tokens", release.get("max_tokens", 510))),
+    )
     return {
         "language_codes": [str(profile.get("language", "und"))],
         "sample_rate": int(profile.get("sample_rate", 24000)),
@@ -161,9 +167,17 @@ def _runtime_metadata(
         "tokenizer_vocab_version": str(release.get("tokenizer_vocab_version", "1.0")),
         "vocabulary_source": str(release.get("vocabulary_source", "downloaded-config")),
         "max_tokens": int(contract["max_tokens"]),
-        "default_voice": str(release.get("default_voice", fallback_voices[0])),
+        "default_voice": str(
+            release_runtime.get(
+                "default_voice", release.get("default_voice", fallback_voices[0])
+            )
+        ),
         "voices": _bundle_voices(bundle_path, fallback_voices),
-        "layout": str(release.get("runtime_layout", "single-onnx-v1")),
+        "layout": str(
+            release_runtime.get(
+                "layout", release.get("runtime_layout", "single-onnx-v1")
+            )
+        ),
         "postprocess": profile.get("postprocess", {}),
         "runtime_hints": profile.get("runtime_hints", {}),
     }

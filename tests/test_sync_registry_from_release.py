@@ -140,6 +140,89 @@ def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
     assert updated["models"]["test"]["onnx_contract"] == contract
 
 
+def test_sync_release_updates_stale_runtime_identity(tmp_path: Path) -> None:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    contract = {
+        "inputs": {"tokens": "int64"},
+        "outputs": {"audio": "float32"},
+        "max_tokens": 510,
+    }
+    runtime = {
+        "language_codes": ["pt-pt"],
+        "sample_rate": 24000,
+        "frontend": "tts-eu-pt-v1",
+        "layout": "single-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "pt_eu",
+        "voices": ["pt_eu"],
+    }
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(
+            {
+                "tag": "model-files-test",
+                "profile": "test",
+                "model_version": "1.0",
+                "release_version": 1,
+                "runtime": runtime,
+                "onnx_contract": contract,
+                "assets": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    registry = tmp_path / "models.json"
+    registry.write_text(
+        json.dumps(
+            {
+                "models": {
+                    "test": {
+                        "language_codes": ["pt"],
+                        "frontend": "tts-eu-pt-v1",
+                        "sample_rate": 24000,
+                        "runtime": {
+                            "layout": "single-onnx-v1",
+                            "max_tokens": 510,
+                            "default_voice": "pt_eu",
+                            "voices": ["pt_eu"],
+                        },
+                        "onnx_contract": contract,
+                        "distributions": [],
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    releases = tmp_path / "releases.json"
+    releases.write_text(
+        json.dumps(
+            {
+                "releases": {
+                    "test": {
+                        "tag": "model-files-test",
+                        "model_version": "1.0",
+                        "release_version": 1,
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    sync_release(
+        candidate,
+        profile="test",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+    updated = json.loads(registry.read_text(encoding="utf-8"))
+    model = updated["models"]["test"]
+    assert model["language_codes"] == ["pt-pt"]
+    assert model["frontend"] == "tts-eu-pt-v1"
+    assert model["runtime"]["voices"] == ["pt_eu"]
+
+
 def _sync_fixture(
     tmp_path: Path,
     *,

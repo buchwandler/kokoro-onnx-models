@@ -118,6 +118,28 @@ def distribution_from_manifest(
     }
 
 
+def _sync_runtime_identity(model: dict[str, Any], manifest: dict[str, Any]) -> None:
+    runtime = manifest.get("runtime")
+    if runtime is None:
+        return
+    if not isinstance(runtime, dict):
+        raise RegistryReleaseError("Manifest runtime metadata must be an object")
+    required = ("language_codes", "frontend", "sample_rate")
+    missing = [field for field in required if field not in runtime]
+    if missing:
+        raise RegistryReleaseError(
+            "Manifest runtime metadata is missing: " + ", ".join(missing)
+        )
+    model["language_codes"] = list(runtime["language_codes"])
+    model["frontend"] = str(runtime["frontend"])
+    model["sample_rate"] = int(runtime["sample_rate"])
+    catalog_runtime = dict(model.get("runtime") or {})
+    for field in ("layout", "max_tokens", "default_voice", "voices"):
+        if field in runtime:
+            catalog_runtime[field] = runtime[field]
+    model["runtime"] = catalog_runtime
+
+
 def sync_release(
     candidate: Path,
     *,
@@ -170,6 +192,7 @@ def sync_release(
     if update:
         model["model_version"] = str(release["model_version"])
         model["onnx_contract"] = manifest_contract
+        _sync_runtime_identity(model, manifest)
         model["distributions"] = [
             d for d in model["distributions"] if d.get("provider") != "github-release"
         ]

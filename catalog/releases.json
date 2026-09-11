@@ -2263,9 +2263,9 @@
     "pt-eu-logus2k": {
       "kind": "build",
       "profile": "pt-eu-logus2k",
-      "tag": "model-files-portuguese-eu-pt-v1.0",
+      "tag": "model-files-portuguese-eu-pt-v1.0-r2",
       "model_version": "1.0",
-      "release_version": 1,
+      "release_version": 2,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -2289,7 +2289,7 @@
       "source_revision": "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
       "publish": true,
       "license": "Apache-2.0",
-      "language_codes": ["pt"],
+      "language_codes": ["pt-pt"],
       "frontend": "tts-eu-pt-v1",
       "runtime": {
         "default_voice": "pt_eu",

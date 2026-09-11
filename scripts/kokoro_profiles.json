@@ -1000,7 +1000,7 @@
     "repo_id": "logus2k/kokoro_tts_eu_pt",
     "revision": "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
     "license": "Apache-2.0",
-    "language": "pt",
+    "language": "pt-pt",
     "sample_rate": 24000,
     "model": {
       "kind": "checkpoint",
@@ -1028,11 +1028,13 @@
         "format": "markdown"
       }
     ],
+    "frontend_id": "tts-eu-pt-v1",
     "frontend": {
-      "kind": "external",
-      "name": "tts_eu_pt TugaPhone pt-PT Lisbon",
+      "kind": "kokorog2p",
+      "name": "European Portuguese via KokoroG2P + Lexphon",
+      "experimental": true,
       "sherpa_text_compatible": false,
-      "note": "Use tts_eu_pt's TugaPhone frontend and text normalization, including its Kokoro vocabulary symbol cleanup."
+      "note": "Use KokoroG2P language pt-pt with lexhint; released Lexphon asset: pt-pt:lexhint. Preserve the model's Kokoro vocabulary symbol cleanup during text normalization."
     },
     "release": {
       "model_filename": "kokoro-portuguese-eu-pt-v1.0.onnx",

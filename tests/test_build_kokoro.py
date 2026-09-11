@@ -19,6 +19,12 @@ assert SPEC is not None and SPEC.loader is not None
 build_kokoro = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(build_kokoro)
 
+PREPARE_PATH = ROOT / "scripts" / "prepare_release.py"
+PREPARE_SPEC = importlib.util.spec_from_file_location("prepare_release", PREPARE_PATH)
+assert PREPARE_SPEC is not None and PREPARE_SPEC.loader is not None
+prepare_release = importlib.util.module_from_spec(PREPARE_SPEC)
+PREPARE_SPEC.loader.exec_module(prepare_release)
+
 
 def test_install_exact_onnx_istft_returns_installed_instance(monkeypatch) -> None:
     class FakeExactOnnxISTFT:
@@ -113,6 +119,22 @@ def test_expected_profiles_exist() -> None:
     }
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False
+
+
+def test_portuguese_profile_produces_supported_runtime_metadata(tmp_path: Path) -> None:
+    profile = build_kokoro.load_profiles()["pt-eu-logus2k"]
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    release = releases["releases"]["pt-eu-logus2k"]
+    runtime = prepare_release._runtime_metadata(
+        profile, tmp_path / "missing-bundle.json", release
+    )
+    assert runtime["language_codes"] == ["pt-pt"]
+    assert runtime["frontend"] == "tts-eu-pt-v1"
+    assert runtime["sample_rate"] == 24000
+    assert runtime["default_voice"] == "pt_eu"
+    assert runtime["voices"] == ["pt_eu"]
+    assert profile["frontend"]["kind"] == "kokorog2p"
+    assert profile["frontend"]["experimental"] is True
 
 
 def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
