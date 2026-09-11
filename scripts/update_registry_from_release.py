@@ -42,10 +42,17 @@ def _artifact_signature(distribution: dict[str, Any]) -> dict[str, dict[str, Any
     }
 
 
+def _is_pending_catalog_distribution(distribution: dict[str, Any]) -> bool:
+    provenance = distribution.get("provenance")
+    return isinstance(provenance, dict) and provenance.get("catalog_state") == "pending"
+
+
 def _assert_release_tag_immutable(
     existing: dict[str, Any] | None, generated: dict[str, Any]
 ) -> None:
     if existing is None or existing.get("release_tag") != generated.get("release_tag"):
+        return
+    if _is_pending_catalog_distribution(existing):
         return
     if _artifact_signature(existing) == _artifact_signature(generated):
         return

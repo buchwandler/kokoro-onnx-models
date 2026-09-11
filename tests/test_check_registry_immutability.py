@@ -60,6 +60,16 @@ def test_immutability_checker_rejects_same_tag_artifact_changes(
         check_immutability(before, after)
 
 
+def test_immutability_checker_allows_initial_pending_catalog_sync() -> None:
+    before = _catalog()
+    before["models"]["test"]["distributions"][0]["provenance"] = {
+        "catalog_state": "pending"
+    }
+    after = copy.deepcopy(before)
+    after["models"]["test"]["distributions"][0]["artifacts"][0]["size"] = 5
+    check_immutability(before, after)
+
+
 def test_immutability_checker_allows_changed_release_tag() -> None:
     check_immutability(
         _catalog(), _catalog(tag="model-files-test-v2", size=5, sha="b" * 64)

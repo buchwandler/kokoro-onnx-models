@@ -2326,8 +2326,8 @@
           "name": "bundle.json",
           "role": "bundle",
           "format": "json",
-          "size": 94470,
-          "sha256": "42a84508b70c32cb2d96eb707143c197d6fb5b8d55904012c43c2ad8f11b51bd"
+          "size": 94385,
+          "sha256": "a47f0468def114deccd7a5505a027ee4f74f0a0c7de7f7b63984cb76454f6700"
         },
         {
           "source": "config.json",

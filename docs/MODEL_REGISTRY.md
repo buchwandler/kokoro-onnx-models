@@ -12,7 +12,7 @@ Every artifact has an immutable HTTPS URL, local filename, format, byte size, an
 
 A release tag is a content identity. Once published, the artifact names, URLs, formats, sizes, SHA-256 values, handling metadata, and bytes under that tag are immutable. If model bytes or any artifact identity changes, publish a new release tag and update the registry to the new distribution instead of rewriting metadata under the old tag.
 
-`scripts/update_registry_from_release.py --update` enforces this contract and rejects changed artifact identity for an existing release tag. The checks workflow also compares the catalog with the pull-request base or push parent to reject manual same-tag edits.
+`scripts/update_registry_from_release.py --update` enforces this contract and rejects changed artifact identity for an existing release tag. A distribution explicitly marked with `provenance.catalog_state: "pending"` is a prepublication placeholder; its first successful synchronization replaces the placeholder with the published manifest and clears that marker. The checks workflow allows only this one-time transition and continues to reject later same-tag edits.
 
 ## Mirrors and upstream sources
 

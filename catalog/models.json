@@ -3157,6 +3157,7 @@
             }
           ],
           "provenance": {
+            "catalog_state": "pending",
             "source_repository": "logus2k/kokoro_tts_eu_pt",
             "source_revision": "dcf0404a6552e0cc2485446724091b4cd9b4cbae",
             "transform": null,

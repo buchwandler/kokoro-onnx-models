@@ -47,6 +47,11 @@ def _artifact_signature(distribution: dict[str, Any]) -> dict[str, dict[str, Any
     }
 
 
+def _is_pending_catalog_distribution(distribution: dict[str, Any]) -> bool:
+    provenance = distribution.get("provenance")
+    return isinstance(provenance, dict) and provenance.get("catalog_state") == "pending"
+
+
 def _github_distributions(model: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         distribution
@@ -72,6 +77,8 @@ def check_immutability(before: dict[str, Any], after: dict[str, Any]) -> None:
             tag = old_distribution.get("release_tag")
             new_distribution = new_by_tag.get(tag)
             if new_distribution is None:
+                continue
+            if _is_pending_catalog_distribution(old_distribution):
                 continue
             if _artifact_signature(old_distribution) != _artifact_signature(
                 new_distribution

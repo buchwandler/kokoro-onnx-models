@@ -232,6 +232,7 @@ def _sync_fixture(
     generated_sha: str,
     existing_tag: str = "model-files-test",
     generated_tag: str = "model-files-test",
+    pending: bool = False,
 ) -> tuple[Path, Path, Path]:
     candidate = tmp_path / "candidate"
     candidate.mkdir()
@@ -265,6 +266,8 @@ def _sync_fixture(
     existing = distribution_from_manifest(
         existing_manifest, {"model_version": "1.0", "release_version": 1}
     )
+    if pending:
+        existing["provenance"]["catalog_state"] = "pending"
     registry = tmp_path / "models.json"
     registry.write_text(
         json.dumps({"models": {"test": {"distributions": [existing]}}}),
@@ -533,6 +536,30 @@ def test_sync_release_rejects_model_version_mismatch(tmp_path: Path) -> None:
             releases_path=releases,
             update=True,
         )
+
+
+def test_sync_release_allows_pending_catalog_sync(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=5,
+        generated_sha="b" * 64,
+        pending=True,
+    )
+
+    sync_release(
+        candidate,
+        profile="test",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+
+    updated = json.loads(registry.read_text(encoding="utf-8"))
+    distribution = updated["models"]["test"]["distributions"][0]
+    assert distribution["artifacts"][0]["size"] == 5
+    assert "catalog_state" not in distribution["provenance"]
 
 
 def test_sync_release_rejects_release_version_mismatch(tmp_path: Path) -> None:
