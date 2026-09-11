@@ -3050,7 +3050,15 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pt_eu",
-        "voices": ["pt_eu"]
+        "voices": ["pt_eu"],
+        "voice_metadata": {
+          "pt_eu": {
+            "gender": "female",
+            "language": "pt",
+            "locale": "pt-PT",
+            "language_label": "European Portuguese"
+          }
+        }
       },
       "onnx_contract": {
         "inputs": {

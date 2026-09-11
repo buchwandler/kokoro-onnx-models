@@ -65,6 +65,14 @@ def test_european_portuguese_registry_exposes_token_durations() -> None:
     assert model["runtime_available"] is True
     assert model["frontend"] == "tts-eu-pt-v1"
     assert model["runtime"]["default_voice"] == "pt_eu"
+    assert model["runtime"]["voice_metadata"] == {
+        "pt_eu": {
+            "gender": "female",
+            "language": "pt",
+            "locale": "pt-PT",
+            "language_label": "European Portuguese",
+        }
+    }
     assert model["onnx_contract"]["timing"] == {
         "kind": "token-duration-v1",
         "output": "duration",
