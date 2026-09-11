@@ -114,6 +114,7 @@ def test_expected_profiles_exist() -> None:
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False
 
+
 def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
     profile = build_kokoro.load_profiles()["sv-joakim"]
     assert profile["repo_id"] == "Joakim/kokoro-sv-voices"

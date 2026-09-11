@@ -18,8 +18,9 @@ PREPARE_SPEC.loader.exec_module(prepare_release)
 def test_catalog_target_repo() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
-    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r2"
+    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r3"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
+
 
 def test_release_entries_have_explicit_version_identity() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
@@ -28,8 +29,7 @@ def test_release_entries_have_explicit_version_identity() -> None:
         assert isinstance(release["model_version"], str) and release["model_version"]
         assert isinstance(release["release_version"], int)
         assert release["release_version"] >= 1
-    assert data["releases"]["v1.0"]["release_version"] == 2
-
+    assert data["releases"]["v1.0"]["release_version"] == 3
 
 
 def test_v1_0_voice_asset_is_numpy_archive() -> None:

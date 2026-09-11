@@ -97,6 +97,7 @@ def test_sync_workflow_skips_staged_runtime_activation() -> None:
     assert 'if [ "$activate" != "true" ]; then' in workflow
     assert "continue" in workflow
 
+
 def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:
     root = Path(__file__).parents[1] / ".github" / "workflows"
     workflows = {
@@ -132,7 +133,6 @@ def test_release_all_matrix_exposes_both_versions() -> None:
     )
     assert matrix["include"][0]["model_version"] == "1"
     assert matrix["include"][0]["release_version"] == 2
-
 
 
 def test_anna_consumer_gates_install_espeak_ng() -> None:

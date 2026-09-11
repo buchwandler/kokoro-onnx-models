@@ -36,7 +36,7 @@ jobs:
           for release_key in "${keys[@]}"; do
             release_key="$(echo "$release_key" | xargs)"
             test -n "$release_key"
-            python scripts/sync_registry_from_release.py "$release_key"
+            uv run python scripts/sync_registry_from_release.py "$release_key"
           done
           python scripts/verify_model_registry.py
           python scripts/collect_runtime_metadata.py --check

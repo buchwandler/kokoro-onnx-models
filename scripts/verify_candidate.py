@@ -705,6 +705,7 @@ def verify_candidate(
         "manifest": manifest,
     }
 
+
 def _positive_release_version(value: str) -> int:
     try:
         version = int(value)
@@ -713,7 +714,6 @@ def _positive_release_version(value: str) -> int:
     if version < 1:
         raise argparse.ArgumentTypeError("release version must be >= 1")
     return version
-
 
 
 def main(argv: list[str] | None = None) -> int:

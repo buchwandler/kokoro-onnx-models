@@ -524,6 +524,7 @@ def test_verify_candidate_rejects_wrong_split_graph_contract(tmp_path: Path) -> 
     with pytest.raises(verify_candidate.CandidateError, match="input_ids"):
         verify_candidate.verify_candidate(candidate)
 
+
 def test_verify_candidate_rejects_invalid_release_versions(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
     manifest_path = candidate / "release-manifest.json"
@@ -553,7 +554,9 @@ def test_verify_candidate_enforces_expected_versions_and_legacy_compatibility(
     del manifest["release_version"]
     manifest_path.write_text(json.dumps(manifest))
     verify_candidate.verify_candidate(candidate)
-    with pytest.raises(verify_candidate.CandidateError, match="missing release_version"):
+    with pytest.raises(
+        verify_candidate.CandidateError, match="missing release_version"
+    ):
         verify_candidate.verify_candidate(candidate, expected_release_version=1)
 
 

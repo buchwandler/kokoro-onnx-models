@@ -35,8 +35,6 @@ def test_distribution_from_manifest_contains_artifacts() -> None:
     distribution = distribution_from_manifest(manifest, {"release_version": 2})
     assert distribution["release_version"] == 2
 
-
-
     assert distribution["artifacts"] == [
         {
             "id": "model-model",
@@ -118,7 +116,17 @@ def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
     )
     releases = tmp_path / "releases.json"
     releases.write_text(
-        json.dumps({"releases": {"test": {"tag": "model-files-test", "model_version": "1.0", "release_version": 1}}}),
+        json.dumps(
+            {
+                "releases": {
+                    "test": {
+                        "tag": "model-files-test",
+                        "model_version": "1.0",
+                        "release_version": 1,
+                    }
+                }
+            }
+        ),
         encoding="utf-8",
     )
     sync_release(
@@ -435,7 +443,13 @@ def test_sync_release_rejects_model_version_mismatch(tmp_path: Path) -> None:
     manifest["model_version"] = "2.0"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(RegistryReleaseError, match="model_version"):
-        sync_release(candidate, profile="test", registry_path=registry, releases_path=releases, update=True)
+        sync_release(
+            candidate,
+            profile="test",
+            registry_path=registry,
+            releases_path=releases,
+            update=True,
+        )
 
 
 def test_sync_release_rejects_release_version_mismatch(tmp_path: Path) -> None:
@@ -451,4 +465,10 @@ def test_sync_release_rejects_release_version_mismatch(tmp_path: Path) -> None:
     manifest["release_version"] = 2
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(RegistryReleaseError, match="release_version"):
-        sync_release(candidate, profile="test", registry_path=registry, releases_path=releases, update=True)
+        sync_release(
+            candidate,
+            profile="test",
+            registry_path=registry,
+            releases_path=releases,
+            update=True,
+        )

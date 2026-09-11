@@ -10,12 +10,12 @@ Existing tags and filenames are intentionally preserved for the three retained
 
 | pykokoro variant | Release tag                       |
 | ---------------- | --------------------------------- |
-| `v1.0`           | `model-files-v1.0-timestamped-r2` |
+| `v1.0`           | `model-files-v1.0-timestamped-r3` |
 | `v1.1-zh`        | `model-files-v1.1`                |
 | `v1.2-de-martin` | `model-files-german-martin-v1.2`  |
 
 The previous `model-files-v1.0-timestamped` tag remains an immutable historical release;
-the r2 tag is the active v1.0 distribution for the expanded voice roster.
+the r3 tag is the active v1.0 distribution for the expanded voice roster.
 The Remsky source declares Apache-2.0 and is used only for the seven compatible voice
 assets. Preserve its attribution and pinned revision. The names Amelia Earhart, Vincent
 Price, Jane Goodall, and David Attenborough require legal and policy review before public

@@ -28,9 +28,9 @@ def load_profiles() -> dict[str, dict[str, Any]]:
     return json.loads(PROFILES.read_text(encoding="utf-8"))
 
 
-
 def load_releases() -> dict[str, Any]:
     return json.loads(RELEASES.read_text(encoding="utf-8"))
+
 
 def _bundle_voices(path: Path, fallback: list[str]) -> list[str]:
     try:

@@ -144,9 +144,8 @@ def sync_release(
             f"Manifest model_version {manifest.get('model_version')!r} does not match "
             f"catalog model_version {release.get('model_version')!r}"
         )
-    if (
-        "release_version" in manifest
-        and manifest["release_version"] != release.get("release_version")
+    if "release_version" in manifest and manifest["release_version"] != release.get(
+        "release_version"
     ):
         raise RegistryReleaseError(
             f"Manifest release_version {manifest['release_version']!r} does not match "

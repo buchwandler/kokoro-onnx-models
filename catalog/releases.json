@@ -5,9 +5,9 @@
     "v1.0": {
       "kind": "mirror",
       "profile": "v1.0",
-      "tag": "model-files-v1.0-timestamped-r2",
+      "tag": "model-files-v1.0-timestamped-r3",
       "model_version": "1.0",
-      "release_version": 2,
+      "release_version": 3,
       "license": "Apache-2.0",
       "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "onnx_contract": {
