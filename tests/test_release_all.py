@@ -64,6 +64,16 @@ def test_sync_workflow_skips_staged_runtime_activation() -> None:
     assert "continue" in workflow
 
 
+def test_anna_consumer_gates_install_espeak_ng() -> None:
+    root = Path(__file__).parents[1] / ".github" / "workflows"
+    for workflow_name in ("build-release.yml", "release-all.yml"):
+        workflow = (root / workflow_name).read_text(encoding="utf-8")
+        install = "sudo apt-get install --no-install-recommends -y espeak-ng"
+        gate = "German Anna pykokoro consumer gate"
+        assert install in workflow
+        assert workflow.index(install) < workflow.index(gate)
+
+
 def _manifest(digest: str = "a" * 64) -> dict[str, object]:
     return {
         "tag": "model-files-test",

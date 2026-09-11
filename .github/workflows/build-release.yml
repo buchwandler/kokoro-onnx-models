@@ -132,6 +132,11 @@ jobs:
           args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
           if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
           uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
+      - name: Install eSpeak NG for German frontend
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-anna' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y espeak-ng
       - name: German Anna pykokoro consumer gate
         if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-anna' }}
         run: |

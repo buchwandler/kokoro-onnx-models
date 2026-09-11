@@ -103,6 +103,11 @@ jobs:
             --expected-tag "${{ matrix.tag }}" \
             --expected-profile "${{ matrix.profile }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: Install eSpeak NG for German frontend
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-anna' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y espeak-ng
       - name: German Anna pykokoro consumer gate
         if: ${{ matrix.kind == 'build' && matrix.profile == 'de-anna' }}
         run: |
