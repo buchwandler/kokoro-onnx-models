@@ -429,7 +429,12 @@ def _verify_prepared_manifest(asset_dir: Path) -> dict[str, object] | None:
 
 
 def _prepared_asset_path(
-    asset_dir: Path, manifest: dict[str, object], role: str
+    asset_dir: Path,
+    manifest: dict[str, object],
+    role: str,
+    *,
+    quality: str | None = None,
+    format: str | None = None,
 ) -> Path:
     assets = manifest.get("assets")
     if not isinstance(assets, list):
@@ -439,12 +444,21 @@ def _prepared_asset_path(
         for asset in assets
         if isinstance(asset, dict)
         and asset.get("role") == role
+        and (quality is None or asset.get("quality") == quality)
+        and (format is None or asset.get("format") == format)
         and isinstance(asset.get("name"), str)
     ]
+    qualifiers = []
+    if quality is not None:
+        qualifiers.append(f"quality={quality!r}")
+    if format is not None:
+        qualifiers.append(f"format={format!r}")
+    label = f"{role} asset"
+    if qualifiers:
+        label += " (" + ", ".join(qualifiers) + ")"
     if len(matches) != 1:
         raise RuntimeError(
-            f"Prepared release must contain exactly one {role} asset; "
-            f"found {len(matches)}"
+            f"Prepared release must contain exactly one {label}; found {len(matches)}"
         )
     return asset_dir / matches[0]
 
@@ -655,10 +669,12 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
     required_paths = {
         filename: asset_dir / filename for filename in spec.required_files
     }
-    if prepared_manifest is not None and "config.json" in spec.required_files:
-        required_paths["config.json"] = _prepared_asset_path(
-            asset_dir, prepared_manifest, "config"
-        )
+    if prepared_manifest is not None:
+        for filename, role in (("config.json", "config"), ("vocab.json", "vocab")):
+            if filename in spec.required_files:
+                required_paths[filename] = _prepared_asset_path(
+                    asset_dir, prepared_manifest, role
+                )
     missing_required = [
         filename
         for filename in spec.required_files
@@ -669,18 +685,27 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
             f"{spec.key}: missing required runtime asset(s): "
             + ", ".join(missing_required)
         )
-    model_path = _find_one(asset_dir, ("model.onnx", "*.onnx"), "ONNX model")
-    preferred_voices = asset_dir / "voices.npz"
-    if preferred_voices.is_file():
-        original_voices = preferred_voices
+    model_quality = "fp32"
+    if prepared_manifest is not None:
+        model_path = _prepared_asset_path(
+            asset_dir, prepared_manifest, "model", quality=model_quality
+        )
+        original_voices = _prepared_asset_path(
+            asset_dir, prepared_manifest, "voices", format="numpy-npz"
+        )
     else:
-        npz_candidates = sorted(asset_dir.glob("*.npz"))
-        if len(npz_candidates) == 1:
-            original_voices = npz_candidates[0]
+        model_path = _find_one(asset_dir, ("model.onnx", "*.onnx"), "ONNX model")
+        preferred_voices = asset_dir / "voices.npz"
+        if preferred_voices.is_file():
+            original_voices = preferred_voices
         else:
-            original_voices = _find_one(
-                asset_dir, ("voices.bin", "*.bin"), "voice archive"
-            )
+            npz_candidates = sorted(asset_dir.glob("*.npz"))
+            if len(npz_candidates) == 1:
+                original_voices = npz_candidates[0]
+            else:
+                original_voices = _find_one(
+                    asset_dir, ("voices.bin", "*.bin"), "voice archive"
+                )
     voices_path, exact_voice_format = _prepare_voice_archive(
         original_voices,
         spec=spec,
@@ -731,7 +756,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         ),
         model_source=spec.model_source,
         model_variant=spec.model_variant,  # type: ignore[arg-type]
-        model_quality="fp32",
+        model_quality=model_quality,
         provider=args.provider,
         generation=GenerationConfig(
             lang=_language_for_voice(spec, selected[0]), speed=args.speed
