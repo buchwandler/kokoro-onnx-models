@@ -97,6 +97,7 @@ class LocalTestSpec:
     voice_prefix_languages: bool = False
     expected_speakers: tuple[str, ...] = ()
     frontend: str = "pykokoro-native"
+    espeak_only_languages: tuple[str, ...] = ()
     exact_pykokoro_expected: bool = True
     required_files: tuple[str, ...] = ()
     notes: str = ""
@@ -111,6 +112,11 @@ SPECS: dict[str, LocalTestSpec] = {
         model_variant="v1.0",
         voice_prefix_languages=True,
         frontend="pykokoro-native / per-voice language",
+        espeak_only_languages=("hi",),
+        notes=(
+            "Hindi uses PyKokoro's explicit eSpeak-only route; Japanese and "
+            "Chinese require their KokoroG2P optional engines."
+        ),
     ),
     "v1.1-zh": LocalTestSpec(
         key="v1.1-zh",
@@ -628,6 +634,8 @@ def _tokenizer_for(
     }
     if lang in native:
         return TokenizerConfig()
+    if lang in spec.espeak_only_languages:
+        return TokenizerConfig(backend="espeak", load_gold=False, load_silver=False)
     if not allow_frontend_mismatch:
         raise RuntimeError(
             f"{spec.key}: language {lang!r} is not a native current-pykokoro frontend "

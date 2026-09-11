@@ -5,6 +5,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 COMMON_PATH = ROOT / "local_test" / "common.py"
 
@@ -17,7 +19,12 @@ def _load_common(monkeypatch):
     monkeypatch.setitem(sys.modules, "pykokoro", fake_pykokoro)
 
     fake_tokenizer = types.ModuleType("pykokoro.tokenizer")
-    fake_tokenizer.TokenizerConfig = object
+
+    class FakeTokenizerConfig:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    fake_tokenizer.TokenizerConfig = FakeTokenizerConfig
     monkeypatch.setitem(sys.modules, "pykokoro.tokenizer", fake_tokenizer)
 
     fake_soundfile = types.ModuleType("soundfile")
@@ -84,3 +91,28 @@ def test_prepared_asset_path_selects_model_quality_and_voice_format(
     assert common._prepared_asset_path(tmp_path, manifest, "vocab") == (
         tmp_path / "vocab-v1.0.json"
     )
+
+
+def test_v1_0_hindi_uses_explicit_espeak(monkeypatch) -> None:
+    common = _load_common(monkeypatch)
+
+    config = common._tokenizer_for(common.SPECS["v1.0"], "hi", False)
+
+    assert config.kwargs["backend"] == "espeak"
+    assert config.kwargs["load_gold"] is False
+    assert config.kwargs["load_silver"] is False
+
+
+def test_v1_0_japanese_uses_native_tokenizer_config(monkeypatch) -> None:
+    common = _load_common(monkeypatch)
+
+    config = common._tokenizer_for(common.SPECS["v1.0"], "ja", False)
+
+    assert config.kwargs == {}
+
+
+def test_v1_0_unsupported_language_is_rejected(monkeypatch) -> None:
+    common = _load_common(monkeypatch)
+
+    with pytest.raises(RuntimeError, match="not a native"):
+        common._tokenizer_for(common.SPECS["v1.0"], "xx", False)

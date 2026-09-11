@@ -1934,7 +1934,7 @@
     "de-anna": {
       "model_version": "1",
       "display_name": "Kokoro German Anna",
-      "runtime_available": false,
+      "runtime_available": true,
       "language_codes": ["de"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA via kokorog2p",
@@ -1970,7 +1970,75 @@
         "source_repository": "software-mansion/react-native-executorch-kokoro"
       },
       "mirror_policy": "preferred",
-      "distributions": []
+      "distributions": [
+        {
+          "id": "github-model-files-german-software-mansion-anna-v1",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "de-anna",
+          "release_tag": "model-files-german-software-mansion-anna-v1",
+          "runtime_ready": true,
+          "artifacts": [
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-software-mansion-anna-v1/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 39114,
+              "sha256": "18b6bdce6a347cb8ffe206931e2a3736c44bb65aab9769f1a686ecf40b485afe"
+            },
+            {
+              "id": "config-config-german-software-mansion-anna-v1",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-software-mansion-anna-v1/config-german-software-mansion-anna-v1.json",
+              "local_name": "config-german-software-mansion-anna-v1.json",
+              "format": "json",
+              "size": 2351,
+              "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+            },
+            {
+              "id": "model-kokoro-german-software-mansion-anna-v1",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-software-mansion-anna-v1/kokoro-german-software-mansion-anna-v1.onnx",
+              "local_name": "kokoro-german-software-mansion-anna-v1.onnx",
+              "format": "onnx",
+              "size": 325510049,
+              "sha256": "71f176c8c8e7b1aefeaee63e7094bf20e83b76c83f4427c0c4fe0d4c8f2a5db0",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-german-software-mansion-anna-v1",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-software-mansion-anna-v1/voices-german-software-mansion-anna-v1.npz",
+              "local_name": "voices-german-software-mansion-anna-v1.npz",
+              "format": "numpy-npz",
+              "size": 522508,
+              "sha256": "b16d3894d2a2d1af07170096e02da77473d0b5dee9e8ff67497b2ef2222ae37e"
+            },
+            {
+              "id": "voices-voices-german-software-mansion-anna-v1.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-german-software-mansion-anna-v1/voices-german-software-mansion-anna-v1.raw.bin",
+              "local_name": "voices-german-software-mansion-anna-v1.raw.bin",
+              "format": "raw-float32-le",
+              "size": 522240,
+              "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
+              "handling": {
+                "dtype": "float32",
+                "shape": [510, 256],
+                "endianness": "little"
+              }
+            }
+          ],
+          "provenance": {
+            "source_repository": "software-mansion/react-native-executorch-kokoro",
+            "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
+            "transform": null,
+            "source_manifest": null
+          }
+        }
+      ]
     },
     "pl-mateusz": {
       "model_version": "1",
