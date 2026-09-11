@@ -469,6 +469,39 @@ def _prepared_asset_path(
     return asset_dir / matches[0]
 
 
+def _prepared_model_config_path(
+    asset_dir: Path,
+    manifest: dict[str, object],
+) -> Path | None:
+    assets = manifest.get("assets")
+    if not isinstance(assets, list):
+        raise TypeError("Prepared release manifest has no asset list")
+    asset_root = asset_dir.resolve()
+    for role in ("vocab", "config"):
+        matches = [
+            asset["name"]
+            for asset in assets
+            if isinstance(asset, dict)
+            and asset.get("role") == role
+            and asset.get("format") == "json"
+            and isinstance(asset.get("name"), str)
+        ]
+        if len(matches) > 1:
+            raise RuntimeError(
+                f"Prepared release must contain at most one {role} JSON asset; "
+                f"found {len(matches)}"
+            )
+        if matches:
+            candidate = (asset_root / matches[0]).resolve()
+            if not candidate.is_relative_to(asset_root):
+                raise RuntimeError(
+                    f"Prepared {role} asset path escapes staged asset directory: "
+                    f"{matches[0]!r}"
+                )
+            return candidate
+    return None
+
+
 def _parser(spec: LocalTestSpec) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=f"Local pykokoro pre-release smoke test: {spec.display_name}"
@@ -701,6 +734,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         original_voices = _prepared_asset_path(
             asset_dir, prepared_manifest, "voices", format="numpy-npz"
         )
+        model_config_path = _prepared_model_config_path(asset_dir, prepared_manifest)
     else:
         model_path = _find_one(asset_dir, ("model.onnx", "*.onnx"), "ONNX model")
         preferred_voices = asset_dir / "voices.npz"
@@ -714,6 +748,15 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
                 original_voices = _find_one(
                     asset_dir, ("voices.bin", "*.bin"), "voice archive"
                 )
+        model_config_path = (
+            asset_dir / "vocab.json"
+            if "vocab.json" in spec.required_files
+            else (
+                required_paths["config.json"]
+                if "config.json" in spec.required_files
+                else None
+            )
+        )
     voices_path, exact_voice_format = _prepare_voice_archive(
         original_voices,
         spec=spec,
@@ -748,15 +791,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
         voice=selected[0],
         model_path=model_path,
         voices_path=voices_path,
-        model_config_path=(
-            asset_dir / "vocab.json"
-            if "vocab.json" in spec.required_files
-            else (
-                required_paths["config.json"]
-                if "config.json" in spec.required_files
-                else None
-            )
-        ),
+        model_config_path=model_config_path,
         release_manifest_path=(
             asset_dir / "release-manifest.json"
             if prepared_manifest is not None
