@@ -18,6 +18,8 @@ RELEASES = ROOT / "catalog" / "releases.json"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 FRONTEND_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)+$")
 LANGUAGE_RE = re.compile(r"^[a-z]{2,3}(?:-[a-z]{2,4})?$")
+VOICE_GENDERS = {"female", "male", "neutral", "unknown"}
+VOICE_LOCALE_RE = re.compile(r"^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$")
 HF_URL_RE = re.compile(r"^https://huggingface\.co/[^/]+/[^/]+/resolve/([^/]+)/.+$")
 
 
@@ -107,6 +109,40 @@ def _validate_artifact(
         f"{model_id}: provider URL must identify its revision",
     )
 
+
+def _validate_voice_metadata(model_id: str, runtime: dict[str, Any]) -> None:
+    metadata = runtime.get("voice_metadata")
+    if metadata is None:
+        return
+    _require(isinstance(metadata, dict), f"{model_id}: voice_metadata must be an object")
+    voices = runtime["voices"]
+    _require(
+        set(metadata) <= set(voices),
+        f"{model_id}: voice_metadata contains a voice outside the roster",
+    )
+    for voice, detail in metadata.items():
+        _require(
+            isinstance(detail, dict),
+            f"{model_id}/{voice}: voice metadata must be an object",
+        )
+        _require(
+            detail.get("gender") in VOICE_GENDERS,
+            f"{model_id}/{voice}: invalid voice gender",
+        )
+        language = detail.get("language")
+        _require(
+            isinstance(language, str) and LANGUAGE_RE.fullmatch(language) is not None,
+            f"{model_id}/{voice}: invalid voice language",
+        )
+        locale = detail.get("locale")
+        _require(
+            isinstance(locale, str) and VOICE_LOCALE_RE.fullmatch(locale) is not None,
+            f"{model_id}/{voice}: invalid voice locale",
+        )
+        _require(
+            isinstance(detail.get("language_label"), str) and detail["language_label"],
+            f"{model_id}/{voice}: missing voice language label",
+        )
 
 def _validate_distribution(
     model_id: str,
@@ -266,6 +302,7 @@ def verify_registry(
             runtime["default_voice"] in runtime["voices"],
             f"{model_id}: default voice is not in voice roster",
         )
+        _validate_voice_metadata(model_id, runtime)
         _require(
             model["mirror_policy"]
             in {"required", "preferred", "optional", "forbidden"},

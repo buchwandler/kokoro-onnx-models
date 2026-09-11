@@ -73,7 +73,24 @@
           "minItems": 1,
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true
+        },
+        "voice_metadata": {
+          "type": "object",
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/voice_metadata" }
         }
+      }
+    },
+    "voice_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gender", "language", "locale", "language_label"],
+      "properties": {
+        "gender": { "enum": ["female", "male", "neutral", "unknown"] },
+        "language": { "type": "string", "pattern": "^[a-z]{2,3}$" },
+        "locale": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$" },
+        "language_label": { "type": "string", "minLength": 1 },
+        "description_key": { "type": "string", "minLength": 1 }
       }
     },
     "contract": {

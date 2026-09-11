@@ -78,7 +78,63 @@
           "zm_yunxi",
           "zm_yunxia",
           "zm_yunyang"
-        ]
+        ],
+        "voice_metadata": {
+          "af_alloy": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_aoede": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_bella": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_heart": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_jessica": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_kore": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_nicole": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_nova": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_river": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_sarah": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_sky": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_adam": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_echo": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_eric": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_fenrir": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_liam": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_michael": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_onyx": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_puck": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "am_santa": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "bf_alice": {"gender": "female", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bf_emma": {"gender": "female", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bf_isabella": {"gender": "female", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bf_lily": {"gender": "female", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bm_daniel": {"gender": "male", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bm_fable": {"gender": "male", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bm_george": {"gender": "male", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "bm_lewis": {"gender": "male", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "ef_dora": {"gender": "female", "language": "es", "locale": "es", "language_label": "Spanish"},
+          "em_alex": {"gender": "male", "language": "es", "locale": "es", "language_label": "Spanish"},
+          "em_santa": {"gender": "male", "language": "es", "locale": "es", "language_label": "Spanish"},
+          "ff_siwis": {"gender": "female", "language": "fr", "locale": "fr", "language_label": "French"},
+          "hf_alpha": {"gender": "female", "language": "hi", "locale": "hi", "language_label": "Hindi"},
+          "hf_beta": {"gender": "female", "language": "hi", "locale": "hi", "language_label": "Hindi"},
+          "hm_omega": {"gender": "male", "language": "hi", "locale": "hi", "language_label": "Hindi"},
+          "hm_psi": {"gender": "male", "language": "hi", "locale": "hi", "language_label": "Hindi"},
+          "if_sara": {"gender": "female", "language": "it", "locale": "it", "language_label": "Italian"},
+          "im_nicola": {"gender": "male", "language": "it", "locale": "it", "language_label": "Italian"},
+          "jf_alpha": {"gender": "female", "language": "ja", "locale": "ja", "language_label": "Japanese"},
+          "jf_gongitsune": {"gender": "female", "language": "ja", "locale": "ja", "language_label": "Japanese"},
+          "jf_nezumi": {"gender": "female", "language": "ja", "locale": "ja", "language_label": "Japanese"},
+          "jf_tebukuro": {"gender": "female", "language": "ja", "locale": "ja", "language_label": "Japanese"},
+          "jm_kumo": {"gender": "male", "language": "ja", "locale": "ja", "language_label": "Japanese"},
+          "pf_dora": {"gender": "female", "language": "pt", "locale": "pt", "language_label": "Portuguese"},
+          "pm_alex": {"gender": "male", "language": "pt", "locale": "pt", "language_label": "Portuguese"},
+          "pm_santa": {"gender": "male", "language": "pt", "locale": "pt", "language_label": "Portuguese"},
+          "zf_xiaobei": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_xiaoni": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_xiaoxiao": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_xiaoyi": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_yunjian": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_yunxi": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_yunxia": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_yunyang": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -359,7 +415,112 @@
           "zm_097",
           "zm_098",
           "zm_100"
-        ]
+        ],
+        "voice_metadata": {
+          "af_maple": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "af_sol": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+          "bf_vale": {"gender": "female", "language": "en", "locale": "en-GB", "language_label": "British English"},
+          "zf_001": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_002": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_003": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_004": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_005": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_006": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_007": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_008": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_017": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_018": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_019": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_021": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_022": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_023": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_024": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_026": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_027": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_028": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_032": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_036": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_038": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_039": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_040": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_042": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_043": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_044": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_046": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_047": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_048": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_049": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_051": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_059": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_060": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_067": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_070": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_071": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_072": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_073": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_074": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_075": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_076": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_077": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_078": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_079": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_083": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_084": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_085": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_086": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_087": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_088": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_090": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_092": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_093": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_094": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zf_099": {"gender": "female", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_009": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_010": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_011": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_012": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_013": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_014": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_015": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_016": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_020": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_025": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_029": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_030": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_031": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_033": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_034": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_035": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_037": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_041": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_045": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_050": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_052": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_053": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_054": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_055": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_056": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_057": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_058": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_061": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_062": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_063": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_064": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_065": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_066": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_068": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_069": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_080": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_081": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_082": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_089": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_091": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_095": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_096": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_097": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_098": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"},
+          "zm_100": {"gender": "male", "language": "zh", "locale": "zh", "language_label": "Chinese"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -520,7 +681,10 @@
         "default_voice": "martin",
         "voices": [
           "martin"
-        ]
+        ],
+        "voice_metadata": {
+          "martin": {"gender": "male", "language": "de", "locale": "de", "language_label": "German"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -594,7 +758,10 @@
         "default_voice": "default",
         "voices": [
           "default"
-        ]
+        ],
+        "voice_metadata": {
+          "default": {"gender": "female", "language": "vi", "locale": "vi", "language_label": "Vietnamese"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -712,7 +879,10 @@
         "default_voice": "default",
         "voices": [
           "default"
-        ]
+        ],
+        "voice_metadata": {
+          "default": {"gender": "female", "language": "vi", "locale": "vi", "language_label": "Vietnamese"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -757,7 +927,10 @@
         "default_voice": "ngoc_huyen",
         "voices": [
           "ngoc_huyen"
-        ]
+        ],
+        "voice_metadata": {
+          "ngoc_huyen": {"gender": "female", "language": "vi", "locale": "vi", "language_label": "Vietnamese"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -874,7 +1047,10 @@
         "default_voice": "default",
         "voices": [
           "default"
-        ]
+        ],
+        "voice_metadata": {
+          "default": {"gender": "female", "language": "ar", "locale": "ar", "language_label": "Arabic"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -984,7 +1160,10 @@
         "default_voice": "default",
         "voices": [
           "default"
-        ]
+        ],
+        "voice_metadata": {
+          "default": {"gender": "female", "language": "de", "locale": "de", "language_label": "German"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1213,7 +1392,19 @@
           "Nils",
           "Oskar",
           "Stina"
-        ]
+        ],
+        "voice_metadata": {
+          "Alice": {"gender": "female", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Anton": {"gender": "male", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Björn": {"gender": "male", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Ebba": {"gender": "female", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Elsa": {"gender": "female", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Greta": {"gender": "female", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Lars": {"gender": "male", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Nils": {"gender": "male", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Oskar": {"gender": "male", "language": "sv", "locale": "sv", "language_label": "Swedish"},
+          "Stina": {"gender": "female", "language": "sv", "locale": "sv", "language_label": "Swedish"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1330,7 +1521,10 @@
         "default_voice": "thorsten",
         "voices": [
           "thorsten"
-        ]
+        ],
+        "voice_metadata": {
+          "thorsten": {"gender": "male", "language": "de", "locale": "de", "language_label": "German"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1458,7 +1652,21 @@
           "m_young_clear",
           "m_mid_warm",
           "m_elderly_deep"
-        ]
+        ],
+        "voice_metadata": {
+          "f_teen_bright": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_young_bright": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_young_clear": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_young_warm": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_mid_clear": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_mid_warm": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_elderly_soft": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "f_elderly_low": {"gender": "female", "language": "th", "locale": "th", "language_label": "Thai"},
+          "m_teen_bright": {"gender": "male", "language": "th", "locale": "th", "language_label": "Thai"},
+          "m_young_clear": {"gender": "male", "language": "th", "locale": "th", "language_label": "Thai"},
+          "m_mid_warm": {"gender": "male", "language": "th", "locale": "th", "language_label": "Thai"},
+          "m_elderly_deep": {"gender": "male", "language": "th", "locale": "th", "language_label": "Thai"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1626,7 +1834,10 @@
         "default_voice": "km_m1",
         "voices": [
           "km_m1"
-        ]
+        ],
+        "voice_metadata": {
+          "km_m1": {"gender": "male", "language": "kk", "locale": "kk", "language_label": "Kazakh"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1745,7 +1956,11 @@
         "voices": [
           "sveta",
           "masha"
-        ]
+        ],
+        "voice_metadata": {
+          "sveta": {"gender": "female", "language": "ru", "locale": "ru", "language_label": "Russian"},
+          "masha": {"gender": "female", "language": "ru", "locale": "ru", "language_label": "Russian"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -1862,7 +2077,10 @@
         "default_voice": "dima",
         "voices": [
           "dima"
-        ]
+        ],
+        "voice_metadata": {
+          "dima": {"gender": "male", "language": "ru", "locale": "ru", "language_label": "Russian"}
+        }
       },
       "onnx_contract": {
         "inputs": {
@@ -2105,7 +2323,10 @@
         "default_voice": "df_anna",
         "voices": [
           "df_anna"
-        ]
+        ],
+        "voice_metadata": {
+          "df_anna": {"gender": "female", "language": "de", "locale": "de", "language_label": "German"}
+        }
       },
       "onnx_contract": {
         "inputs": {

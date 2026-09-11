@@ -133,6 +133,28 @@ def test_raw_voice_declares_shape() -> None:
                     assert artifact["handling"]["shape"] == [510, 256]
 
 
+def test_voice_metadata_matches_runtime_roster() -> None:
+    registry = load_registry()
+    for model in registry["models"].values():
+        metadata = model["runtime"].get("voice_metadata")
+        if metadata is not None:
+            assert set(metadata) == set(model["runtime"]["voices"])
+            assert model["runtime"]["default_voice"] in metadata
+
+
+def test_invalid_voice_metadata_is_rejected(tmp_path: Path) -> None:
+    registry = load_registry()
+    model = registry["models"]["v1.0"]
+    model["runtime"]["voice_metadata"]["not-a-voice"] = {
+        "gender": "female",
+        "language": "en",
+        "locale": "en-US",
+        "language_label": "American English",
+    }
+    path = tmp_path / "models.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    with pytest.raises(RegistryError, match="outside the roster"):
+        verify_registry(path)
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
     registry = load_registry()
     registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
