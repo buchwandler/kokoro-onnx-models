@@ -20,23 +20,28 @@ def test_committed_registry_is_valid() -> None:
     assert len(registry["models"]) == 18
 
 
-def test_software_mansion_profiles_are_staged_non_runtime() -> None:
-    registry = load_registry()
-    for model_id, voice, language, frontend in (
-        ("de-anna", "df_anna", "de", "phonemis-de-v1"),
-        ("pl-mateusz", "pm_mateusz", "pl", "phonemis-pl-v1"),
-    ):
-        model = registry["models"][model_id]
-        assert model["language_codes"] == [language]
-        assert model["frontend"] == frontend
-        assert model["runtime_available"] is False
-        assert model["runtime"]["default_voice"] == voice
-        assert model["runtime"]["voices"] == [voice]
-        assert model["distributions"] == []
-        assert model["onnx_contract"]["outputs"] == {
-            "audio": "float32",
-            "duration": "int64",
-        }
+def test_software_mansion_anna_registry_metadata_is_ready_for_activation() -> None:
+    model = load_registry()["models"]["de-anna"]
+
+    assert model["language_codes"] == ["de"]
+    assert model["frontend"] == "german-ipa-v1"
+    assert model["runtime"]["default_voice"] == "df_anna"
+    assert model["runtime"]["voices"] == ["df_anna"]
+    assert model["onnx_contract"]["outputs"] == {
+        "audio": "float32",
+        "duration": "int64",
+    }
+
+
+def test_software_mansion_mateusz_remains_staged() -> None:
+    model = load_registry()["models"]["pl-mateusz"]
+
+    assert model["language_codes"] == ["pl"]
+    assert model["frontend"] == "phonemis-pl-v1"
+    assert model["runtime_available"] is False
+    assert model["runtime"]["default_voice"] == "pm_mateusz"
+    assert model["runtime"]["voices"] == ["pm_mateusz"]
+    assert model["distributions"] == []
 
 
 def test_european_portuguese_registry_exposes_token_durations() -> None:

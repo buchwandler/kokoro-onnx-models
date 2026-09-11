@@ -340,12 +340,9 @@ SPECS: dict[str, LocalTestSpec] = {
         model_variant="de-anna",
         expected_speakers=("df_anna",),
         required_files=("config.json",),
-        frontend="Software Mansion Phonemis German; parity required",
-        exact_pykokoro_expected=False,
-        notes=(
-            "Current kokorog2p German output is not certified against the "
-            "Software Mansion Phonemis frontend."
-        ),
+        frontend="german-ipa-v1 via kokorog2p",
+        exact_pykokoro_expected=True,
+        notes=("Validated with pykokoro and kokorog2p using the df_anna voice."),
     ),
     "pl-mateusz": LocalTestSpec(
         key="pl-mateusz",
@@ -726,6 +723,11 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
                 if "config.json" in spec.required_files
                 else None
             )
+        ),
+        release_manifest_path=(
+            asset_dir / "release-manifest.json"
+            if prepared_manifest is not None
+            else None
         ),
         model_source=spec.model_source,
         model_variant=spec.model_variant,  # type: ignore[arg-type]

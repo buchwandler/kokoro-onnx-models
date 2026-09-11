@@ -200,6 +200,115 @@ def test_sync_release_does_not_activate_staged_release(tmp_path: Path) -> None:
     assert registry.read_text(encoding="utf-8") == before
 
 
+def test_sync_release_activates_de_anna(tmp_path: Path) -> None:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    tag = "model-files-german-software-mansion-anna-v1"
+    contract = {
+        "inputs": {
+            "tokens": "int64",
+            "style": "float32",
+            "speed": "float32",
+        },
+        "outputs": {"audio": "float32", "duration": "int64"},
+        "timing": {
+            "kind": "token-duration-v1",
+            "output": "duration",
+            "unit": "frame",
+            "samples_per_frame": 600,
+            "includes_boundary_tokens": True,
+        },
+        "max_tokens": 510,
+    }
+    manifest = {
+        "tag": tag,
+        "profile": "de-anna",
+        "onnx_contract": contract,
+        "assets": [
+            {
+                "name": "model.onnx",
+                "role": "model",
+                "format": "onnx",
+                "size": 4,
+                "sha256": "a" * 64,
+                "quality": "fp32",
+            },
+            {
+                "name": "voices.npz",
+                "role": "voices",
+                "format": "numpy-npz",
+                "size": 4,
+                "sha256": "b" * 64,
+            },
+            {
+                "name": "config.json",
+                "role": "config",
+                "format": "json",
+                "size": 4,
+                "sha256": "c" * 64,
+            },
+            {
+                "name": "bundle.json",
+                "role": "bundle",
+                "format": "json",
+                "size": 4,
+                "sha256": "d" * 64,
+            },
+        ],
+    }
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    registry = tmp_path / "models.json"
+    registry.write_text(
+        json.dumps(
+            {
+                "models": {
+                    "de-anna": {
+                        "runtime_available": False,
+                        "frontend": "german-ipa-v1",
+                        "distributions": [],
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    releases = tmp_path / "releases.json"
+    releases.write_text(
+        json.dumps(
+            {
+                "releases": {
+                    "de-anna": {
+                        "tag": tag,
+                        "activate_runtime_registry": True,
+                        "source_repository": "software-mansion/react-native-executorch-kokoro",
+                        "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    sync_release(
+        candidate,
+        profile="de-anna",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+
+    model = json.loads(registry.read_text(encoding="utf-8"))["models"]["de-anna"]
+    distribution = model["distributions"][0]
+    assert model["runtime_available"] is True
+    assert distribution["provider"] == "github-release"
+    assert distribution["runtime_ready"] is True
+    assert distribution["release_key"] == "de-anna"
+    assert distribution["release_tag"] == tag
+    assert model["onnx_contract"] == contract
+
+
 def test_sync_release_allows_identical_existing_release_tag(tmp_path: Path) -> None:
     candidate, registry, releases = _sync_fixture(
         tmp_path,

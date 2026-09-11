@@ -132,6 +132,14 @@ jobs:
           args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
           if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
           uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
+      - name: German Anna pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'de-anna' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run --project pykokoro --extra cpu \
+          python local_test/smoke_de_software_mansion_anna.py \
+            --asset-dir "dist/${{ needs.prepare.outputs.tag }}" \
+            --strict-release-format
       - name: Kokoro v1.0 pykokoro consumer gate
         if: ${{ needs.prepare.outputs.kind == 'mirror' && needs.prepare.outputs.profile == 'v1.0' }}
         run: |

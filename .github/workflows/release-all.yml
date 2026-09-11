@@ -103,6 +103,14 @@ jobs:
             --expected-tag "${{ matrix.tag }}" \
             --expected-profile "${{ matrix.profile }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: German Anna pykokoro consumer gate
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-anna' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run --project pykokoro --extra cpu \
+          python local_test/smoke_de_software_mansion_anna.py \
+            --asset-dir "dist/${{ matrix.tag }}" \
+            --strict-release-format
       - name: Kokoro v1.0 pykokoro consumer gate
         if: ${{ matrix.kind == 'mirror' && matrix.profile == 'v1.0' }}
         run: |

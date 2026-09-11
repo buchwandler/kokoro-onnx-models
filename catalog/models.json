@@ -1933,11 +1933,11 @@
     },
     "de-anna": {
       "model_version": "1",
-      "display_name": "Kokoro German (Software Mansion Anna)",
+      "display_name": "Kokoro German Anna",
       "runtime_available": false,
       "language_codes": ["de"],
-      "frontend": "phonemis-de-v1",
-      "frontend_display_name": "Software Mansion Phonemis German",
+      "frontend": "german-ipa-v1",
+      "frontend_display_name": "German IPA via kokorog2p",
       "sample_rate": 24000,
       "runtime": {
         "layout": "single-onnx-v1",

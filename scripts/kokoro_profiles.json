@@ -1210,12 +1210,13 @@
       "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
       "names": ["df_anna"]
     },
+    "frontend_id": "german-ipa-v1",
     "frontend": {
-      "kind": "external",
-      "name": "Software Mansion Phonemis German",
-      "experimental": true,
+      "kind": "kokorog2p",
+      "name": "German IPA via kokorog2p",
+      "experimental": false,
       "sherpa_text_compatible": false,
-      "note": "Upstream runtime bundles a German Phonemis frontend. Validate kokorog2p de output against the upstream frontend before treating it as a parity-compatible replacement."
+      "note": "Validated with pykokoro and kokorog2p. Runtime consumers use the german-ipa-v1 frontend contract."
     },
     "release": {
       "enabled": true,

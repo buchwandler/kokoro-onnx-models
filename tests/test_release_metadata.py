@@ -135,32 +135,37 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     }
 
 
-def test_software_mansion_release_entries_are_published() -> None:
+def test_software_mansion_anna_release_is_runtime_activated() -> None:
     profiles = json.loads(
         (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
     )
-    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
-    for key, voice, language in (
-        ("de-anna", "df_anna", "de"),
-        ("pl-mateusz", "pm_mateusz", "pl"),
-    ):
-        profile = profiles[key]
-        release = releases[key]
-        assert release["kind"] == "build"
-        assert release["profile"] == key
-        assert release["publish"] is True
-        assert release["source_repository"] == profile["repo_id"]
-        assert release["activate_runtime_registry"] is False
-        assert release["source_revision"] == profile["revision"]
-        assert release["language_codes"] == [language]
-        assert release["runtime"]["default_voice"] == voice
-        assert release["onnx_contract"] == profile["onnx_contract"]
-        names = {asset["name"] for asset in release["assets"]}
-        assert profile["release"]["model_filename"] in names
-        assert profile["release"]["config_filename"] in names
-        assert all(
-            asset["filename"] in names for asset in profile["release"]["voice_assets"]
-        )
+    releases = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )["releases"]
+    release = releases["de-anna"]
+    profile = profiles["de-anna"]
+
+    assert release["kind"] == "build"
+    assert release["profile"] == "de-anna"
+    assert release["tag"] == "model-files-german-software-mansion-anna-v1"
+    assert release["publish"] is True
+    assert release["activate_runtime_registry"] is True
+    assert release["frontend"] == "german-ipa-v1"
+    assert release["source_repository"] == profile["repo_id"]
+    assert release["source_revision"] == profile["revision"]
+    assert release["runtime"]["default_voice"] == "df_anna"
+    assert release["onnx_contract"] == profile["onnx_contract"]
+    assert profile["frontend_id"] == "german-ipa-v1"
+    assert profile["frontend"]["experimental"] is False
+
+
+def test_software_mansion_mateusz_release_remains_staged() -> None:
+    release = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )["releases"]["pl-mateusz"]
+
+    assert release["activate_runtime_registry"] is False
+    assert release["frontend"] == "phonemis-pl-v1"
 
 
 def test_build_profile_and_release_asset_names_match() -> None:

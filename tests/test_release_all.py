@@ -36,7 +36,7 @@ def test_publishable_matrix_includes_staged_releases() -> None:
                     "kind": "build",
                     "tag": "anna-tag",
                     "publish": True,
-                    "activate_runtime_registry": False,
+                    "activate_runtime_registry": True,
                 },
                 "pl-mateusz": {
                     "kind": "build",
