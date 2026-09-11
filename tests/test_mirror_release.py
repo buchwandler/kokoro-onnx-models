@@ -120,6 +120,8 @@ def test_main_preserves_bytes_when_mapping_source_to_target(
                 "source_repository": "Godelaune/model",
                 "source_revision": "revision",
                 "tag": "model-files-martin",
+                "model_version": "1.0",
+                "release_version": 1,
                 "license": "Apache-2.0",
                 "assets": [
                     {
@@ -159,6 +161,8 @@ def test_main_preserves_bytes_when_mapping_source_to_target(
     manifest = json.loads(
         (output / "release-manifest.json").read_text(encoding="utf-8")
     )
+    assert manifest["model_version"] == "1.0"
+    assert manifest["release_version"] == 1
     assert manifest["source"] == {
         "type": "huggingface",
         "repository": "Godelaune/model",
@@ -180,6 +184,8 @@ def test_main_derives_vocabulary_transform_before_publishing(
                 "source_repository": "source/repo",
                 "source_revision": "revision",
                 "tag": "tag",
+                "model_version": "1.0",
+                "release_version": 1,
                 "license": "Apache-2.0",
                 "assets": [
                     {
@@ -226,6 +232,8 @@ def test_mismatch_is_rejected_before_any_asset_is_published(
                 "source_repository": "source/repo",
                 "source_revision": "revision",
                 "tag": "tag",
+                "model_version": "1.0",
+                "release_version": 1,
                 "license": "Apache-2.0",
                 "assets": [
                     {

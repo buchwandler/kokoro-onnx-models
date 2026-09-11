@@ -109,6 +109,8 @@ def sync_published_release(
                 candidate,
                 expected_tag=tag,
                 expected_profile=profile,
+                expected_model_version=str(release["model_version"]),
+                expected_release_version=int(release["release_version"]),
             )
         except (CandidateError, KeyError, TypeError) as exc:
             raise ReleaseSyncError(

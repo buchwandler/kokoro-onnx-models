@@ -137,6 +137,7 @@
         "revision": { "type": "string", "minLength": 1 },
         "release_key": { "type": "string", "minLength": 1 },
         "release_tag": { "type": "string", "minLength": 1 },
+        "release_version": { "type": "integer", "minimum": 1 },
         "runtime_ready": { "const": true },
         "provenance": {
           "type": "object",
@@ -147,7 +148,19 @@
           "minItems": 2,
           "items": { "$ref": "#/$defs/artifact" }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provider": { "const": "github-release" }
+            }
+          },
+          "then": {
+            "required": ["release_key", "release_tag", "release_version"]
+          }
+        }
+      ]
     },
     "artifact": {
       "type": "object",

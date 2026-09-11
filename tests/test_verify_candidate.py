@@ -65,6 +65,7 @@ def _write_candidate(tmp_path: Path, *, enabled: bool = True) -> Path:
         "tag": "model-files-test",
         "profile": "test",
         "model_version": "1.0",
+        "release_version": 1,
         "generated_at": "2026-01-01T00:00:00+00:00",
         "source": {"type": "test", "repository": "source/repo", "revision": "rev"},
         "license": "Apache-2.0",
@@ -522,3 +523,42 @@ def test_verify_candidate_rejects_wrong_split_graph_contract(tmp_path: Path) -> 
     _refresh_split_manifest(candidate, manifest)
     with pytest.raises(verify_candidate.CandidateError, match="input_ids"):
         verify_candidate.verify_candidate(candidate)
+
+def test_verify_candidate_rejects_invalid_release_versions(tmp_path: Path) -> None:
+    candidate = _write_candidate(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["release_version"] = 0
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(verify_candidate.CandidateError, match="release_version"):
+        verify_candidate.verify_candidate(candidate)
+
+    manifest["release_version"] = "1"
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(verify_candidate.CandidateError, match="release_version"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_enforces_expected_versions_and_legacy_compatibility(
+    tmp_path: Path,
+) -> None:
+    candidate = _write_candidate(tmp_path)
+    with pytest.raises(verify_candidate.CandidateError, match="model_version"):
+        verify_candidate.verify_candidate(candidate, expected_model_version="2.0")
+    with pytest.raises(verify_candidate.CandidateError, match="release_version"):
+        verify_candidate.verify_candidate(candidate, expected_release_version=2)
+
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    del manifest["release_version"]
+    manifest_path.write_text(json.dumps(manifest))
+    verify_candidate.verify_candidate(candidate)
+    with pytest.raises(verify_candidate.CandidateError, match="missing release_version"):
+        verify_candidate.verify_candidate(candidate, expected_release_version=1)
+
+
+def test_expected_release_version_parser_rejects_non_positive_values() -> None:
+    with pytest.raises(verify_candidate.argparse.ArgumentTypeError):
+        verify_candidate._positive_release_version("0")
+    with pytest.raises(verify_candidate.argparse.ArgumentTypeError):
+        verify_candidate._positive_release_version("2.0")

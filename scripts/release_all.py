@@ -25,7 +25,7 @@ def load_catalog(path: Path = CATALOG) -> dict[str, Any]:
     return data
 
 
-def publishable_matrix(catalog: Mapping[str, Any]) -> dict[str, list[dict[str, str]]]:
+def publishable_matrix(catalog: Mapping[str, Any]) -> dict[str, list[dict[str, Any]]]:
     releases = catalog["releases"]
     entries = [
         {
@@ -33,6 +33,8 @@ def publishable_matrix(catalog: Mapping[str, Any]) -> dict[str, list[dict[str, s
             "profile": str(spec.get("profile", key)),
             "tag": str(spec["tag"]),
             "kind": str(spec["kind"]),
+            "model_version": str(spec["model_version"]),
+            "release_version": int(spec["release_version"]),
         }
         for key, spec in releases.items()
         if spec.get("publish", True) is True

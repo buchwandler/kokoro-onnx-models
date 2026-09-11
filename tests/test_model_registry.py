@@ -19,6 +19,21 @@ def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
     assert len(registry["models"]) == 18
 
+def test_github_distributions_match_release_catalog() -> None:
+    registry = load_registry()
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
+    for model in registry["models"].values():
+        for distribution in model["distributions"]:
+            if distribution["provider"] != "github-release":
+                continue
+            release = releases[distribution["release_key"]]
+            assert isinstance(distribution["release_version"], int)
+            assert distribution["release_version"] >= 1
+            assert distribution["release_tag"] == release["tag"]
+            assert distribution["release_version"] == release["release_version"]
+            assert model["model_version"] == release["model_version"]
+
+
 
 def test_software_mansion_anna_registry_metadata_is_ready_for_activation() -> None:
     model = load_registry()["models"]["de-anna"]

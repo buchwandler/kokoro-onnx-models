@@ -104,6 +104,7 @@ def distribution_from_manifest(
         "transport": "https",
         "release_key": str(manifest["profile"]),
         "release_tag": tag,
+        "release_version": int(release["release_version"]),
         "runtime_ready": True,
         "artifacts": artifacts,
         "provenance": {
@@ -138,6 +139,19 @@ def sync_release(
         raise RegistryReleaseError(
             f"Manifest tag {manifest.get('tag')!r} does not match catalog tag {release.get('tag')!r}"
         )
+    if manifest.get("model_version") != release.get("model_version"):
+        raise RegistryReleaseError(
+            f"Manifest model_version {manifest.get('model_version')!r} does not match "
+            f"catalog model_version {release.get('model_version')!r}"
+        )
+    if (
+        "release_version" in manifest
+        and manifest["release_version"] != release.get("release_version")
+    ):
+        raise RegistryReleaseError(
+            f"Manifest release_version {manifest['release_version']!r} does not match "
+            f"catalog release_version {release.get('release_version')!r}"
+        )
     manifest_contract = manifest.get("onnx_contract")
     if not isinstance(manifest_contract, dict):
         raise RegistryReleaseError("Manifest is missing onnx_contract")
@@ -155,6 +169,7 @@ def sync_release(
         )
         return
     if update:
+        model["model_version"] = str(release["model_version"])
         model["onnx_contract"] = manifest_contract
         model["distributions"] = [
             d for d in model["distributions"] if d.get("provider") != "github-release"

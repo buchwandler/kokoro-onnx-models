@@ -21,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kind: ${{ steps.resolve.outputs.kind }}
+      model_version: ${{ steps.resolve.outputs.model_version }}
+      release_version: ${{ steps.resolve.outputs.release_version }}
       tag: ${{ steps.resolve.outputs.tag }}
-      profile: ${{ steps.resolve.outputs.profile }}
       publish: ${{ steps.resolve.outputs.publish }}
+      profile: ${{ steps.resolve.outputs.profile }}
     steps:
       - uses: actions/checkout@v4
       - id: resolve
@@ -50,16 +52,31 @@ jobs:
               profiles = json.loads(
                   Path("scripts/kokoro_profiles.json").read_text()
               )
-              built_tag = profiles[profile]["release"]["tag"]
-              if built_tag != spec["tag"]:
+              if profile not in profiles:
+                  raise SystemExit(f"Build profile is missing for {key}: {profile}")
+              build_release = profiles[profile].get("release") or {}
+              if not build_release.get("model_filename") or not (
+                  build_release.get("voice_assets") or build_release.get("voices_filename")
+              ):
                   raise SystemExit(
-                      f"Catalog/profile tag mismatch for {key}: "
-                      f"catalog={spec['tag']!r}, profile={built_tag!r}"
+                      f"Build profile {profile} is missing required release mapping metadata"
                   )
+          model_version = spec.get("model_version")
+          release_version = spec.get("release_version")
+          if not isinstance(model_version, str) or not model_version:
+              raise SystemExit(f"Release {key} has an invalid model_version")
+          if (
+              isinstance(release_version, bool)
+              or not isinstance(release_version, int)
+              or release_version < 1
+          ):
+              raise SystemExit(f"Release {key} has an invalid release_version")
           for name, value in {
               "kind": spec["kind"],
               "tag": spec["tag"],
               "profile": profile,
+              "model_version": model_version,
+              "release_version": release_version,
               "publish": str(publish).lower(),
           }.items():
               print(f"{name}={value}", file=open(os.environ["GITHUB_OUTPUT"], "a"))
@@ -126,10 +143,12 @@ jobs:
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
+          MODEL_VERSION: ${{ needs.prepare.outputs.model_version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.release_version }}
           PROFILE: ${{ needs.prepare.outputs.profile }}
           ALLOW_RESTRICTED: ${{ inputs.allow_restricted }}
         run: |
-          args=(--expected-tag "$TAG" --expected-profile "$PROFILE")
+          args=(--expected-tag "$TAG" --expected-profile "$PROFILE" --expected-model-version "$MODEL_VERSION" --expected-release-version "$RELEASE_VERSION")
           if [ "$ALLOW_RESTRICTED" = "true" ]; then args+=(--allow-restricted); fi
           uv run python scripts/verify_candidate.py "dist/$TAG" "${args[@]}"
       - name: Install eSpeak NG for pykokoro consumer frontend

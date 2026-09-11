@@ -12,6 +12,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = ROOT / "scripts" / "kokoro_profiles.json"
+RELEASES = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 
 
@@ -26,6 +27,10 @@ def sha256(path: Path) -> str:
 def load_profiles() -> dict[str, dict[str, Any]]:
     return json.loads(PROFILES.read_text(encoding="utf-8"))
 
+
+
+def load_releases() -> dict[str, Any]:
+    return json.loads(RELEASES.read_text(encoding="utf-8"))
 
 def _bundle_voices(path: Path, fallback: list[str]) -> list[str]:
     try:
@@ -117,6 +122,9 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
     notes = [
         f"# {manifest['profile']} {manifest['model_version']}",
         "",
+        f"- Model version: {manifest['model_version']}",
+        f"- Release version: {manifest['release_version']}",
+        f"- Release tag: {manifest['tag']}",
         f"- Language(s): {', '.join(runtime['language_codes'])}",
         f"- Frontend: {runtime['frontend']}",
         f"- Model qualities: {', '.join(models)}",
@@ -172,11 +180,15 @@ def main() -> int:
     args = parser.parse_args()
 
     profiles = load_profiles()
+    releases = load_releases()
     if args.profile not in profiles:
         raise SystemExit(f"Unknown profile: {args.profile}")
     profile = profiles[args.profile]
     release = profile.get("release") or {}
-    if not release.get("enabled", False) and not args.allow_restricted:
+    release_spec = releases.get("releases", {}).get(args.profile)
+    if release_spec is None:
+        raise SystemExit(f"No release catalog entry for {args.profile}")
+    if not release_spec.get("publish", True) and not args.allow_restricted:
         raise SystemExit(
             f"Release disabled for {args.profile}. Review MODEL_LICENSES.md and pass "
             "--allow-restricted only if redistribution is permitted."
@@ -198,7 +210,7 @@ def main() -> int:
     if missing:
         raise SystemExit("Missing build artifacts: " + ", ".join(missing))
 
-    tag = str(release["tag"])
+    tag = str(release_spec["tag"])
     out = args.dist / tag
     out.mkdir(parents=True, exist_ok=True)
     mapping: dict[Path, tuple[Path, dict[str, Any]]] = {
@@ -255,11 +267,8 @@ def main() -> int:
         "repository": TARGET_REPOSITORY,
         "tag": tag,
         "profile": args.profile,
-        "model_version": str(
-            release.get(
-                "model_version", tag.rsplit("-v", 1)[-1] if "-v" in tag else tag
-            )
-        ),
+        "model_version": str(release_spec["model_version"]),
+        "release_version": int(release_spec["release_version"]),
         "generated_at": datetime.now(UTC).isoformat(),
         "source": {
             "type": str(profile.get("source_type", "huggingface")),
@@ -267,7 +276,7 @@ def main() -> int:
             "revision": str(profile.get("revision", "main")),
         },
         "license": str(profile["license"]),
-        "publication": {"enabled": bool(release.get("enabled", False))},
+        "publication": {"enabled": bool(release_spec.get("publish", True))},
         "runtime": _runtime_metadata(profile, out / "bundle.json", release),
         "onnx_contract": contract,
         "assets": asset_metadata,

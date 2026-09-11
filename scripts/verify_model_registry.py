@@ -190,6 +190,19 @@ def _validate_distribution(
             release_key in releases,
             f"{model_id}/{distribution_id}: unknown release key {release_key!r}",
         )
+        release = releases[release_key]
+        _require(
+            distribution.get("release_tag") == release.get("tag"),
+            f"{model_id}/{distribution_id}: release tag does not match catalog",
+        )
+        _require(
+            distribution.get("release_version") == release.get("release_version"),
+            f"{model_id}/{distribution_id}: release version does not match catalog",
+        )
+        _require(
+            model.get("model_version") == release.get("model_version"),
+            f"{model_id}: model version does not match catalog release",
+        )
 
 
 def verify_registry(

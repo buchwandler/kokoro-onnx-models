@@ -345,6 +345,8 @@ def _validate_manifest_identity(
     *,
     expected_tag: str | None,
     expected_profile: str | None,
+    expected_model_version: str | None,
+    expected_release_version: int | None,
     expected_builder_commit: str | None,
     allow_restricted: bool,
 ) -> None:
@@ -372,6 +374,33 @@ def _validate_manifest_identity(
         manifest["repository"] == TARGET_REPOSITORY, "Manifest repository is incorrect"
     )
     _require(bool(manifest["tag"]), "Manifest tag must not be empty")
+    _require(
+        isinstance(manifest["model_version"], str) and bool(manifest["model_version"]),
+        "Manifest model_version must be a non-empty string",
+    )
+    if "release_version" in manifest:
+        _require(
+            isinstance(manifest["release_version"], int)
+            and not isinstance(manifest["release_version"], bool)
+            and manifest["release_version"] >= 1,
+            "Manifest release_version must be an integer >= 1",
+        )
+    if expected_model_version is not None:
+        _require(
+            manifest["model_version"] == expected_model_version,
+            f"Manifest model_version is {manifest['model_version']!r}, "
+            f"expected {expected_model_version!r}",
+        )
+    if expected_release_version is not None:
+        _require(
+            "release_version" in manifest,
+            "Manifest is missing release_version",
+        )
+        _require(
+            manifest["release_version"] == expected_release_version,
+            f"Manifest release_version is {manifest['release_version']!r}, "
+            f"expected {expected_release_version!r}",
+        )
     if expected_tag is not None:
         _require(
             manifest["tag"] == expected_tag,
@@ -553,6 +582,8 @@ def verify_candidate(
     *,
     expected_tag: str | None = None,
     expected_profile: str | None = None,
+    expected_model_version: str | None = None,
+    expected_release_version: int | None = None,
     expected_builder_commit: str | None = None,
     allow_restricted: bool = False,
 ) -> dict[str, Any]:
@@ -569,6 +600,8 @@ def verify_candidate(
         manifest,
         expected_tag=expected_tag,
         expected_profile=expected_profile,
+        expected_model_version=expected_model_version,
+        expected_release_version=expected_release_version,
         expected_builder_commit=expected_builder_commit,
         allow_restricted=allow_restricted,
     )
@@ -672,12 +705,24 @@ def verify_candidate(
         "manifest": manifest,
     }
 
+def _positive_release_version(value: str) -> int:
+    try:
+        version = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("release version must be an integer") from exc
+    if version < 1:
+        raise argparse.ArgumentTypeError("release version must be >= 1")
+    return version
+
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Verify a Kokoro release candidate")
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--expected-tag")
     parser.add_argument("--expected-profile")
+    parser.add_argument("--expected-model-version")
+    parser.add_argument("--expected-release-version", type=_positive_release_version)
     parser.add_argument("--expected-builder-commit")
     parser.add_argument("--allow-restricted", action="store_true")
     args = parser.parse_args(argv)
@@ -685,6 +730,8 @@ def main(argv: list[str] | None = None) -> int:
         result = verify_candidate(
             args.candidate,
             expected_tag=args.expected_tag,
+            expected_model_version=args.expected_model_version,
+            expected_release_version=args.expected_release_version,
             expected_profile=args.expected_profile,
             expected_builder_commit=args.expected_builder_commit,
             allow_restricted=args.allow_restricted,

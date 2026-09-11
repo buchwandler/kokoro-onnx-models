@@ -14,16 +14,46 @@ from scripts.release_all import (
 def test_publishable_matrix_is_sorted_and_excludes_disabled_and_upstream_only() -> None:
     catalog = {
         "releases": {
-            "z": {"kind": "build", "tag": "z-tag"},
-            "disabled": {"kind": "build", "tag": "disabled", "publish": False},
-            "a": {"kind": "mirror", "tag": "a-tag"},
+            "z": {
+                "kind": "build",
+                "tag": "z-tag",
+                "model_version": "1",
+                "release_version": 1,
+            },
+            "disabled": {
+                "kind": "build",
+                "tag": "disabled",
+                "model_version": "1",
+                "release_version": 1,
+                "publish": False,
+            },
+            "a": {
+                "kind": "mirror",
+                "tag": "a-tag",
+                "model_version": "1",
+                "release_version": 1,
+            },
         }
     }
 
     assert publishable_matrix(catalog) == {
         "include": [
-            {"release_key": "a", "profile": "a", "tag": "a-tag", "kind": "mirror"},
-            {"release_key": "z", "profile": "z", "tag": "z-tag", "kind": "build"},
+            {
+                "release_key": "a",
+                "profile": "a",
+                "tag": "a-tag",
+                "kind": "mirror",
+                "model_version": "1",
+                "release_version": 1,
+            },
+            {
+                "release_key": "z",
+                "profile": "z",
+                "tag": "z-tag",
+                "kind": "build",
+                "model_version": "1",
+                "release_version": 1,
+            },
         ]
     }
 
@@ -35,12 +65,16 @@ def test_publishable_matrix_includes_staged_releases() -> None:
                 "de-anna": {
                     "kind": "build",
                     "tag": "anna-tag",
+                    "model_version": "1",
+                    "release_version": 1,
                     "publish": True,
                     "activate_runtime_registry": True,
                 },
                 "pl-mateusz": {
                     "kind": "build",
                     "tag": "mateusz-tag",
+                    "model_version": "1",
+                    "release_version": 1,
                     "publish": True,
                     "activate_runtime_registry": False,
                 },
@@ -62,6 +96,43 @@ def test_sync_workflow_skips_staged_runtime_activation() -> None:
     assert 'get("activate_runtime_registry", True)' in workflow
     assert 'if [ "$activate" != "true" ]; then' in workflow
     assert "continue" in workflow
+
+def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:
+    root = Path(__file__).parents[1] / ".github" / "workflows"
+    workflows = {
+        name: (root / name).read_text(encoding="utf-8")
+        for name in ("release-all.yml", "publish-release.yml", "refresh-catalog.yml")
+    }
+    for workflow in workflows.values():
+        assert "kokoro-model-catalog-v1" in workflow
+        assert "git pull --rebase origin main" in workflow
+        assert "git push origin HEAD:main" in workflow
+        assert "--force" not in workflow
+    publish = workflows["publish-release.yml"]
+    assert publish.index("  publish:\n") < publish.index("  sync-catalog:\n")
+    assert "scripts/update_registry_from_release.py" in publish
+    assert "scripts/verify_model_registry.py" in publish
+    assert "scripts/collect_runtime_metadata.py --check" in publish
+    assert "git show HEAD^:catalog/models.json" in publish
+    assert "scripts/sync_registry_from_release.py" in workflows["refresh-catalog.yml"]
+
+
+def test_release_all_matrix_exposes_both_versions() -> None:
+    matrix = publishable_matrix(
+        {
+            "releases": {
+                "test": {
+                    "kind": "build",
+                    "tag": "test-tag",
+                    "model_version": "1",
+                    "release_version": 2,
+                }
+            }
+        }
+    )
+    assert matrix["include"][0]["model_version"] == "1"
+    assert matrix["include"][0]["release_version"] == 2
+
 
 
 def test_anna_consumer_gates_install_espeak_ng() -> None:

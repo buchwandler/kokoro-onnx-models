@@ -7,6 +7,7 @@
       "profile": "v1.0",
       "tag": "model-files-v1.0-timestamped-r2",
       "model_version": "1.0",
+      "release_version": 2,
       "license": "Apache-2.0",
       "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "onnx_contract": {
@@ -590,6 +591,7 @@
       "profile": "v1.1-zh",
       "tag": "model-files-v1.1",
       "model_version": "1.1",
+      "release_version": 1,
       "license": "Apache-2.0",
       "language_codes": ["zh"],
       "frontend": "pykokoro-native-v1",
@@ -1427,6 +1429,7 @@
       "source_type": "huggingface",
       "tag": "model-files-german-martin-v1.2",
       "model_version": "1.2",
+      "release_version": 1,
       "license": "Apache-2.0",
       "language_codes": ["de", "de-de", "de-at", "de-ch"],
       "frontend": "german-ipa-v1",
@@ -1461,6 +1464,7 @@
       "profile": "vi-contextbox",
       "tag": "model-files-vietnamese-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1519,6 +1523,7 @@
       "profile": "vi-anphunl",
       "tag": "model-files-vietnamese-anphunl-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1577,6 +1582,7 @@
       "profile": "vi-ngoc-huyen",
       "tag": "model-files-vietnamese-ngoc-huyen-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1637,6 +1643,7 @@
       "profile": "ar-nabra",
       "tag": "model-files-arabic-nabra-v0.1",
       "model_version": "0.1",
+      "release_version": 1,
       "assets": [
         {
           "source": "model.onnx",
@@ -1676,6 +1683,7 @@
       "profile": "de-crane",
       "tag": "model-files-german-kerstin-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "assets": [
         {
           "source": "model.onnx",
@@ -1715,6 +1723,7 @@
       "profile": "he-hebrew-nc",
       "tag": "model-files-hebrew-nc-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "publish": false,
       "assets": [
         {
@@ -1755,6 +1764,7 @@
       "profile": "sv-joakim",
       "tag": "model-files-swedish-v1.1",
       "model_version": "1.1",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1815,6 +1825,7 @@
       "profile": "de-thorsten",
       "tag": "model-files-german-thorsten-v1.1.4",
       "model_version": "1.1.4",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -1884,6 +1895,7 @@
       "source_type": "huggingface",
       "tag": "model-files-thai-wayu-v1",
       "model_version": "1",
+      "release_version": 1,
       "license": "Apache-2.0",
       "language_codes": ["th"],
       "sample_rate": 24000,
@@ -2035,6 +2047,7 @@
       "profile": "kk-anuarsv",
       "tag": "model-files-kazakh-anuarsv-v1",
       "model_version": "1",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -2114,6 +2127,7 @@
       "profile": "ru-zaakirio-base",
       "tag": "model-files-russian-zaakirio-base-v2",
       "model_version": "2",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "input_ids": "int64",
@@ -2182,6 +2196,7 @@
       "profile": "ru-zaakirio-dima",
       "tag": "model-files-russian-zaakirio-dima-v2",
       "model_version": "2",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "input_ids": "int64",
@@ -2250,6 +2265,7 @@
       "profile": "pt-eu-logus2k",
       "tag": "model-files-portuguese-eu-pt-v1.0",
       "model_version": "1.0",
+      "release_version": 1,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
@@ -2336,6 +2352,7 @@
       "profile": "de-anna",
       "tag": "model-files-german-software-mansion-anna-v1",
       "model_version": "1",
+      "release_version": 1,
       "source_repository": "software-mansion/react-native-executorch-kokoro",
       "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
       "publish": true,
@@ -2405,6 +2422,7 @@
       "profile": "pl-mateusz",
       "tag": "model-files-polish-software-mansion-mateusz-v1",
       "model_version": "1",
+      "release_version": 1,
       "source_repository": "software-mansion/react-native-executorch-kokoro",
       "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
       "publish": true,

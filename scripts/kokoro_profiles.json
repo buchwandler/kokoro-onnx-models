@@ -22,8 +22,6 @@
       "note": "Vietnamese training/inference uses vig2p; preserve that G2P behavior in pykokoro."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-vietnamese-v1.0",
       "model_filename": "kokoro-vietnamese-v1.0.onnx",
       "voices_filename": "voices-vietnamese-v1.0.bin",
       "config_filename": "config-vietnamese-v1.0.json",
@@ -112,8 +110,6 @@
       "note": "Mirror of the ContextBoxAI model; use vig2p-compatible preprocessing."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-vietnamese-anphunl-v1.0",
       "model_filename": "kokoro-vietnamese-anphunl-v1.0.onnx",
       "voices_filename": "voices-vietnamese-anphunl-v1.0.bin",
       "config_filename": "config-vietnamese-anphunl-v1.0.json",
@@ -209,9 +205,6 @@
       "note": "Vietnamese inference uses vig2p==0.1.0 with the Ngọc Huyền training-time phoneme fixups."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-vietnamese-ngoc-huyen-v1.0",
-      "model_version": "1.0",
       "model_filename": "kokoro-vietnamese-ngoc-huyen-v1.0.onnx",
       "voices_filename": "voices-vietnamese-ngoc-huyen-v1.0.bin",
       "config_filename": "config-vietnamese-ngoc-huyen-v1.0.json",
@@ -313,8 +306,6 @@
       "note": "Nabra expects diacritized MSA and its model-specific G2P cleanup."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-arabic-nabra-v0.1",
       "model_filename": "kokoro-arabic-nabra-v0.1.onnx",
       "voice_assets": [
         {
@@ -373,8 +364,6 @@
       "note": "Training used espeak-ng German IPA, while the publisher ships Crane's German G2P. Verify pykokoro G2P output before marking this profile automatic."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-german-kerstin-v1.0",
       "model_filename": "kokoro-german-kerstin-v1.0.onnx",
       "voices_filename": "voices-german-kerstin-v1.0.bin",
       "config_filename": "config-german-kerstin-v1.0.json",
@@ -426,8 +415,6 @@
       "note": "Packaging is supported, but redistribution and use are subject to non-commercial upstream terms."
     },
     "release": {
-      "enabled": false,
-      "tag": "model-files-hebrew-nc-v1.0",
       "model_filename": "kokoro-hebrew-nc-v1.0.onnx",
       "voices_filename": "voices-hebrew-nc-v1.0.bin",
       "config_filename": "config-hebrew-nc-v1.0.json",
@@ -495,9 +482,6 @@
       "optional": false
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-swedish-v1.1",
-      "model_version": "1.1",
       "model_filename": "kokoro-swedish-v1.1.onnx",
       "config_filename": "config-swedish-v1.1.json",
       "voices": [
@@ -606,9 +590,6 @@
       "note": "Apply the upstream training-time ʏ -> y substitution after German phonemization."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-german-thorsten-v1.1.4",
-      "model_version": "1.1.4",
       "model_filename": "kokoro-german-thorsten-v1.1.4.onnx",
       "config_filename": "config-german-thorsten-v1.1.4.json",
       "voices": ["thorsten"],
@@ -750,9 +731,6 @@
       "note": "Upstream training/inference uses Kazakh espeak-ng IPA via misaki with language code kk. Validate kokorog2p kk output against upstream misaki fixtures."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-kazakh-anuarsv-v1",
-      "model_version": "1",
       "model_filename": "kokoro-kazakh-anuarsv-v1.onnx",
       "config_filename": "config-kazakh-anuarsv-v1.json",
       "voices": ["km_m1"],
@@ -857,9 +835,6 @@
       "note": "Russian text requires the upstream ru_g2p.py behavior, including lexical stress, ё restoration, vowel reduction, and orthoepy."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-russian-zaakirio-base-v2",
-      "model_version": "2",
       "model_filename": "kokoro-russian-zaakirio-base-v2.onnx",
       "config_filename": "config-russian-zaakirio-base-v2.json",
       "voices": ["sveta", "masha"],
@@ -955,9 +930,6 @@
       "note": "Russian text requires the upstream ru_g2p.py behavior, including lexical stress, ё restoration, vowel reduction, and orthoepy."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-russian-zaakirio-dima-v2",
-      "model_version": "2",
       "model_filename": "kokoro-russian-zaakirio-dima-v2.onnx",
       "config_filename": "config-russian-zaakirio-dima-v2.json",
       "voices": ["dima"],
@@ -1063,9 +1035,6 @@
       "note": "Use tts_eu_pt's TugaPhone frontend and text normalization, including its Kokoro vocabulary symbol cleanup."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-portuguese-eu-pt-v1.0",
-      "model_version": "1.0",
       "model_filename": "kokoro-portuguese-eu-pt-v1.0.onnx",
       "config_filename": "config-portuguese-eu-pt-v1.0.json",
       "voices": ["pt_eu"],
@@ -1219,9 +1188,6 @@
       "note": "Validated with pykokoro and kokorog2p. Runtime consumers use the german-ipa-v1 frontend contract."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-german-software-mansion-anna-v1",
-      "model_version": "1",
       "model_filename": "kokoro-german-software-mansion-anna-v1.onnx",
       "config_filename": "config-german-software-mansion-anna-v1.json",
       "voices": ["df_anna"],
@@ -1293,9 +1259,6 @@
       "note": "Upstream runtime bundles Polish Phonemis resources. Current kokorog2p does not list Polish; do not mark this model runtime-ready for pykokoro text input until a Polish frontend is available."
     },
     "release": {
-      "enabled": true,
-      "tag": "model-files-polish-software-mansion-mateusz-v1",
-      "model_version": "1",
       "model_filename": "kokoro-polish-software-mansion-mateusz-v1.onnx",
       "config_filename": "config-polish-software-mansion-mateusz-v1.json",
       "voices": ["pm_mateusz"],

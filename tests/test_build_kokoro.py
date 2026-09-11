@@ -111,8 +111,8 @@ def test_expected_profiles_exist() -> None:
         "de-anna",
         "pl-mateusz",
     }
-    assert profiles["he-hebrew-nc"]["release"]["enabled"] is False
-
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    assert releases["releases"]["he-hebrew-nc"]["publish"] is False
 
 def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
     profile = build_kokoro.load_profiles()["sv-joakim"]
@@ -123,8 +123,10 @@ def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
         "path": "kokoro_sv.pth",
         "config": "config.json",
     }
-    assert profile["release"]["tag"] == "model-files-swedish-v1.1"
-    assert profile["release"]["model_version"] == "1.1"
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    release = releases["releases"]["sv-joakim"]
+    assert release["tag"] == "model-files-swedish-v1.1"
+    assert release["model_version"] == "1.1"
     assert profile["release"]["model_filename"] == "kokoro-swedish-v1.1.onnx"
     assert profile["release"]["config_filename"] == "config-swedish-v1.1.json"
     assert set(profile["voices"]["items"]) == {
@@ -159,7 +161,7 @@ def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
         "duration": "int64",
     }
     assert profile["onnx_contract"]["timing"]["output"] == "duration"
-    assert profile["release"]["tag"] == "model-files-vietnamese-ngoc-huyen-v1.0"
+    assert "tag" not in profile["release"]
     assert profile["release"]["default_voice"] == "ngoc_huyen"
 
 
@@ -437,8 +439,10 @@ def test_thorsten_profile_pins_explicit_epoch5_checkpoint_and_voice() -> None:
     }
     assert "model.pth" in json.dumps(profile)
     assert "voices/thorsten.pt" in json.dumps(profile)
-    assert profile["release"]["tag"] == "model-files-german-thorsten-v1.1.4"
-    assert profile["release"]["model_version"] == "1.1.4"
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    release = releases["releases"]["de-thorsten"]
+    assert release["tag"] == "model-files-german-thorsten-v1.1.4"
+    assert release["model_version"] == "1.1.4"
     assert profile["release"]["model_filename"] == "kokoro-german-thorsten-v1.1.4.onnx"
     assert profile["release"]["config_filename"] == "config-german-thorsten-v1.1.4.json"
     assert (
@@ -682,7 +686,7 @@ def test_russian_profiles_are_checkpoint_build_recipes() -> None:
         assert profile["onnx_contract"]["timing"]["output"] == "duration"
         assert profile["export_validation"]["requires_random_source_ops"] is True
         assert len(profile["export_validation"]["cases"]) == 3
-        assert profile["release"]["enabled"] is True
+        assert "enabled" not in profile["release"]
 
 
 def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:

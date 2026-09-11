@@ -1,0 +1,60 @@
+name: refresh-catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_keys:
+        description: Comma-separated entries from catalog/releases.json
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_REPOSITORY: buchwandler/kokoro-onnx-models
+
+concurrency:
+  group: kokoro-model-catalog-v1
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Synchronize selected releases
+        env:
+          RELEASE_KEYS: ${{ inputs.release_keys }}
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra keys <<< "$RELEASE_KEYS"
+          for release_key in "${keys[@]}"; do
+            release_key="$(echo "$release_key" | xargs)"
+            test -n "$release_key"
+            python scripts/sync_registry_from_release.py "$release_key"
+          done
+          python scripts/verify_model_registry.py
+          python scripts/collect_runtime_metadata.py --check
+      - name: Commit registry update when needed
+        run: |
+          if git diff --quiet -- catalog/models.json; then
+            echo "catalog/models.json is already synchronized"
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add catalog/models.json
+          git commit -m "chore: refresh model registry"
+          git pull --rebase origin main
+          python scripts/verify_model_registry.py
+          python scripts/collect_runtime_metadata.py --check
+          git show HEAD^:catalog/models.json > /tmp/models-before.json
+          python scripts/check_registry_immutability.py \
+            --before /tmp/models-before.json \
+            --after catalog/models.json
+          git push origin HEAD:main

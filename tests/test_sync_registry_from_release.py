@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts import sync_registry_from_release as sync
 from scripts.update_registry_from_release import (
@@ -29,7 +32,10 @@ def test_distribution_from_manifest_contains_artifacts() -> None:
         ],
     }
 
-    distribution = distribution_from_manifest(manifest, {})
+    distribution = distribution_from_manifest(manifest, {"release_version": 2})
+    assert distribution["release_version"] == 2
+
+
 
     assert distribution["artifacts"] == [
         {
@@ -88,6 +94,8 @@ def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
             {
                 "tag": "model-files-test",
                 "profile": "test",
+                "model_version": "1.0",
+                "release_version": 1,
                 "onnx_contract": contract,
                 "assets": [],
             }
@@ -110,7 +118,7 @@ def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
     )
     releases = tmp_path / "releases.json"
     releases.write_text(
-        json.dumps({"releases": {"test": {"tag": "model-files-test"}}}),
+        json.dumps({"releases": {"test": {"tag": "model-files-test", "model_version": "1.0", "release_version": 1}}}),
         encoding="utf-8",
     )
     sync_release(
@@ -139,6 +147,8 @@ def _sync_fixture(
     manifest = {
         "tag": generated_tag,
         "profile": "test",
+        "model_version": "1.0",
+        "release_version": 1,
         "onnx_contract": {"outputs": {"audio": "float32"}},
         "assets": [
             {
@@ -161,7 +171,9 @@ def _sync_fixture(
             {**manifest["assets"][0], "size": existing_size, "sha256": existing_sha}
         ],
     }
-    existing = distribution_from_manifest(existing_manifest, {})
+    existing = distribution_from_manifest(
+        existing_manifest, {"model_version": "1.0", "release_version": 1}
+    )
     registry = tmp_path / "models.json"
     registry.write_text(
         json.dumps({"models": {"test": {"distributions": [existing]}}}),
@@ -169,7 +181,17 @@ def _sync_fixture(
     )
     releases = tmp_path / "releases.json"
     releases.write_text(
-        json.dumps({"releases": {"test": {"tag": generated_tag}}}), encoding="utf-8"
+        json.dumps(
+            {
+                "releases": {
+                    "test": {
+                        "tag": generated_tag,
+                        "model_version": "1.0",
+                        "release_version": 1,
+                    }
+                }
+            }
+        ),
     )
     return candidate, registry, releases
 
@@ -223,6 +245,8 @@ def test_sync_release_activates_de_anna(tmp_path: Path) -> None:
     manifest = {
         "tag": tag,
         "profile": "de-anna",
+        "model_version": "1",
+        "release_version": 1,
         "onnx_contract": contract,
         "assets": [
             {
@@ -281,6 +305,8 @@ def test_sync_release_activates_de_anna(tmp_path: Path) -> None:
                 "releases": {
                     "de-anna": {
                         "tag": tag,
+                        "model_version": "1",
+                        "release_version": 1,
                         "activate_runtime_registry": True,
                         "source_repository": "software-mansion/react-native-executorch-kokoro",
                         "source_revision": "9a8b5878012e01a26dad2618068dc61215994785",
@@ -393,3 +419,36 @@ def test_sync_release_allows_new_release_tag_with_new_artifact_hashes(
     generated = updated["models"]["test"]["distributions"][0]
     assert generated["release_tag"] == "model-files-test-v2"
     assert generated["artifacts"][0]["sha256"] == "b" * 64
+    assert generated["release_version"] == 1
+
+
+def test_sync_release_rejects_model_version_mismatch(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=4,
+        generated_sha="a" * 64,
+    )
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["model_version"] = "2.0"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RegistryReleaseError, match="model_version"):
+        sync_release(candidate, profile="test", registry_path=registry, releases_path=releases, update=True)
+
+
+def test_sync_release_rejects_release_version_mismatch(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=4,
+        generated_sha="a" * 64,
+    )
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["release_version"] = 2
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(RegistryReleaseError, match="release_version"):
+        sync_release(candidate, profile="test", registry_path=registry, releases_path=releases, update=True)

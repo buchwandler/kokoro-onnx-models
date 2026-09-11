@@ -21,6 +21,16 @@ def test_catalog_target_repo() -> None:
     assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r2"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
+def test_release_entries_have_explicit_version_identity() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    for release in data["releases"].values():
+        assert isinstance(release["tag"], str) and release["tag"]
+        assert isinstance(release["model_version"], str) and release["model_version"]
+        assert isinstance(release["release_version"], int)
+        assert release["release_version"] >= 1
+    assert data["releases"]["v1.0"]["release_version"] == 2
+
+
 
 def test_v1_0_voice_asset_is_numpy_archive() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
@@ -176,8 +186,8 @@ def test_build_profile_and_release_asset_names_match() -> None:
     profile_release = profiles["de-thorsten"]["release"]
     release = catalog["releases"]["de-thorsten"]
 
-    assert release["tag"] == profile_release["tag"]
-    assert release["model_version"] == profile_release["model_version"]
+    assert "tag" not in profile_release
+    assert "model_version" not in profile_release
     release_names = {asset["name"] for asset in release["assets"]}
     assert profile_release["model_filename"] in release_names
     assert profile_release["config_filename"] in release_names
@@ -278,6 +288,8 @@ def test_nabra_release_includes_vocabulary_metadata(tmp_path, monkeypatch) -> No
 
     manifest_path = dist / "model-files-arabic-nabra-v0.1" / "release-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["model_version"] == "0.1"
+    assert manifest["release_version"] == 1
     vocab = next(
         asset
         for asset in manifest["assets"]
