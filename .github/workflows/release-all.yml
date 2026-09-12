@@ -187,6 +187,7 @@ jobs:
                 exit 1
               fi
             fi
+            python scripts/update_registry_from_release.py "$candidate_dir" --preflight-publish
             gh release create "$tag" "$candidate_dir"/* \
               --repo "$RELEASE_REPOSITORY" \
               --target "$CANDIDATE_COMMIT" \

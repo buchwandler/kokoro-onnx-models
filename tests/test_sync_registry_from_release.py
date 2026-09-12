@@ -582,3 +582,48 @@ def test_sync_release_rejects_release_version_mismatch(tmp_path: Path) -> None:
             releases_path=releases,
             update=True,
         )
+
+
+def test_preflight_allows_new_tag_without_writing(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=5,
+        generated_sha="b" * 64,
+        existing_tag="model-files-test-v1",
+        generated_tag="model-files-test-v2",
+    )
+    before = registry.read_text(encoding="utf-8")
+
+    sync_release(
+        candidate,
+        profile="test",
+        registry_path=registry,
+        releases_path=releases,
+        update=False,
+        preflight=True,
+    )
+
+    assert registry.read_text(encoding="utf-8") == before
+
+
+
+def test_preflight_rejects_active_same_tag_drift(tmp_path: Path) -> None:
+    candidate, registry, releases = _sync_fixture(
+        tmp_path,
+        existing_size=4,
+        existing_sha="a" * 64,
+        generated_size=5,
+        generated_sha="b" * 64,
+    )
+
+    with pytest.raises(RegistryReleaseError, match="immutable artifact metadata"):
+        sync_release(
+            candidate,
+            profile="test",
+            registry_path=registry,
+            releases_path=releases,
+            update=False,
+            preflight=True,
+        )

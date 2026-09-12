@@ -2134,7 +2134,7 @@
       "release_version": 1,
       "onnx_contract": {
         "inputs": {
-          "input_ids": "int64",
+          "tokens": "int64",
           "style": "float32",
           "speed": "float32"
         },
@@ -2203,7 +2203,7 @@
       "release_version": 1,
       "onnx_contract": {
         "inputs": {
-          "input_ids": "int64",
+          "tokens": "int64",
           "style": "float32",
           "speed": "float32"
         },

@@ -88,6 +88,7 @@ jobs:
         env:
           TAG: ${{ steps.resolve.outputs.tag }}
           CANDIDATE_DIR: ${{ steps.resolve.outputs.candidate_dir }}
+          PROFILE: ${{ steps.resolve.outputs.profile }}
         run: |
           set -euo pipefail
           if gh release view "$TAG" --repo "$RELEASE_REPOSITORY" >/dev/null 2>&1; then
@@ -99,6 +100,7 @@ jobs:
               --existing existing/release-manifest.json
             echo "Release tag already published with identical candidate: $TAG"
           else
+            python scripts/update_registry_from_release.py "$CANDIDATE_DIR" --profile "$PROFILE" --preflight-publish
             gh release create "$TAG" "$CANDIDATE_DIR"/* \
               --repo "$RELEASE_REPOSITORY" \
               --title "$TAG" \

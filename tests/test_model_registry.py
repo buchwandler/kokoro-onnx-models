@@ -128,12 +128,10 @@ def test_russian_uses_separate_checkpoint_build_releases() -> None:
     assert "ru-zaakirio-base" in releases["releases"]
     assert "ru-zaakirio-dima" in releases["releases"]
     assert base["mirror_policy"] == dima["mirror_policy"] == "preferred"
-    assert base["distributions"][0]["provider"] == "github-release"
-    assert dima["distributions"][0]["provider"] == "github-release"
-    assert base["distributions"][0]["release_key"] == "ru-zaakirio-base"
-    assert dima["distributions"][0]["release_key"] == "ru-zaakirio-dima"
-    assert base["distributions"][0]["artifacts"][0]["local_name"] == "bundle.json"
-    assert dima["distributions"][0]["artifacts"][0]["local_name"] == "bundle.json"
+    assert base["runtime_available"] is False
+    assert dima["runtime_available"] is False
+    assert base["distributions"] == []
+    assert dima["distributions"] == []
     assert base["runtime"]["voices"] == ["sveta", "masha"]
     assert dima["runtime"]["voices"] == ["dima"]
     assert base["onnx_contract"]["outputs"] == {"audio": "float32", "duration": "int64"}
@@ -188,11 +186,8 @@ def test_invalid_voice_metadata_is_rejected(tmp_path: Path) -> None:
 
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
     registry = load_registry()
-    registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
-        "url"
-    ] = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][0][
-        "url"
-    ].replace("https://", "http://", 1)
+    artifact = registry["models"]["v1.0"]["distributions"][0]["artifacts"][0]
+    artifact["url"] = artifact["url"].replace("https://", "http://", 1)
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(RegistryError, match="https://"):
@@ -203,9 +198,7 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
     from scripts import collect_runtime_metadata
 
     registry = load_registry()
-    artifact = registry["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][
-        0
-    ]
+    artifact = registry["models"]["v1.0"]["distributions"][0]["artifacts"][0]
     artifact.pop("size")
     artifact.pop("sha256")
     registry_path = tmp_path / "models.json"
@@ -222,14 +215,12 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
     collect_runtime_metadata.REGISTRY = registry_path
     assert (
         collect_runtime_metadata._collect(
-            registry, "ru-zaakirio-base", "bundle-bundle", True
+            registry, "v1.0", "model-kokoro-v1.0", True
         )
         == 0
     )
     updated = json.loads(registry_path.read_text(encoding="utf-8"))
-    collected = updated["models"]["ru-zaakirio-base"]["distributions"][0]["artifacts"][
-        0
-    ]
+    collected = updated["models"]["v1.0"]["distributions"][0]["artifacts"][0]
     assert collected["size"] == 13
     assert collected["sha256"] == "0" * 64
 

@@ -196,6 +196,33 @@ def test_build_profile_and_release_asset_names_match() -> None:
     assert not any("thorsten-v1.0" in name for name in release_names)
 
 
+def test_declared_build_release_metadata_matches_profiles() -> None:
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    releases = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )["releases"]
+
+    for release_key, release in releases.items():
+        if release.get("kind") != "build":
+            continue
+        profile = profiles[release.get("profile", release_key)]
+        if "source_repository" in release:
+            assert release["source_repository"] == profile["repo_id"]
+        if "source_revision" in release:
+            assert release["source_revision"] == profile["revision"]
+        if "onnx_contract" in release:
+            assert release["onnx_contract"] == profile["onnx_contract"]
+
+    for release_key in ("ru-zaakirio-base", "ru-zaakirio-dima"):
+        release = releases[release_key]
+        profile = profiles[release["profile"]]
+        assert release["source_repository"] == profile["repo_id"]
+        assert release["source_revision"] == profile["revision"]
+        assert release["onnx_contract"] == profile["onnx_contract"]
+
+
 def test_thai_wayu_is_pinned_split_mirror() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     spec = data["releases"]["th-wayu"]

@@ -154,6 +154,7 @@ def sync_release(
     registry_path: Path,
     releases_path: Path,
     update: bool,
+    preflight: bool = False,
 ) -> None:
     manifest = _load(candidate / "release-manifest.json")
     registry = _load(registry_path)
@@ -183,13 +184,26 @@ def sync_release(
     manifest_contract = manifest.get("onnx_contract")
     if not isinstance(manifest_contract, dict):
         raise RegistryReleaseError("Manifest is missing onnx_contract")
+    catalog_contract = release.get("onnx_contract")
+    if isinstance(catalog_contract, dict) and manifest_contract != catalog_contract:
+        raise RegistryReleaseError(
+            "Manifest onnx_contract does not match the release catalog"
+        )
     model = registry["models"][model_id]
     existing = next(
-        (d for d in model["distributions"] if d.get("provider") == "github-release"),
+        (
+            d
+            for d in model["distributions"]
+            if d.get("provider") == "github-release"
+            and d.get("release_tag") == manifest.get("tag")
+        ),
         None,
-    )
+)
     generated = distribution_from_manifest(manifest, release, existing)
     _assert_release_tag_immutable(existing, generated)
+    if preflight:
+        print(f"pre-publication registry check passed for {model_id}")
+        return
     if update and release.get("activate_runtime_registry", True) is not True:
         print(
             f"release {model_id} is publishable but staged; "
@@ -224,6 +238,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("candidate", type=Path)
     parser.add_argument("--profile")
     parser.add_argument("--update", action="store_true")
+    parser.add_argument(
+        "--preflight-publish",
+        action="store_true",
+        help="validate candidate publication compatibility without writing the registry",
+    )
     parser.add_argument("--registry", type=Path, default=REGISTRY)
     parser.add_argument("--releases", type=Path, default=RELEASES)
     args = parser.parse_args(argv)
@@ -234,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
             registry_path=args.registry,
             releases_path=args.releases,
             update=args.update,
+            preflight=args.preflight_publish,
         )
     except RegistryReleaseError as exc:
         print(f"registry release update failed: {exc}", file=sys.stderr)
