@@ -35,6 +35,25 @@ def test_github_distributions_match_release_catalog() -> None:
             assert model["model_version"] == release["model_version"]
 
 
+def test_nabra_registry_matches_public_build_voice() -> None:
+    registry = load_registry()
+    profiles = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )
+    model = registry["models"]["ar-nabra"]
+    distribution = next(
+        item for item in model["distributions"] if item["provider"] == "github-release"
+    )
+
+    assert tuple(profiles["ar-nabra"]["voices"]["items"]) == ("default",)
+    assert model["model_version"] == "0.1"
+    assert model["runtime"]["default_voice"] == "default"
+    assert model["runtime"]["voices"] == ["default"]
+    assert set(model["runtime"]["voice_metadata"]) == {"default"}
+    assert distribution["release_tag"] == "model-files-arabic-nabra-v0.1-r2"
+    assert distribution["release_version"] == 2
+
+
 def test_software_mansion_anna_registry_metadata_is_ready_for_activation() -> None:
     model = load_registry()["models"]["de-anna"]
 

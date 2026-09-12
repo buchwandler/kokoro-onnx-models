@@ -589,12 +589,36 @@ def test_nabra_profile_uses_prebuilt_onnx_source() -> None:
     assert nabra["repo_id"] == "marwanelamami/Nabra-82M-v0.1-ONNX"
     assert nabra["revision"] == "85065b0be8573aefb401f8f53e7edc37d6556186"
     assert nabra["model"] == {"kind": "onnx", "path": "nabra_fp32.onnx"}
-    assert nabra["voices"]["items"] == {"af_msa": "voices_af_msa.pt"}
+    assert nabra["voices"]["items"] == {"default": "voices_af_msa.pt"}
     assert nabra["onnx_contract"]["inputs"] == {
         "input_ids": "int64",
         "ref_s": "float32",
         "speed": "float32",
     }
+
+
+def test_resolve_fixed_pt_voices_preserves_public_name(tmp_path: Path) -> None:
+    source = tmp_path / "voices_af_msa.pt"
+    source.write_bytes(b"voice")
+
+    def fake_download(repo_id, filename, revision, cache_dir):
+        assert filename == "voices_af_msa.pt"
+        return source
+
+    def fake_load_pt_voice(path, *, name):
+        assert path == source
+        assert name == "default"
+        return np.zeros((510, 1, 256), dtype="<f4")
+
+    with (
+        patch.object(build_kokoro, "hf_download", side_effect=fake_download),
+        patch.object(build_kokoro, "load_pt_voice", side_effect=fake_load_pt_voice),
+    ):
+        voices = build_kokoro.resolve_fixed_pt_voices(
+            "repo", "revision", tmp_path / "cache", {"default": "voices_af_msa.pt"}
+        )
+
+    assert tuple(voices) == ("default",)
 
 
 def test_resolve_model_nabra_does_not_export_checkpoint(tmp_path: Path) -> None:

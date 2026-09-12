@@ -240,6 +240,20 @@ def test_nabra_build_uses_prebuilt_onnx_source() -> None:
     assert profile["model"]["kind"] == "onnx"
     assert profile["model"]["path"] == "nabra_fp32.onnx"
     assert "vocab.json" in profile["release"]["auxiliary_assets"][0]["source"]
+    assert profile["frontend_id"] == "nabra-arabic-v1"
+
+
+def test_nabra_release_spec_uses_r2_default_runtime_identity() -> None:
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
+    release = releases["ar-nabra"]
+
+    assert release["model_version"] == "0.1"
+    assert release["release_version"] == 2
+    assert release["tag"] == "model-files-arabic-nabra-v0.1-r2"
+    assert release["runtime"] == {
+        "default_voice": "default",
+        "voices": ["default"],
+    }
 
 
 def test_hebrew_not_published_by_default() -> None:
@@ -266,7 +280,7 @@ def test_nabra_release_includes_vocabulary_metadata(tmp_path, monkeypatch) -> No
     build_dir = tmp_path / "build" / "ar-nabra"
     build_dir.mkdir(parents=True)
     (build_dir / "model.onnx").write_bytes(b"model")
-    np.savez(build_dir / "voices.npz", af_msa=np.zeros((510, 1, 256), dtype="<f4"))
+    np.savez(build_dir / "voices.npz", default=np.zeros((510, 1, 256), dtype="<f4"))
     (build_dir / "voices.raw.bin").write_bytes(b"\x00" * (510 * 256 * 4))
     (build_dir / "bundle.json").write_text("{}\n", encoding="utf-8")
     (build_dir / "vocab.json").write_text('{"ʕ": 7, "ħ": 8}\n', encoding="utf-8")
@@ -286,10 +300,14 @@ def test_nabra_release_includes_vocabulary_metadata(tmp_path, monkeypatch) -> No
 
     assert prepare_release.main() == 0
 
-    manifest_path = dist / "model-files-arabic-nabra-v0.1" / "release-manifest.json"
+    manifest_path = dist / "model-files-arabic-nabra-v0.1-r2" / "release-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["model_version"] == "0.1"
-    assert manifest["release_version"] == 1
+    assert manifest["release_version"] == 2
+    assert manifest["tag"] == "model-files-arabic-nabra-v0.1-r2"
+    assert manifest["runtime"]["frontend"] == "nabra-arabic-v1"
+    assert manifest["runtime"]["default_voice"] == "default"
+    assert manifest["runtime"]["voices"] == ["default"]
     vocab = next(
         asset
         for asset in manifest["assets"]
@@ -299,7 +317,7 @@ def test_nabra_release_includes_vocabulary_metadata(tmp_path, monkeypatch) -> No
     assert vocab["format"] == "json"
     assert (
         vocab["size"]
-        == (dist / "model-files-arabic-nabra-v0.1" / vocab["name"]).stat().st_size
+        == (dist / "model-files-arabic-nabra-v0.1-r2" / vocab["name"]).stat().st_size
     )
 
 

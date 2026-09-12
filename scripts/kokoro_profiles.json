@@ -288,7 +288,7 @@
     "voices": {
       "kind": "fixed_pt",
       "items": {
-        "af_msa": "voices_af_msa.pt"
+        "default": "voices_af_msa.pt"
       }
     },
     "auxiliary_files": [
@@ -299,6 +299,7 @@
         "format": "json"
       }
     ],
+    "frontend_id": "nabra-arabic-v1",
     "frontend": {
       "kind": "espeak_plus_preprocess",
       "name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",

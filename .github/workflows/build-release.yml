@@ -155,7 +155,8 @@ jobs:
         if: >-
           ${{
             (needs.prepare.outputs.kind == 'build' &&
-             needs.prepare.outputs.profile == 'de-anna') ||
+             (needs.prepare.outputs.profile == 'de-anna' ||
+              needs.prepare.outputs.profile == 'ar-nabra')) ||
             (needs.prepare.outputs.kind == 'mirror' &&
              needs.prepare.outputs.profile == 'v1.0')
           }}
@@ -168,6 +169,14 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
           uv run --project pykokoro --extra cpu \
           python local_test/smoke_de_software_mansion_anna.py \
+            --asset-dir "dist/${{ needs.prepare.outputs.tag }}" \
+            --strict-release-format
+      - name: Arabic Nabra pykokoro consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'ar-nabra' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run --project pykokoro --extra cpu \
+          python local_test/smoke_ar_nabra.py \
             --asset-dir "dist/${{ needs.prepare.outputs.tag }}" \
             --strict-release-format
       - name: Kokoro v1.0 pykokoro consumer gate

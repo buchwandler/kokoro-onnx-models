@@ -1641,9 +1641,13 @@
     "ar-nabra": {
       "kind": "build",
       "profile": "ar-nabra",
-      "tag": "model-files-arabic-nabra-v0.1",
+      "tag": "model-files-arabic-nabra-v0.1-r2",
       "model_version": "0.1",
-      "release_version": 1,
+      "release_version": 2,
+      "runtime": {
+        "default_voice": "default",
+        "voices": ["default"]
+      },
       "assets": [
         {
           "source": "model.onnx",

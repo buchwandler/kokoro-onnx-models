@@ -135,14 +135,19 @@ def test_release_all_matrix_exposes_both_versions() -> None:
     assert matrix["include"][0]["release_version"] == 2
 
 
-def test_anna_consumer_gates_install_espeak_ng() -> None:
+def test_nabra_and_anna_consumer_gates_install_espeak_ng() -> None:
     root = Path(__file__).parents[1] / ".github" / "workflows"
     for workflow_name in ("build-release.yml", "release-all.yml"):
         workflow = (root / workflow_name).read_text(encoding="utf-8")
         install = "sudo apt-get install --no-install-recommends -y espeak-ng"
-        gate = "German Anna pykokoro consumer gate"
         assert install in workflow
-        assert workflow.index(install) < workflow.index(gate)
+        for gate in (
+            "German Anna pykokoro consumer gate",
+            "Arabic Nabra pykokoro consumer gate",
+        ):
+            assert workflow.index(install) < workflow.index(gate)
+        assert "local_test/smoke_ar_nabra.py" in workflow
+        assert "--strict-release-format" in workflow
 
 
 def _manifest(digest: str = "a" * 64) -> dict[str, object]:

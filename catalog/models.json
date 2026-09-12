@@ -1881,37 +1881,55 @@
       "mirror_policy": "preferred",
       "distributions": [
         {
-          "id": "github-model-files-arabic-nabra-v0.1",
+          "id": "github-model-files-arabic-nabra-v0.1-r2",
           "provider": "github-release",
           "transport": "https",
           "release_key": "ar-nabra",
-          "release_tag": "model-files-arabic-nabra-v0.1",
-          "release_version": 1,
+          "release_tag": "model-files-arabic-nabra-v0.1-r2",
+          "release_version": 2,
           "runtime_ready": true,
           "artifacts": [
             {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1-r2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 1889,
+              "sha256": "6be5831753e0824ff1bfa15630bf4130a4a681302e7632b3716e878808cab348"
+            },
+            {
               "id": "model-kokoro-arabic-nabra-v0.1",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1/kokoro-arabic-nabra-v0.1.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1-r2/kokoro-arabic-nabra-v0.1.onnx",
               "local_name": "kokoro-arabic-nabra-v0.1.onnx",
               "format": "onnx",
-              "size": 325640052,
-              "sha256": "bab3d9cc721a3eec436dc2f6ab0c16f158c17d0936cada6ac7e704af7b94f8d0",
+              "size": 325640055,
+              "sha256": "db5f6e0a6ff53efee533eca1b9905690a1e5d789e781dcc8e97fe716e0fa2fe7",
               "quality": "fp32"
+            },
+            {
+              "id": "vocab-vocab-arabic-nabra-v0.1",
+              "role": "vocab",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1-r2/vocab-arabic-nabra-v0.1.json",
+              "local_name": "vocab-arabic-nabra-v0.1.json",
+              "format": "json",
+              "size": 1513,
+              "sha256": "04fca6a30e124ac7dd3c006cd531af278e4b68f320171e4389adb0cb6e5cf486"
             },
             {
               "id": "voices-voices-arabic-nabra-v0.1",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1/voices-arabic-nabra-v0.1.npz",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1-r2/voices-arabic-nabra-v0.1.npz",
               "local_name": "voices-arabic-nabra-v0.1.npz",
               "format": "numpy-npz",
-              "size": 522506,
-              "sha256": "fbf92738b310d04cdba81d30084fad295590ce3809de1cf8998d9c85491e412e"
+              "size": 522508,
+              "sha256": "cc817643ee2f35a9314365c5d08c6dd0853176c7d06ba9db669567ca719f8334"
             },
             {
               "id": "voices-voices-arabic-nabra-v0.1.raw",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1/voices-arabic-nabra-v0.1.raw.bin",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1-r2/voices-arabic-nabra-v0.1.raw.bin",
               "local_name": "voices-arabic-nabra-v0.1.raw.bin",
               "format": "raw-float32-le",
               "size": 522240,
@@ -1925,24 +1943,6 @@
                 "endianness": "little",
                 "voice_count": 1
               }
-            },
-            {
-              "id": "bundle-bundle",
-              "role": "bundle",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1/bundle.json",
-              "local_name": "bundle.json",
-              "format": "json",
-              "size": 1742,
-              "sha256": "8e80ef20c143f06078d801fc7bb2a1ddacb0be4239684b9cdf391dc58d563b5b"
-            },
-            {
-              "id": "vocab-vocab-arabic-nabra-v0.1",
-              "role": "vocab",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-arabic-nabra-v0.1/vocab-arabic-nabra-v0.1.json",
-              "local_name": "vocab-arabic-nabra-v0.1.json",
-              "format": "json",
-              "size": 1513,
-              "sha256": "04fca6a30e124ac7dd3c006cd531af278e4b68f320171e4389adb0cb6e5cf486"
             }
           ],
           "provenance": {

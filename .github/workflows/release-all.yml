@@ -110,7 +110,7 @@ jobs:
             --expected-release-version "${{ matrix.release_version }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
       - name: Install eSpeak NG for German frontend
-        if: ${{ matrix.kind == 'build' && matrix.profile == 'de-anna' }}
+        if: ${{ matrix.kind == 'build' && (matrix.profile == 'de-anna' || matrix.profile == 'ar-nabra') }}
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y espeak-ng
@@ -120,6 +120,14 @@ jobs:
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
           uv run --project pykokoro --extra cpu \
           python local_test/smoke_de_software_mansion_anna.py \
+            --asset-dir "dist/${{ matrix.tag }}" \
+            --strict-release-format
+      - name: Arabic Nabra pykokoro consumer gate
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'ar-nabra' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run --project pykokoro --extra cpu \
+          python local_test/smoke_ar_nabra.py \
             --asset-dir "dist/${{ matrix.tag }}" \
             --strict-release-format
       - name: Kokoro v1.0 pykokoro consumer gate

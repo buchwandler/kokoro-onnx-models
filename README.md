@@ -88,7 +88,8 @@ provide the required Polish text frontend.
 Thai Wayu is a split ONNX serving bundle (prosody + curves + decoder), not a single KModelForONNX graph. The release contains all graph components, source parameters, the upstream ONNX manifest, and voice/style archives.
 
 Nabra uses the upstream pre-exported FP32 ONNX model. This repository repackages
-the `af_msa` voice table and retains the model-specific `vocab.json`; it does not
+the upstream `voices_af_msa.pt` style table as the single public
+voice `default` and retains the model-specific `vocab.json`; it does not
 re-export `kokoro_arabic.pth`. The original `oddadmix/Nabra-82M-v0.1` fine-tune
 remains part of the model lineage.
 
