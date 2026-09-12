@@ -104,6 +104,13 @@ def test_v1_0_hindi_uses_explicit_espeak(monkeypatch) -> None:
     assert config.kwargs["load_silver"] is False
 
 
+
+def test_russian_smoke_profiles_use_github_assets(monkeypatch) -> None:
+    common = _load_common(monkeypatch)
+
+    assert common.SPECS["ru-zaakirio-base"].model_source == "github"
+    assert common.SPECS["ru-zaakirio-dima"].model_source == "github"
+
 def test_v1_0_japanese_uses_native_tokenizer_config(monkeypatch) -> None:
     common = _load_common(monkeypatch)
 
