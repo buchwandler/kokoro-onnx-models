@@ -150,6 +150,7 @@
     },
     "export_validation": {
       "export_seed": 20260828,
+      "max_audio_abs": 1.1,
       "cases": [
         {
           "name": "greeting",
