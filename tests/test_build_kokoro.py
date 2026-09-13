@@ -121,6 +121,14 @@ def test_expected_profiles_exist() -> None:
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False
 
 
+def test_contextbox_profile_is_pinned_and_has_real_default_voice() -> None:
+    profile = build_kokoro.load_profiles()["vi-contextbox"]
+
+    assert profile["repo_id"] == "contextboxai/Kokoro-Vietnamese"
+    assert profile["revision"] == "9f210d622209fcc216fe2ac6159fed2ff381cb8a"
+    assert profile["frontend_id"] == "vig2p-v1"
+    assert profile["release"]["default_voice"] == "diem_trinh"
+
 def test_portuguese_profile_produces_supported_runtime_metadata(tmp_path: Path) -> None:
     profile = build_kokoro.load_profiles()["pt-eu-logus2k"]
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())

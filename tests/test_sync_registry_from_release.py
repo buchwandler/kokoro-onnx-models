@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts import sync_registry_from_release as sync
 from scripts.update_registry_from_release import (
     RegistryReleaseError,
+    _sync_runtime_identity,
     distribution_from_manifest,
     sync_release,
 )
@@ -733,3 +734,61 @@ def test_preflight_rejects_active_same_tag_drift(tmp_path: Path) -> None:
             update=False,
             preflight=True,
         )
+
+
+def test_sync_runtime_identity_drops_metadata_when_voice_roster_changes() -> None:
+    model = {
+        "runtime": {
+            "layout": "single-onnx-v1",
+            "max_tokens": 510,
+            "default_voice": "default",
+            "voices": ["default"],
+            "voice_metadata": {
+                "default": {
+                    "gender": "female",
+                    "language": "vi",
+                    "locale": "vi",
+                    "language_label": "Vietnamese",
+                }
+            },
+        }
+    }
+    manifest = {
+        "runtime": {
+            "language_codes": ["vi"],
+            "frontend": "vig2p-v1",
+            "sample_rate": 24000,
+            "layout": "single-onnx-v1",
+            "max_tokens": 510,
+            "default_voice": "diem_trinh",
+            "voices": ["diem_trinh", "hung_thinh"],
+        }
+    }
+
+    _sync_runtime_identity(model, manifest, {"frontend": "vig2p-v1"})
+
+    assert model["runtime"]["default_voice"] == "diem_trinh"
+    assert model["runtime"]["voices"] == ["diem_trinh", "hung_thinh"]
+    assert "voice_metadata" not in model["runtime"]
+
+
+def test_distribution_provenance_prefers_manifest_source() -> None:
+    manifest = {
+        "tag": "model-files-test",
+        "profile": "test",
+        "source": {
+            "repository": "manifest/repository",
+            "revision": "manifest-revision",
+        },
+        "assets": [],
+    }
+    release = {
+        "release_version": 2,
+        "source_repository": "catalog/repository",
+        "source_revision": "catalog-revision",
+    }
+
+    distribution = distribution_from_manifest(manifest, release)
+
+    assert distribution["provenance"]["source_repository"] == "manifest/repository"
+    assert distribution["provenance"]["source_revision"] == "manifest-revision"

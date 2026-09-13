@@ -2,7 +2,8 @@
   "vi-contextbox": {
     "display_name": "Kokoro Vietnamese (ContextBoxAI)",
     "repo_id": "contextboxai/Kokoro-Vietnamese",
-    "revision": "main",
+    "revision": "9f210d622209fcc216fe2ac6159fed2ff381cb8a",
+    "frontend_id": "vig2p-v1",
     "license": "Apache-2.0",
     "language": "vi",
     "sample_rate": 24000,
@@ -23,6 +24,7 @@
     },
     "release": {
       "model_filename": "kokoro-vietnamese-v1.0.onnx",
+      "default_voice": "diem_trinh",
       "voices_filename": "voices-vietnamese-v1.0.bin",
       "config_filename": "config-vietnamese-v1.0.json",
       "voice_assets": [

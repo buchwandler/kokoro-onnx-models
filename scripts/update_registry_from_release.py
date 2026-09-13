@@ -84,6 +84,7 @@ def distribution_from_manifest(
     release: dict[str, Any],
     existing: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    source = manifest.get("source") or {}
     tag = str(manifest["tag"])
     old_artifacts = {item["id"]: item for item in (existing or {}).get("artifacts", [])}
     artifacts = []
@@ -117,8 +118,12 @@ def distribution_from_manifest(
         "runtime_ready": True,
         "artifacts": artifacts,
         "provenance": {
-            "source_repository": release.get("source_repository"),
-            "source_revision": release.get("source_revision"),
+            "source_repository": (
+                source.get("repository") or release.get("source_repository")
+            ),
+            "source_revision": (
+                source.get("revision") or release.get("source_revision")
+            ),
             "transform": manifest.get("transform"),
             "source_manifest": "source-assets.json"
             if manifest.get("transform")
@@ -155,11 +160,16 @@ def _sync_runtime_identity(
     )
     model["sample_rate"] = int(runtime["sample_rate"])
     catalog_runtime = dict(model.get("runtime") or {})
+    old_voices = tuple(catalog_runtime.get("voices") or ())
     for field in ("layout", "max_tokens", "default_voice", "voices"):
         if field in runtime:
             catalog_runtime[field] = runtime[field]
+    new_voices = tuple(catalog_runtime.get("voices") or ())
+    if new_voices != old_voices:
+        # Release manifests do not currently carry authoritative per-voice
+        # metadata. Never retain metadata for a different roster.
+        catalog_runtime.pop("voice_metadata", None)
     model["runtime"] = catalog_runtime
-
 
 def sync_release(
     candidate: Path,

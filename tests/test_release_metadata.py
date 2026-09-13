@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PREPARE_PATH = ROOT / "scripts" / "prepare_release.py"
@@ -414,3 +415,56 @@ def test_v1_sources_and_registry_provenance_are_current() -> None:
 
     text = (ROOT / "catalog" / "models.json").read_text()
     assert "thewh1teagle/kokoro-onnx" not in text
+
+def test_contextbox_release_is_reproducible_r2() -> None:
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    profiles = json.loads((ROOT / "scripts" / "kokoro_profiles.json").read_text())
+
+    release = releases["releases"]["vi-contextbox"]
+    profile = profiles["vi-contextbox"]
+
+    assert release["model_version"] == "1.0"
+    assert release["release_version"] == 2
+    assert release["tag"] == "model-files-vietnamese-v1.0-r2"
+    assert release["source_repository"] == profile["repo_id"]
+    assert release["source_revision"] == profile["revision"]
+    assert release["frontend"] == "vig2p-v1"
+
+
+def test_runtime_metadata_uses_bundle_voice_as_implicit_default(tmp_path: Path) -> None:
+    bundle = tmp_path / "bundle.json"
+    bundle.write_text(
+        json.dumps(
+            {
+                "speakers": [
+                    {"sid": 0, "name": "diem_trinh"},
+                    {"sid": 1, "name": "hung_thinh"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    runtime = prepare_release._runtime_metadata(
+        {"language": "vi", "sample_rate": 24000, "frontend": {"name": "vig2p"}},
+        bundle,
+        {},
+    )
+
+    assert runtime["voices"] == ["diem_trinh", "hung_thinh"]
+    assert runtime["default_voice"] == "diem_trinh"
+
+
+def test_runtime_metadata_rejects_default_outside_bundle_roster(tmp_path: Path) -> None:
+    bundle = tmp_path / "bundle.json"
+    bundle.write_text(
+        json.dumps({"speakers": [{"sid": 0, "name": "diem_trinh"}]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit, match="not in the voice roster"):
+        prepare_release._runtime_metadata(
+            {"language": "vi", "sample_rate": 24000, "frontend": {"name": "vig2p"}},
+            bundle,
+            {"default_voice": "default"},
+        )

@@ -1535,7 +1535,7 @@
     "vi-contextbox": {
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (ContextBoxAI)",
-      "runtime_available": true,
+      "runtime_available": false,
       "language_codes": [
         "vi"
       ],
@@ -1583,80 +1583,7 @@
         "source_repository": "contextboxai/Kokoro-Vietnamese"
       },
       "mirror_policy": "preferred",
-      "distributions": [
-        {
-          "id": "github-model-files-vietnamese-v1.0",
-          "provider": "github-release",
-          "transport": "https",
-          "release_key": "vi-contextbox",
-          "release_tag": "model-files-vietnamese-v1.0",
-          "release_version": 1,
-          "runtime_ready": true,
-          "artifacts": [
-            {
-              "id": "model-kokoro-vietnamese-v1.0",
-              "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-v1.0/kokoro-vietnamese-v1.0.onnx",
-              "local_name": "kokoro-vietnamese-v1.0.onnx",
-              "format": "onnx",
-              "size": 325663273,
-              "sha256": "31885fef33b1dadd68bea60dde369f2083bbddeb1bc6983e6ad2d5bd8d2c5160",
-              "quality": "fp32"
-            },
-            {
-              "id": "voices-voices-vietnamese-v1.0",
-              "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-v1.0/voices-vietnamese-v1.0.npz",
-              "local_name": "voices-vietnamese-v1.0.npz",
-              "format": "numpy-npz",
-              "size": 7314868,
-              "sha256": "d79ca88727847b831dee386c71d87064759348a5a6e19673452600e7848e2185"
-            },
-            {
-              "id": "voices-voices-vietnamese-v1.0.raw",
-              "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-v1.0/voices-vietnamese-v1.0.raw.bin",
-              "local_name": "voices-vietnamese-v1.0.raw.bin",
-              "format": "raw-float32-le",
-              "size": 7311360,
-              "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
-              "handling": {
-                "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
-                "endianness": "little",
-                "voice_count": 1
-              }
-            },
-            {
-              "id": "bundle-bundle",
-              "role": "bundle",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-v1.0/bundle.json",
-              "local_name": "bundle.json",
-              "format": "json",
-              "size": 2177,
-              "sha256": "69c470891ea8520cbc36cffcb0651eb60011b0fc6abb969ffd0b425cf12a4575"
-            },
-            {
-              "id": "config-config-vietnamese-v1.0",
-              "role": "config",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-vietnamese-v1.0/config-vietnamese-v1.0.json",
-              "local_name": "config-vietnamese-v1.0.json",
-              "format": "json",
-              "size": 2351,
-              "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
-            }
-          ],
-          "provenance": {
-            "source_repository": null,
-            "source_revision": null,
-            "transform": null,
-            "source_manifest": null
-          }
-        }
-      ]
+      "distributions": []
     },
     "vi-anphunl": {
       "model_version": "1.0",

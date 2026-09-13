@@ -148,6 +148,17 @@ def _runtime_metadata(
     fallback_voices = list(
         release_runtime.get("voices") or release.get("voices") or ["default"]
     )
+    voices = _bundle_voices(bundle_path, fallback_voices)
+    if not voices:
+        raise SystemExit("Runtime voice roster is empty")
+    configured_default = release_runtime.get(
+        "default_voice", release.get("default_voice")
+    )
+    default_voice = str(configured_default or voices[0])
+    if default_voice not in voices:
+        raise SystemExit(
+            f"Runtime default voice {default_voice!r} is not in the voice roster"
+        )
     contract = dict(profile.get("onnx_contract") or {})
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
@@ -167,12 +178,8 @@ def _runtime_metadata(
         "tokenizer_vocab_version": str(release.get("tokenizer_vocab_version", "1.0")),
         "vocabulary_source": str(release.get("vocabulary_source", "downloaded-config")),
         "max_tokens": int(contract["max_tokens"]),
-        "default_voice": str(
-            release_runtime.get(
-                "default_voice", release.get("default_voice", fallback_voices[0])
-            )
-        ),
-        "voices": _bundle_voices(bundle_path, fallback_voices),
+        "default_voice": default_voice,
+        "voices": voices,
         "layout": str(
             release_runtime.get(
                 "layout", release.get("runtime_layout", "single-onnx-v1")
