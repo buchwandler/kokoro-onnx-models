@@ -75,6 +75,11 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py pt-eu-logus2k --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/pt-eu-logus2k/report.json"
+      - name: Install eSpeak NG for Swedish frontend
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'sv-joakim' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y espeak-ng
       - name: Swedish checkpoint A/B and staged consumer gate
         if: ${{ matrix.kind == 'build' && matrix.profile == 'sv-joakim' }}
         run: |
