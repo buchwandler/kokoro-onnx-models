@@ -829,6 +829,7 @@
         }
       }
     },
+    "frontend_id": "kokorog2p-ru-v1",
     "frontend": {
       "kind": "external",
       "name": "Zaakirio ru_g2p.py / Russian stress-aware G2P",
@@ -924,6 +925,7 @@
         }
       }
     },
+    "frontend_id": "kokorog2p-ru-v1",
     "frontend": {
       "kind": "external",
       "name": "Zaakirio ru_g2p.py / Russian stress-aware G2P",

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "catalog" / "models.json"
 RELEASES = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
+_MACHINE_FRONTEND_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)+$")
 
 _IMMUTABLE_ARTIFACT_FIELDS = (
     "id",
@@ -125,7 +127,9 @@ def distribution_from_manifest(
     }
 
 
-def _sync_runtime_identity(model: dict[str, Any], manifest: dict[str, Any]) -> None:
+def _sync_runtime_identity(
+    model: dict[str, Any], manifest: dict[str, Any], release: dict[str, Any]
+) -> None:
     runtime = manifest.get("runtime")
     if runtime is None:
         return
@@ -138,7 +142,17 @@ def _sync_runtime_identity(model: dict[str, Any], manifest: dict[str, Any]) -> N
             "Manifest runtime metadata is missing: " + ", ".join(missing)
         )
     model["language_codes"] = list(runtime["language_codes"])
-    model["frontend"] = str(runtime["frontend"])
+    # The release catalog owns the client-facing machine ID. Older published
+    # manifests may contain the human-readable frontend display name here.
+    frontend = release.get("frontend")
+    if not (
+        isinstance(frontend, str)
+        and _MACHINE_FRONTEND_RE.fullmatch(frontend) is not None
+    ):
+        frontend = model.get("frontend")
+    model["frontend"] = str(
+        frontend if isinstance(frontend, str) else runtime["frontend"]
+    )
     model["sample_rate"] = int(runtime["sample_rate"])
     catalog_runtime = dict(model.get("runtime") or {})
     for field in ("layout", "max_tokens", "default_voice", "voices"):
@@ -213,7 +227,7 @@ def sync_release(
     if update:
         model["model_version"] = str(release["model_version"])
         model["onnx_contract"] = manifest_contract
-        _sync_runtime_identity(model, manifest)
+        _sync_runtime_identity(model, manifest, release)
         model["distributions"] = [
             d for d in model["distributions"] if d.get("provider") != "github-release"
         ]

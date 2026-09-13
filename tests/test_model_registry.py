@@ -128,9 +128,9 @@ def test_russian_uses_separate_checkpoint_build_releases() -> None:
     assert "ru-zaakirio-base" in releases["releases"]
     assert "ru-zaakirio-dima" in releases["releases"]
     assert base["mirror_policy"] == dima["mirror_policy"] == "preferred"
-    assert base["runtime_available"] is False
+    assert base["runtime_available"] is True
     assert dima["runtime_available"] is False
-    assert base["distributions"] == []
+    assert len(base["distributions"]) == 1
     assert dima["distributions"] == []
     assert base["runtime"]["voices"] == ["sveta", "masha"]
     assert dima["runtime"]["voices"] == ["dima"]

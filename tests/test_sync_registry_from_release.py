@@ -151,7 +151,7 @@ def test_sync_release_updates_stale_runtime_identity(tmp_path: Path) -> None:
     runtime = {
         "language_codes": ["pt-pt"],
         "sample_rate": 24000,
-        "frontend": "tts-eu-pt-v1",
+        "frontend": "European Portuguese via KokoroG2P + Lexphon",
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pt_eu",
@@ -203,6 +203,7 @@ def test_sync_release_updates_stale_runtime_identity(tmp_path: Path) -> None:
                         "tag": "model-files-test",
                         "model_version": "1.0",
                         "release_version": 1,
+                        "frontend": "tts-eu-pt-v1",
                     }
                 }
             }
