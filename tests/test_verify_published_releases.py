@@ -8,7 +8,9 @@ verify = importlib.import_module("scripts.verify_published_releases")
 
 TAG = "model-files-test-v1"
 NAME = "model.onnx"
-URL = f"https://github.com/buchwandler/kokoro-onnx-models/releases/download/{TAG}/{NAME}"
+URL = (
+    f"https://github.com/buchwandler/kokoro-onnx-models/releases/download/{TAG}/{NAME}"
+)
 
 
 class FakeClient:
@@ -21,7 +23,9 @@ class FakeClient:
         return self.release
 
 
-def distribution(*, provider="github-release", runtime_ready=True, url=URL, size=12, sha256="a" * 64):
+def distribution(
+    *, provider="github-release", runtime_ready=True, url=URL, size=12, sha256="a" * 64
+):
     return {
         "id": "github-test",
         "provider": provider,
@@ -37,6 +41,7 @@ def distribution(*, provider="github-release", runtime_ready=True, url=URL, size
             }
         ],
     }
+
 
 def release(*, draft=False, assets=None):
     return {
@@ -61,24 +66,35 @@ def test_missing_release_fails() -> None:
 
 def test_missing_asset_fails() -> None:
     with pytest.raises(verify.PublicationVerificationError, match="missing asset"):
-        verify.verify_distribution("test", distribution(), FakeClient(release(assets=[])))
+        verify.verify_distribution(
+            "test", distribution(), FakeClient(release(assets=[]))
+        )
 
 
 def test_wrong_asset_size_fails() -> None:
     with pytest.raises(verify.PublicationVerificationError, match="size is 13"):
         verify.verify_distribution(
-            "test", distribution(), FakeClient(release(assets=[{"name": NAME, "size": 13}]))
+            "test",
+            distribution(),
+            FakeClient(release(assets=[{"name": NAME, "size": 13}])),
         )
 
+
 def test_wrong_digest_fails_when_digest_check_enabled() -> None:
-    published = release(assets=[{"name": NAME, "size": 12, "digest": "sha256:" + "b" * 64}])
+    published = release(
+        assets=[{"name": NAME, "size": 12, "digest": "sha256:" + "b" * 64}]
+    )
     with pytest.raises(verify.PublicationVerificationError, match="digest differs"):
-        verify.verify_distribution("test", distribution(), FakeClient(published), check_digests=True)
+        verify.verify_distribution(
+            "test", distribution(), FakeClient(published), check_digests=True
+        )
 
 
 def test_missing_digest_fails_when_digest_check_enabled() -> None:
     with pytest.raises(verify.PublicationVerificationError, match="no SHA-256 digest"):
-        verify.verify_distribution("test", distribution(), FakeClient(release()), check_digests=True)
+        verify.verify_distribution(
+            "test", distribution(), FakeClient(release()), check_digests=True
+        )
 
 
 def test_digest_is_not_required_without_digest_check() -> None:
@@ -99,39 +115,61 @@ def test_swedish_bundle_identity_mismatch_fails() -> None:
     swedish["release_tag"] = published_tag
     swedish["artifacts"][0].update({"id": "bundle-bundle", "local_name": "bundle.json"})
     published = release(
-        assets=[{"name": "bundle.json", "size": actual_size, "digest": "sha256:" + actual_sha}]
+        assets=[
+            {
+                "name": "bundle.json",
+                "size": actual_size,
+                "digest": "sha256:" + actual_sha,
+            }
+        ]
     )
     published["tag_name"] = published_tag
 
     with pytest.raises(verify.PublicationVerificationError, match="size is 70344"):
-        verify.verify_distribution("sv-joakim", swedish, FakeClient(published), check_digests=True)
+        verify.verify_distribution(
+            "sv-joakim", swedish, FakeClient(published), check_digests=True
+        )
 
 
 def test_draft_release_fails() -> None:
     with pytest.raises(verify.PublicationVerificationError, match="is a draft"):
-        verify.verify_distribution("test", distribution(), FakeClient(release(draft=True)))
+        verify.verify_distribution(
+            "test", distribution(), FakeClient(release(draft=True))
+        )
 
 
 def test_url_tag_mismatch_fails() -> None:
     wrong_url = URL.replace(TAG, "model-files-other-v1")
-    with pytest.raises(verify.PublicationVerificationError, match="does not match release tag"):
-        verify.verify_distribution("test", distribution(url=wrong_url), FakeClient(release()))
+    with pytest.raises(
+        verify.PublicationVerificationError, match="does not match release tag"
+    ):
+        verify.verify_distribution(
+            "test", distribution(url=wrong_url), FakeClient(release())
+        )
 
 
 def test_url_basename_mismatch_fails() -> None:
     wrong_url = URL.replace(NAME, "other.onnx")
-    with pytest.raises(verify.PublicationVerificationError, match="does not match release tag"):
-        verify.verify_distribution("test", distribution(url=wrong_url), FakeClient(release()))
+    with pytest.raises(
+        verify.PublicationVerificationError, match="does not match release tag"
+    ):
+        verify.verify_distribution(
+            "test", distribution(url=wrong_url), FakeClient(release())
+        )
 
 
 def test_non_github_distribution_is_ignored() -> None:
-    registry = {"models": {"test": {"distributions": [distribution(provider="huggingface")]}}}
+    registry = {
+        "models": {"test": {"distributions": [distribution(provider="huggingface")]}}
+    }
 
     assert verify.verify_publications(registry, FakeClient(None)) == 0
 
 
 def test_non_runtime_ready_distribution_is_ignored() -> None:
-    registry = {"models": {"test": {"distributions": [distribution(runtime_ready=False)]}}}
+    registry = {
+        "models": {"test": {"distributions": [distribution(runtime_ready=False)]}}
+    }
 
     assert verify.verify_publications(registry, FakeClient(None)) == 0
 

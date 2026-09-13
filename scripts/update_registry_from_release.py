@@ -171,6 +171,7 @@ def _sync_runtime_identity(
         catalog_runtime.pop("voice_metadata", None)
     model["runtime"] = catalog_runtime
 
+
 def sync_release(
     candidate: Path,
     *,
@@ -222,7 +223,7 @@ def sync_release(
             and d.get("release_tag") == manifest.get("tag")
         ),
         None,
-)
+    )
     generated = distribution_from_manifest(manifest, release, existing)
     _assert_release_tag_immutable(existing, generated)
     if preflight:

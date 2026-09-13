@@ -114,8 +114,13 @@ def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:
     release_all = workflows["release-all.yml"]
     release_all_sync = release_all.split("sync-catalog:", 1)[1]
     assert publish.index("  publish:\n") < publish.index("  sync-catalog:\n")
-    assert release_all.index("  publish-all:\n") < release_all.index("  sync-catalog:\n")
-    assert "scripts/update_registry_from_release.py" in publish.split("sync-catalog:", 1)[0]
+    assert release_all.index("  publish-all:\n") < release_all.index(
+        "  sync-catalog:\n"
+    )
+    assert (
+        "scripts/update_registry_from_release.py"
+        in publish.split("sync-catalog:", 1)[0]
+    )
     assert "scripts/update_registry_from_release.py" not in publish_sync
     assert "scripts/update_registry_from_release.py" not in release_all_sync
     assert "scripts/sync_registry_from_release.py" in publish_sync

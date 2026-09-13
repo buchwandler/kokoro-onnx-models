@@ -129,9 +129,9 @@ def test_russian_uses_separate_checkpoint_build_releases() -> None:
     assert "ru-zaakirio-dima" in releases["releases"]
     assert base["mirror_policy"] == dima["mirror_policy"] == "preferred"
     assert base["runtime_available"] is True
-    assert dima["runtime_available"] is False
+    assert dima["runtime_available"] is True
     assert len(base["distributions"]) == 1
-    assert dima["distributions"] == []
+    assert len(dima["distributions"]) == 1
     assert base["runtime"]["voices"] == ["sveta", "masha"]
     assert dima["runtime"]["voices"] == ["dima"]
     assert base["onnx_contract"]["outputs"] == {"audio": "float32", "duration": "int64"}
@@ -214,9 +214,7 @@ def test_metadata_collector_fills_missing_values(monkeypatch, tmp_path: Path) ->
     monkeypatch.setattr(collect_runtime_metadata, "_download", fake_download)
     collect_runtime_metadata.REGISTRY = registry_path
     assert (
-        collect_runtime_metadata._collect(
-            registry, "v1.0", "model-kokoro-v1.0", True
-        )
+        collect_runtime_metadata._collect(registry, "v1.0", "model-kokoro-v1.0", True)
         == 0
     )
     updated = json.loads(registry_path.read_text(encoding="utf-8"))

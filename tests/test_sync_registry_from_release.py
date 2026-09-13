@@ -139,7 +139,9 @@ def test_sync_published_release_rebuilds_quarantined_registry(
 
     registry = tmp_path / "models.json"
     registry.write_text(
-        json.dumps({"models": {"test": {"runtime_available": False, "distributions": []}}}),
+        json.dumps(
+            {"models": {"test": {"runtime_available": False, "distributions": []}}}
+        ),
         encoding="utf-8",
     )
     releases = tmp_path / "releases.json"
@@ -170,12 +172,15 @@ def test_sync_published_release_rebuilds_quarantined_registry(
 
     model = json.loads(registry.read_text(encoding="utf-8"))["models"]["test"]
     distribution = model["distributions"][0]
-    artifacts = {artifact["local_name"]: artifact for artifact in distribution["artifacts"]}
+    artifacts = {
+        artifact["local_name"]: artifact for artifact in distribution["artifacts"]
+    }
     assert model["runtime_available"] is True
     assert distribution["release_tag"] == tag
     assert artifacts["model.json"]["size"] == len(model_bytes)
     assert artifacts["model.json"]["sha256"] == model_sha
     assert artifacts["voices.raw"]["sha256"] == voice_sha
+
 
 def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
     candidate = tmp_path / "candidate"
@@ -713,7 +718,6 @@ def test_preflight_allows_new_tag_without_writing(tmp_path: Path) -> None:
     )
 
     assert registry.read_text(encoding="utf-8") == before
-
 
 
 def test_preflight_rejects_active_same_tag_drift(tmp_path: Path) -> None:

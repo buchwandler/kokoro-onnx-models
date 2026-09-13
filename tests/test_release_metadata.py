@@ -416,6 +416,7 @@ def test_v1_sources_and_registry_provenance_are_current() -> None:
     text = (ROOT / "catalog" / "models.json").read_text()
     assert "thewh1teagle/kokoro-onnx" not in text
 
+
 def test_contextbox_release_is_reproducible_r2() -> None:
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     profiles = json.loads((ROOT / "scripts" / "kokoro_profiles.json").read_text())
@@ -447,6 +448,7 @@ def test_anphunl_release_is_reproducible_r2() -> None:
     assert release["source_revision"] == profile["revision"]
     assert release["frontend"] == "vig2p-v1"
     assert model["license"]["source_repository"] == profile["repo_id"]
+
 
 def test_runtime_metadata_uses_bundle_voice_as_implicit_default(tmp_path: Path) -> None:
     bundle = tmp_path / "bundle.json"

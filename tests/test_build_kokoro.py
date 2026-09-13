@@ -140,6 +140,7 @@ def test_anphunl_profile_is_pinned_for_repaired_r2_release() -> None:
     assert profile["release"]["default_voice"] == "diem_trinh"
     assert profile["export_validation"]["max_audio_abs"] == 1.1
 
+
 def test_portuguese_profile_produces_supported_runtime_metadata(tmp_path: Path) -> None:
     profile = build_kokoro.load_profiles()["pt-eu-logus2k"]
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())

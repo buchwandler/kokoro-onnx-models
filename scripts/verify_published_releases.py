@@ -103,16 +103,22 @@ def _validate_artifact_url(
         )
 
 
-def _asset_index(release: dict[str, Any], model_id: str, tag: str) -> dict[str, dict[str, Any]]:
+def _asset_index(
+    release: dict[str, Any], model_id: str, tag: str
+) -> dict[str, dict[str, Any]]:
     if release.get("tag_name") != tag:
         raise PublicationVerificationError(
             f"{model_id}: GitHub release tag is {release.get('tag_name')!r}, expected {tag!r}"
         )
     if release.get("draft") is True:
-        raise PublicationVerificationError(f"{model_id}: GitHub release {tag!r} is a draft")
+        raise PublicationVerificationError(
+            f"{model_id}: GitHub release {tag!r} is a draft"
+        )
     assets = release.get("assets")
     if not isinstance(assets, list):
-        raise PublicationVerificationError(f"{model_id}: GitHub release {tag!r} has no asset list")
+        raise PublicationVerificationError(
+            f"{model_id}: GitHub release {tag!r} has no asset list"
+        )
     result: dict[str, dict[str, Any]] = {}
     for asset in assets:
         if isinstance(asset, dict) and isinstance(asset.get("name"), str):
@@ -128,7 +134,9 @@ def verify_distribution(
 ) -> None:
     tag = distribution.get("release_tag")
     if not isinstance(tag, str) or not tag:
-        raise PublicationVerificationError(f"{model_id}: GitHub distribution has no release_tag")
+        raise PublicationVerificationError(
+            f"{model_id}: GitHub distribution has no release_tag"
+        )
     for artifact in distribution.get("artifacts", []):
         _validate_artifact_url(model_id, tag, artifact)
     release = client.get_release(tag)
@@ -190,7 +198,9 @@ def verify_publications(
                 or distribution.get("runtime_ready") is not True
             ):
                 continue
-            verify_distribution(model_id, distribution, client, check_digests=check_digests)
+            verify_distribution(
+                model_id, distribution, client, check_digests=check_digests
+            )
             checked += 1
     return checked
 

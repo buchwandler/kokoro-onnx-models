@@ -86,6 +86,7 @@ def test_immutability_checker_allows_adding_distribution_after_quarantine() -> N
     before = {"models": {"test": {"distributions": []}}}
     check_immutability(before, _catalog())
 
+
 def test_voice_artifact_changes_require_a_new_release_tag() -> None:
     before = _catalog(tag="model-files-v1.0-timestamped")
     before_artifact = before["models"]["test"]["distributions"][0]["artifacts"][0]
