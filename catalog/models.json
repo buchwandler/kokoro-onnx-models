@@ -2936,7 +2936,7 @@
     "ru-zaakirio-dima": {
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio Dima)",
-      "runtime_available": false,
+      "runtime_available": true,
       "language_codes": [
         "ru"
       ],
@@ -2969,14 +2969,14 @@
           "audio": "float32",
           "duration": "int64"
         },
+        "max_tokens": 510,
         "timing": {
           "kind": "token-duration-v1",
           "output": "duration",
           "unit": "frame",
           "samples_per_frame": 600,
           "includes_boundary_tokens": true
-        },
-        "max_tokens": 510
+        }
       },
       "license": {
         "declared": "OpenRAIL model weights; Apache-2.0 code",
@@ -2984,7 +2984,79 @@
         "source_repository": "zaakirio/kokoro-ru"
       },
       "mirror_policy": "preferred",
-      "distributions": []
+      "distributions": [
+        {
+          "id": "github-model-files-russian-zaakirio-dima-v2",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "ru-zaakirio-dima",
+          "release_tag": "model-files-russian-zaakirio-dima-v2",
+          "release_version": 1,
+          "runtime_ready": true,
+          "artifacts": [
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 64957,
+              "sha256": "b632c2ce04b65da525ec4d168fae640670378bfd364fcaa2352fd1838f68d9be"
+            },
+            {
+              "id": "config-config-russian-zaakirio-dima-v2",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/config-russian-zaakirio-dima-v2.json",
+              "local_name": "config-russian-zaakirio-dima-v2.json",
+              "format": "json",
+              "size": 2542,
+              "sha256": "e4da95d48ae0f937adeda8dd99a804941913327e6d7607a7a15de11abb69a120"
+            },
+            {
+              "id": "model-kokoro-russian-zaakirio-dima-v2",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/kokoro-russian-zaakirio-dima-v2.onnx",
+              "local_name": "kokoro-russian-zaakirio-dima-v2.onnx",
+              "format": "onnx",
+              "size": 325510063,
+              "sha256": "639c178e19c001336154b29c39a41cd1b3d38d58d55c6cb3940708d7c449f3db",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-dima-v2",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/voices-russian-zaakirio-dima-v2.npz",
+              "local_name": "voices-russian-zaakirio-dima-v2.npz",
+              "format": "numpy-npz",
+              "size": 522502,
+              "sha256": "1f72ab156a48ab2bb9605d69e8ba3854be0d4757210380c79254ab1a19a6e825"
+            },
+            {
+              "id": "voices-voices-russian-zaakirio-dima-v2.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-russian-zaakirio-dima-v2/voices-russian-zaakirio-dima-v2.raw.bin",
+              "local_name": "voices-russian-zaakirio-dima-v2.raw.bin",
+              "format": "raw-float32-le",
+              "size": 522240,
+              "sha256": "e774e8859604164aa27c393fa4393c3a4ff2162d37911a39574551edbc801dcb",
+              "handling": {
+                "dtype": "float32",
+                "shape": [
+                  510,
+                  256
+                ],
+                "endianness": "little"
+              }
+            }
+          ],
+          "provenance": {
+            "source_repository": "zaakirio/kokoro-ru",
+            "source_revision": "d649c57b239b18c4c384378127cbf01dba039bc1",
+            "transform": null,
+            "source_manifest": null
+          }
+        }
+      ]
     },
     "pt-eu-logus2k": {
       "model_version": "1.0",
