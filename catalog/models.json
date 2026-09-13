@@ -2112,7 +2112,7 @@
     "sv-joakim": {
       "model_version": "1.1",
       "display_name": "Kokoro Swedish (Joakim multi-speaker)",
-      "runtime_available": false,
+      "runtime_available": true,
       "language_codes": [
         "sv"
       ],
@@ -2223,7 +2223,79 @@
         "source_repository": "Joakim/kokoro-sv-voices"
       },
       "mirror_policy": "preferred",
-      "distributions": []
+      "distributions": [
+        {
+          "id": "github-model-files-swedish-v1.1-r2",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "sv-joakim",
+          "release_tag": "model-files-swedish-v1.1-r2",
+          "release_version": 2,
+          "runtime_ready": true,
+          "artifacts": [
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-swedish-v1.1-r2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 70268,
+              "sha256": "0fa3bb08465fe48b7af1782a7af96a45a86661a260cbae4d86afedc3c2d12b27"
+            },
+            {
+              "id": "config-config-swedish-v1.1",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-swedish-v1.1-r2/config-swedish-v1.1.json",
+              "local_name": "config-swedish-v1.1.json",
+              "format": "json",
+              "size": 2351,
+              "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f"
+            },
+            {
+              "id": "model-kokoro-swedish-v1.1",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-swedish-v1.1-r2/kokoro-swedish-v1.1.onnx",
+              "local_name": "kokoro-swedish-v1.1.onnx",
+              "format": "onnx",
+              "size": 325529497,
+              "sha256": "33b63b9606818e85da054735c8da1bb55c68decc5f28ceaff257a18b09b3d6e1",
+              "quality": "fp32"
+            },
+            {
+              "id": "voices-voices-swedish-v1.1",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-swedish-v1.1-r2/voices-swedish-v1.1.npz",
+              "local_name": "voices-swedish-v1.1.npz",
+              "format": "numpy-npz",
+              "size": 5224836,
+              "sha256": "7e6f98ad71ceca5b6eb187f1cde8c64af10614d42bed44004cf41f286979a526"
+            },
+            {
+              "id": "voices-voices-swedish-v1.1.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-swedish-v1.1-r2/voices-swedish-v1.1.raw.bin",
+              "local_name": "voices-swedish-v1.1.raw.bin",
+              "format": "raw-float32-le",
+              "size": 5222400,
+              "sha256": "d91053a2a96fbfd66887b7f1a9485d8cacb28edffcb5320f9201ecdfa2e948fb",
+              "handling": {
+                "dtype": "float32",
+                "shape": [
+                  510,
+                  256
+                ],
+                "endianness": "little"
+              }
+            }
+          ],
+          "provenance": {
+            "source_repository": "Joakim/kokoro-sv-voices",
+            "source_revision": "2c7968d59c2fda1667e9e3ff0dd9967150a53f74",
+            "transform": null,
+            "source_manifest": null
+          }
+        }
+      ]
     },
     "de-thorsten": {
       "model_version": "1.1.4",
