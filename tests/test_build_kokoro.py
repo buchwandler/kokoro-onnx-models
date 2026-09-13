@@ -130,6 +130,7 @@ def test_contextbox_profile_is_pinned_and_has_real_default_voice() -> None:
     assert profile["release"]["default_voice"] == "diem_trinh"
     assert profile["export_validation"]["max_audio_abs"] == 1.1
 
+
 def test_portuguese_profile_produces_supported_runtime_metadata(tmp_path: Path) -> None:
     profile = build_kokoro.load_profiles()["pt-eu-logus2k"]
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
@@ -180,6 +181,7 @@ def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
     profile = build_kokoro.load_profiles()["vi-ngoc-huyen"]
     assert profile["repo_id"] == "dinhthuan/kokoro-vi-ngoc-huyen"
     assert profile["revision"] == "8148f67cdcf732303a24ee8841b8b1817795bafd"
+    assert profile["frontend_id"] == "vig2p-v1"
     assert profile["model"] == {
         "kind": "checkpoint",
         "path": "model/kokoro_vi_ngoc_huyen.pth",
@@ -195,6 +197,18 @@ def test_ngoc_huyen_profile_uses_pinned_timestamped_checkpoint() -> None:
     assert profile["onnx_contract"]["timing"]["output"] == "duration"
     assert "tag" not in profile["release"]
     assert profile["release"]["default_voice"] == "ngoc_huyen"
+
+
+def test_ngoc_huyen_runtime_metadata_uses_canonical_frontend_id(tmp_path: Path) -> None:
+    profile = build_kokoro.load_profiles()["vi-ngoc-huyen"]
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    release = releases["releases"]["vi-ngoc-huyen"]
+
+    runtime = prepare_release._runtime_metadata(
+        profile, tmp_path / "missing-bundle.json", release
+    )
+
+    assert runtime["frontend"] == "vig2p-v1"
 
 
 def test_software_mansion_profiles_pin_sources_and_stock_config() -> None:

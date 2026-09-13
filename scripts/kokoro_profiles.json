@@ -185,6 +185,7 @@
     "license": "Apache-2.0",
     "language": "vi",
     "sample_rate": 24000,
+    "frontend_id": "vig2p-v1",
     "model": {
       "kind": "checkpoint",
       "path": "model/kokoro_vi_ngoc_huyen.pth",
