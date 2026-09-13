@@ -122,33 +122,10 @@ jobs:
           ref: main
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
-      - uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ inputs.candidate_run_id }}
-          name: kokoro-candidate-${{ inputs.release_key }}-${{ inputs.candidate_commit }}
-          path: candidate
-      - name: Synchronize and verify runtime registry
+      - name: Synchronize and verify published runtime registry
         run: |
           set -euo pipefail
-          manifest="$(find candidate -type f -name release-manifest.json -print -quit)"
-          test -n "$manifest"
-          candidate_dir="$(dirname "$manifest")"
-          profile="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile"])' "$manifest")"
-          tag="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["tag"])' "$manifest")"
-          model_version="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["model_version"])' "$manifest")"
-          release_version="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["release_version"])' "$manifest")"
-          echo "release key: $RELEASE_KEY"
-          echo "profile: $profile"
-          echo "model version: $model_version"
-          echo "release version: $release_version"
-          echo "tag: $tag"
-          uv run python scripts/verify_candidate.py "$candidate_dir" \
-            --expected-tag "$tag" \
-            --expected-profile "$profile" \
-            --expected-model-version "$model_version" \
-            --expected-release-version "$release_version"
-          python scripts/update_registry_from_release.py "$candidate_dir" --profile "$profile" --update
+          uv run python scripts/sync_registry_from_release.py "$RELEASE_KEY"
           python scripts/verify_model_registry.py
           python scripts/collect_runtime_metadata.py --check
       - name: Commit registry update when needed

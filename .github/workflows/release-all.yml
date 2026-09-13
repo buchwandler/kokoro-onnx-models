@@ -205,23 +205,21 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: kokoro-candidate-*-${{ needs.plan.outputs.builder_commit }}
-          path: candidates
-          merge-multiple: false
-      - name: Regenerate and verify runtime registry
+      - name: Resolve release matrix
+        env:
+          MATRIX: ${{ needs.plan.outputs.matrix }}
+        run: echo "$MATRIX" > /tmp/matrix.json
+      - name: Regenerate and verify published runtime registry
         run: |
           set -euo pipefail
-          for manifest in candidates/*/release-manifest.json; do
-            profile="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile"])' "$manifest")"
-            activate="$(python -c 'import json,sys; print("true" if json.load(open("catalog/releases.json"))["releases"][sys.argv[1]].get("activate_runtime_registry", True) is True else "false")' "$profile")"
+          while read -r release_key; do
+            activate="$(python -c 'import json,sys; print("true" if json.load(open("catalog/releases.json"))["releases"][sys.argv[1]].get("activate_runtime_registry", True) is True else "false")' "$release_key")"
             if [ "$activate" != "true" ]; then
-              echo "Skipping runtime-registry activation for staged profile: $profile"
+              echo "Skipping runtime-registry activation for release key: $release_key"
               continue
             fi
-            python scripts/update_registry_from_release.py "$(dirname "$manifest")" --profile "$profile" --update
-          done
+            uv run python scripts/sync_registry_from_release.py "$release_key"
+          done < <(python -c 'import json; [print(x["release_key"]) for x in json.load(open("/tmp/matrix.json"))["include"]]')
           python scripts/verify_model_registry.py
           python scripts/collect_runtime_metadata.py --check
       - name: Commit registry update when needed

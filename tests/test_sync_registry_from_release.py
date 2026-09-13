@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -70,6 +71,110 @@ def test_download_release_fetches_manifest_checksums_and_assets(
         "voices.npz",
     ]
 
+
+def test_sync_published_release_rebuilds_quarantined_registry(
+    tmp_path: Path, monkeypatch
+) -> None:
+    tag = "model-files-test-v2"
+    model_bytes = b"{}"
+    voice_bytes = b"\x00" * 4
+    model_sha = hashlib.sha256(model_bytes).hexdigest()
+    voice_sha = hashlib.sha256(voice_bytes).hexdigest()
+    manifest = {
+        "schema": 2,
+        "runtime_contract": 1,
+        "repository": "buchwandler/kokoro-onnx-models",
+        "tag": tag,
+        "profile": "test",
+        "model_version": "1.0",
+        "release_version": 1,
+        "generated_at": "2026-01-01T00:00:00+00:00",
+        "source": {},
+        "license": {},
+        "publication": {"enabled": True},
+        "runtime": {
+            "language_codes": ["en"],
+            "frontend": "test-frontend-v1",
+            "sample_rate": 24000,
+            "layout": "single-onnx-v1",
+            "max_tokens": 510,
+            "default_voice": "voice",
+            "voices": ["voice"],
+        },
+        "onnx_contract": {"outputs": {"audio": "float32"}},
+        "assets": [
+            {
+                "name": "model.json",
+                "role": "model",
+                "format": "json",
+                "size": len(model_bytes),
+                "sha256": model_sha,
+                "quality": "fp32",
+            },
+            {
+                "name": "voices.raw",
+                "role": "voices",
+                "format": "raw-float32-le",
+                "size": len(voice_bytes),
+                "sha256": voice_sha,
+            },
+        ],
+    }
+
+    def download(url: str, target: Path) -> None:
+        if target.name == "release-manifest.json":
+            target.write_text(json.dumps(manifest), encoding="utf-8")
+        elif target.name == "SHA256SUMS":
+            target.write_text(
+                f"{model_sha}  model.json\n{voice_sha}  voices.raw\n",
+                encoding="utf-8",
+            )
+        elif target.name == "model.json":
+            target.write_bytes(model_bytes)
+        elif target.name == "voices.raw":
+            target.write_bytes(voice_bytes)
+        else:
+            raise AssertionError(f"Unexpected download: {url}")
+
+    registry = tmp_path / "models.json"
+    registry.write_text(
+        json.dumps({"models": {"test": {"runtime_available": False, "distributions": []}}}),
+        encoding="utf-8",
+    )
+    releases = tmp_path / "releases.json"
+    releases.write_text(
+        json.dumps(
+            {
+                "releases": {
+                    "test": {
+                        "tag": tag,
+                        "profile": "test",
+                        "model_version": "1.0",
+                        "release_version": 1,
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sync, "_download", download)
+    monkeypatch.setattr(sync, "verify_registry", lambda *args, **kwargs: None)
+
+    sync.sync_published_release(
+        "test",
+        registry_path=registry,
+        releases_path=releases,
+        repository="buchwandler/kokoro-onnx-models",
+    )
+
+    model = json.loads(registry.read_text(encoding="utf-8"))["models"]["test"]
+    distribution = model["distributions"][0]
+    artifacts = {artifact["local_name"]: artifact for artifact in distribution["artifacts"]}
+    assert model["runtime_available"] is True
+    assert distribution["release_tag"] == tag
+    assert artifacts["model.json"]["size"] == len(model_bytes)
+    assert artifacts["model.json"]["sha256"] == model_sha
+    assert artifacts["voices.raw"]["sha256"] == voice_sha
 
 def test_sync_release_copies_timing_contract(tmp_path: Path) -> None:
     candidate = tmp_path / "candidate"

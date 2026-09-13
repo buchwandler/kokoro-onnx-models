@@ -1766,9 +1766,9 @@
     "sv-joakim": {
       "kind": "build",
       "profile": "sv-joakim",
-      "tag": "model-files-swedish-v1.1",
+      "tag": "model-files-swedish-v1.1-r2",
       "model_version": "1.1",
-      "release_version": 1,
+      "release_version": 2,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",

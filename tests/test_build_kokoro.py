@@ -148,7 +148,7 @@ def test_swedish_profile_uses_stock_checkpoint_and_all_named_voices() -> None:
     }
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     release = releases["releases"]["sv-joakim"]
-    assert release["tag"] == "model-files-swedish-v1.1"
+    assert release["tag"] == "model-files-swedish-v1.1-r2"
     assert release["model_version"] == "1.1"
     assert profile["release"]["model_filename"] == "kokoro-swedish-v1.1.onnx"
     assert profile["release"]["config_filename"] == "config-swedish-v1.1.json"

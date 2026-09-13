@@ -110,10 +110,18 @@ def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:
         assert "git push origin HEAD:main" in workflow
         assert "--force" not in workflow
     publish = workflows["publish-release.yml"]
+    publish_sync = publish.split("sync-catalog:", 1)[1]
+    release_all = workflows["release-all.yml"]
+    release_all_sync = release_all.split("sync-catalog:", 1)[1]
     assert publish.index("  publish:\n") < publish.index("  sync-catalog:\n")
-    assert "scripts/update_registry_from_release.py" in publish
-    assert "scripts/verify_model_registry.py" in publish
-    assert "scripts/collect_runtime_metadata.py --check" in publish
+    assert release_all.index("  publish-all:\n") < release_all.index("  sync-catalog:\n")
+    assert "scripts/update_registry_from_release.py" in publish.split("sync-catalog:", 1)[0]
+    assert "scripts/update_registry_from_release.py" not in publish_sync
+    assert "scripts/update_registry_from_release.py" not in release_all_sync
+    assert "scripts/sync_registry_from_release.py" in publish_sync
+    assert "scripts/sync_registry_from_release.py" in release_all_sync
+    assert "scripts/verify_model_registry.py" in publish_sync
+    assert "scripts/collect_runtime_metadata.py --check" in publish_sync
     assert "git show HEAD^:catalog/models.json" in publish
     assert "scripts/sync_registry_from_release.py" in workflows["refresh-catalog.yml"]
 

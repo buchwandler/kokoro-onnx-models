@@ -4,7 +4,6 @@ import importlib
 
 import pytest
 
-
 verify = importlib.import_module("scripts.verify_published_releases")
 
 TAG = "model-files-test-v1"
@@ -22,7 +21,7 @@ class FakeClient:
         return self.release
 
 
-def distribution(*, provider="github-release", runtime_ready=True, url=URL):
+def distribution(*, provider="github-release", runtime_ready=True, url=URL, size=12, sha256="a" * 64):
     return {
         "id": "github-test",
         "provider": provider,
@@ -33,12 +32,11 @@ def distribution(*, provider="github-release", runtime_ready=True, url=URL):
                 "id": "model-model",
                 "url": url,
                 "local_name": NAME,
-                "size": 12,
-                "sha256": "a" * 64,
+                "size": size,
+                "sha256": sha256,
             }
         ],
     }
-
 
 def release(*, draft=False, assets=None):
     return {
@@ -71,6 +69,42 @@ def test_wrong_asset_size_fails() -> None:
         verify.verify_distribution(
             "test", distribution(), FakeClient(release(assets=[{"name": NAME, "size": 13}]))
         )
+
+def test_wrong_digest_fails_when_digest_check_enabled() -> None:
+    published = release(assets=[{"name": NAME, "size": 12, "digest": "sha256:" + "b" * 64}])
+    with pytest.raises(verify.PublicationVerificationError, match="digest differs"):
+        verify.verify_distribution("test", distribution(), FakeClient(published), check_digests=True)
+
+
+def test_missing_digest_fails_when_digest_check_enabled() -> None:
+    with pytest.raises(verify.PublicationVerificationError, match="no SHA-256 digest"):
+        verify.verify_distribution("test", distribution(), FakeClient(release()), check_digests=True)
+
+
+def test_digest_is_not_required_without_digest_check() -> None:
+    verify.verify_distribution("test", distribution(), FakeClient(release()))
+
+
+def test_swedish_bundle_identity_mismatch_fails() -> None:
+    published_tag = "model-files-swedish-v1.1"
+    expected_size = 70395
+    expected_sha = "153a68523a8e5f2c01843d2fd2d8a40f2b94288b167bd595865762253ca610c3"
+    actual_size = 70344
+    actual_sha = "a2069566ff1933263f03a24aadb68e6bf247562293633ca5998867d01543dd39"
+    swedish = distribution(
+        url=f"https://github.com/buchwandler/kokoro-onnx-models/releases/download/{published_tag}/bundle.json",
+        size=expected_size,
+        sha256=expected_sha,
+    )
+    swedish["release_tag"] = published_tag
+    swedish["artifacts"][0].update({"id": "bundle-bundle", "local_name": "bundle.json"})
+    published = release(
+        assets=[{"name": "bundle.json", "size": actual_size, "digest": "sha256:" + actual_sha}]
+    )
+    published["tag_name"] = published_tag
+
+    with pytest.raises(verify.PublicationVerificationError, match="size is 70344"):
+        verify.verify_distribution("sv-joakim", swedish, FakeClient(published), check_digests=True)
 
 
 def test_draft_release_fails() -> None:

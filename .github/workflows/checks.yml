@@ -19,7 +19,7 @@ jobs:
       - run: python -m json.tool catalog/models.json >/dev/null
       - run: python -m json.tool schemas/model-registry.schema.json >/dev/null
       - run: python scripts/verify_model_registry.py
-      - run: python scripts/verify_published_releases.py
+      - run: python scripts/verify_published_releases.py --check-digests
       - run: python scripts/collect_runtime_metadata.py --check
       - run: python -m json.tool schemas/release-manifest.schema.json >/dev/null
       - name: Check catalog contract metadata

@@ -126,7 +126,7 @@ def test_swedish_and_thorsten_release_metadata() -> None:
         }
     }
     assert thorsten["release"]["default_voice"] == "thorsten"
-    assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.1"
+    assert catalog["releases"]["sv-joakim"]["tag"] == "model-files-swedish-v1.1-r2"
     assert (
         catalog["releases"]["de-thorsten"]["tag"]
         == "model-files-german-thorsten-v1.1.4"

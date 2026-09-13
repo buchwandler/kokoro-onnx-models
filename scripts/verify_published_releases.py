@@ -7,8 +7,9 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, unquote, urlparse
 from urllib.request import Request, urlopen
@@ -152,11 +153,15 @@ def verify_distribution(
             )
         digest = asset.get("digest")
         expected_sha256 = artifact.get("sha256")
-        if check_digests and (
-            isinstance(digest, str)
-            and digest.startswith("sha256:")
-            and expected_sha256
-        ):
+        if check_digests:
+            if not isinstance(digest, str) or not digest.startswith("sha256:"):
+                raise PublicationVerificationError(
+                    f"{model_id}/{artifact['id']}: GitHub asset {name!r} has no SHA-256 digest"
+                )
+            if not expected_sha256:
+                raise PublicationVerificationError(
+                    f"{model_id}/{artifact['id']}: registry has no SHA-256"
+                )
             if digest.removeprefix("sha256:") != expected_sha256:
                 raise PublicationVerificationError(
                     f"{model_id}/{artifact['id']}: asset {name!r} SHA-256 digest differs"
