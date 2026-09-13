@@ -134,8 +134,9 @@ def test_swedish_and_thorsten_release_metadata() -> None:
     )
     assert (
         catalog["releases"]["vi-ngoc-huyen"]["tag"]
-        == "model-files-vietnamese-ngoc-huyen-v1.0"
+        == "model-files-vietnamese-ngoc-huyen-v1.0-r2"
     )
+    assert catalog["releases"]["vi-ngoc-huyen"]["release_version"] == 2
     assert (
         catalog["releases"]["vi-ngoc-huyen"]["source_repository"]
         == "dinhthuan/kokoro-vi-ngoc-huyen"

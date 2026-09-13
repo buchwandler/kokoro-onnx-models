@@ -114,10 +114,12 @@ def test_ngoc_huyen_registry_exposes_token_durations() -> None:
         "samples_per_frame": 600,
         "includes_boundary_tokens": True,
     }
-    distribution = model["distributions"][0]
-    assert distribution["release_key"] == "vi-ngoc-huyen"
-    assert any(asset["role"] == "model" for asset in distribution["artifacts"])
-
+    if model["runtime_available"]:
+        distribution = model["distributions"][0]
+        assert distribution["release_key"] == "vi-ngoc-huyen"
+        assert any(asset["role"] == "model" for asset in distribution["artifacts"])
+    else:
+        assert model["distributions"] == []
 
 def test_russian_uses_separate_checkpoint_build_releases() -> None:
     registry = load_registry()

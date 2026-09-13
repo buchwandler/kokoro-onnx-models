@@ -1586,9 +1586,9 @@
     "vi-ngoc-huyen": {
       "kind": "build",
       "profile": "vi-ngoc-huyen",
-      "tag": "model-files-vietnamese-ngoc-huyen-v1.0",
+      "tag": "model-files-vietnamese-ngoc-huyen-v1.0-r2",
       "model_version": "1.0",
-      "release_version": 1,
+      "release_version": 2,
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",
