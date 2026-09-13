@@ -158,6 +158,7 @@ jobs:
              (needs.prepare.outputs.profile == 'de-anna' ||
               needs.prepare.outputs.profile == 'ar-nabra' ||
               needs.prepare.outputs.profile == 'sv-joakim' ||
+              needs.prepare.outputs.profile == 'vi-ngoc-huyen' ||
               needs.prepare.outputs.profile == 'ru-zaakirio-base' ||
               needs.prepare.outputs.profile == 'ru-zaakirio-dima')) ||
             (needs.prepare.outputs.kind == 'mirror' &&
