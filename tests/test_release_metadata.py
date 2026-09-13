@@ -431,6 +431,23 @@ def test_contextbox_release_is_reproducible_r2() -> None:
     assert release["frontend"] == "vig2p-v1"
 
 
+def test_anphunl_release_is_reproducible_r2() -> None:
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    profiles = json.loads((ROOT / "scripts" / "kokoro_profiles.json").read_text())
+    models = json.loads((ROOT / "catalog" / "models.json").read_text())
+
+    release = releases["releases"]["vi-anphunl"]
+    profile = profiles["vi-anphunl"]
+    model = models["models"]["vi-anphunl"]
+
+    assert release["model_version"] == "1.0"
+    assert release["release_version"] == 2
+    assert release["tag"] == "model-files-vietnamese-anphunl-v1.0-r2"
+    assert release["source_repository"] == profile["repo_id"]
+    assert release["source_revision"] == profile["revision"]
+    assert release["frontend"] == "vig2p-v1"
+    assert model["license"]["source_repository"] == profile["repo_id"]
+
 def test_runtime_metadata_uses_bundle_voice_as_implicit_default(tmp_path: Path) -> None:
     bundle = tmp_path / "bundle.json"
     bundle.write_text(

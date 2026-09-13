@@ -56,7 +56,7 @@ Supported build profiles:
 | Profile | Language | Source | Publish by default? |
 |---|---|---|---|
 | `vi-contextbox` | Vietnamese | `contextboxai/Kokoro-Vietnamese` | yes |
-| `vi-anphunl` | Vietnamese | `anphunl/Kokoro-Vietnamese` | yes |
+| `vi-anphunl` | Vietnamese | `contextboxai/Kokoro-Vietnamese` (compatibility alias) | yes |
 | `vi-ngoc-huyen` | Vietnamese | `dinhthuan/kokoro-vi-ngoc-huyen` | yes |
 | `ar-nabra` | Arabic | `marwanelamami/Nabra-82M-v0.1-ONNX` | yes |
 | `de-crane` | German | `crane-local-ai/Kokoro-82M-v1.0-German-ONNX` | yes |
@@ -70,6 +70,8 @@ Supported build profiles:
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
 | `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
 | `ru-zaakirio-dima` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
+`vi-anphunl` is retained as a compatibility model ID/release profile but is built from the same pinned ContextBoxAI checkpoint and voice inventory as `vi-contextbox`. It has an independent immutable release tag so existing clients using this model ID can continue to resolve it.
+
 
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
 

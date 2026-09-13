@@ -1524,9 +1524,12 @@
     "vi-anphunl": {
       "kind": "build",
       "profile": "vi-anphunl",
-      "tag": "model-files-vietnamese-anphunl-v1.0",
+      "tag": "model-files-vietnamese-anphunl-v1.0-r2",
       "model_version": "1.0",
-      "release_version": 1,
+      "release_version": 2,
+      "source_repository": "contextboxai/Kokoro-Vietnamese",
+      "source_revision": "9f210d622209fcc216fe2ac6159fed2ff381cb8a",
+      "frontend": "vig2p-v1",
       "onnx_contract": {
         "inputs": {
           "tokens": "int64",

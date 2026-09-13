@@ -1710,7 +1710,7 @@
       "license": {
         "declared": "Apache-2.0",
         "redistribution": "allowed-with-upstream-terms",
-        "source_repository": "anphunl/Kokoro-Vietnamese"
+        "source_repository": "contextboxai/Kokoro-Vietnamese"
       },
       "mirror_policy": "preferred",
       "distributions": []
