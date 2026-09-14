@@ -1344,6 +1344,20 @@
       "sherpa_text_compatible": false,
       "note": "English Kokoro frontend. af_msa is the trained/default style."
     },
+    "auxiliary_files": [
+      {
+        "path": "README.md",
+        "output": "upstream-README.md",
+        "role": "provenance",
+        "format": "markdown"
+      },
+      {
+        "path": "load_model.py",
+        "output": "upstream-load_model.py",
+        "role": "provenance",
+        "format": "python"
+      }
+    ],
     "release": {
       "model_filename": "kokoro-english-oddadmix-7m-distill-v1.onnx",
       "config_filename": "config-english-oddadmix-7m-distill-v1.json",
