@@ -94,10 +94,13 @@ def distribution_from_manifest(
     artifacts = []
     for item in manifest["assets"]:
         name = str(item["name"])
-        artifact_id = f"{item['role']}-{Path(name).stem}"
+        role = str(item["role"])
+        if role == "provenance":
+            role = "attribution"
+        artifact_id = f"{role}-{Path(name).stem}"
         artifact = {
             "id": artifact_id,
-            "role": "voice" if item["role"] == "voice" else item["role"],
+            "role": role,
             "url": f"https://github.com/{TARGET_REPOSITORY}/releases/download/{tag}/{name}",
             "local_name": name,
             "format": str(item["format"]),
@@ -189,6 +192,56 @@ def _sync_runtime_identity(
         catalog_runtime.pop("voice_metadata", None)
     model["runtime"] = catalog_runtime
 
+
+def _new_model_from_release(
+    model_id: str,
+    manifest: dict[str, Any],
+    release: dict[str, Any],
+    contract: dict[str, Any],
+) -> dict[str, Any]:
+    runtime = manifest.get("runtime")
+    if not isinstance(runtime, dict):
+        raise RegistryReleaseError("Manifest runtime metadata is required for a new model")
+    language_codes = runtime.get("language_codes") or release.get("language_codes")
+    frontend = release.get("frontend") or runtime.get("frontend")
+    sample_rate = runtime.get("sample_rate")
+    voices = runtime.get("voices") or (release.get("runtime") or {}).get("voices")
+    default_voice = runtime.get("default_voice") or (release.get("runtime") or {}).get(
+        "default_voice"
+    )
+    if not language_codes or not frontend or sample_rate is None:
+        raise RegistryReleaseError(
+            f"Release metadata is incomplete for new registry model {model_id!r}"
+        )
+    if not voices or not default_voice:
+        raise RegistryReleaseError(
+            f"Release runtime metadata is incomplete for new registry model {model_id!r}"
+        )
+    return {
+        "model_version": str(release["model_version"]),
+        "display_name": str(release.get("display_name") or model_id),
+        "runtime_available": False,
+        "language_codes": list(language_codes),
+        "frontend": str(frontend),
+        "frontend_display_name": str(frontend),
+        "sample_rate": int(sample_rate),
+        "runtime": {
+            "layout": str(runtime.get("layout", "single-onnx-v1")),
+            "max_tokens": int(
+                runtime.get("max_tokens") or contract.get("max_tokens", 510)
+            ),
+            "default_voice": str(default_voice),
+            "voices": list(voices),
+        },
+        "onnx_contract": contract,
+        "license": {
+            "declared": str(release.get("license") or "unknown"),
+            "redistribution": "allowed-with-upstream-terms",
+            "source_repository": str(release.get("source_repository") or "unknown"),
+        },
+        "mirror_policy": "optional",
+        "distributions": [],
+    }
 def sync_release(
     candidate: Path,
     *,
@@ -202,8 +255,9 @@ def sync_release(
     registry = _load(registry_path)
     releases = _load(releases_path)
     model_id = profile or str(manifest.get("profile", ""))
-    if model_id not in registry.get("models", {}):
-        raise RegistryReleaseError(f"Unknown registry profile: {model_id}")
+    models = registry.get("models")
+    if not isinstance(models, dict):
+        raise RegistryReleaseError("Registry has no models object")
     release = releases.get("releases", {}).get(model_id)
     if release is None:
         raise RegistryReleaseError(f"Profile {model_id} has no release catalog entry")
@@ -231,7 +285,15 @@ def sync_release(
         raise RegistryReleaseError(
             "Manifest onnx_contract does not match the release catalog"
         )
-    model = registry["models"][model_id]
+    models = registry.get("models")
+    if not isinstance(models, dict):
+        raise RegistryReleaseError("Registry has no models object")
+    model = models.get(model_id)
+    if model is None:
+        model = _new_model_from_release(
+            model_id, manifest, release, manifest_contract
+        )
+        models[model_id] = model
     existing = next(
         (
             d

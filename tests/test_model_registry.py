@@ -17,7 +17,7 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 18
+    assert len(registry["models"]) == 19
 
 
 def test_github_distributions_match_release_catalog() -> None:
