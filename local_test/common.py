@@ -81,7 +81,7 @@ VOICE_PREFIX_LANGUAGE = {
     "h": "hi",
     "i": "it",
     "j": "ja",
-    "p": "pt",
+    "p": "pt-pt",
     "z": "zh",
 }
 

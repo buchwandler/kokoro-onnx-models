@@ -124,6 +124,10 @@ def test_portuguese_uses_native_pt_pt_tokenizer_config(monkeypatch) -> None:
     config = common._tokenizer_for(common.SPECS["pt-eu-logus2k"], "pt-pt", False)
     assert config.kwargs == {}
 
+def test_v1_0_portuguese_voice_uses_pt_pt_language(monkeypatch) -> None:
+    common = _load_common(monkeypatch)
+    assert common._language_for_voice(common.SPECS["v1.0"], "pf_dora") == "pt-pt"
+
 
 def test_v1_0_unsupported_language_is_rejected(monkeypatch) -> None:
     common = _load_common(monkeypatch)
