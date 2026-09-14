@@ -270,7 +270,13 @@ def compare_profile(
     )
 
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    native_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
+    loader = str(profile.get("model", {}).get("loader", "kokoro-standard-v1"))
+    if loader == "kokoro-standard-v1":
+        native_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
+    else:
+        native_model = build_kokoro.load_checkpoint_native(
+            checkpoint_path, config, loader=loader
+        )
     from kokoro.model import KModelForONNX
 
     native_wrapper = KModelForONNX(native_model).eval()
@@ -304,7 +310,12 @@ def compare_profile(
         export_provenance=export_provenance,
     )
 
-    patched_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
+    if loader == "kokoro-standard-v1":
+        patched_model = build_kokoro.load_checkpoint_native(checkpoint_path, config)
+    else:
+        patched_model = build_kokoro.load_checkpoint_native(
+            checkpoint_path, config, loader=loader
+        )
     patch_metadata, _patched_stft = build_kokoro.install_exact_onnx_istft(patched_model)
     patched_wrapper = KModelForONNX(patched_model).eval()
     patched_cases = build_kokoro.validate_patched_pytorch_against_native(

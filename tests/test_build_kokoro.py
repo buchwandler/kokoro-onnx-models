@@ -116,9 +116,42 @@ def test_expected_profiles_exist() -> None:
         "kk-anuarsv",
         "de-anna",
         "pl-mateusz",
+        "en-oddadmix-7m-distill",
     }
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False
+
+
+def test_loader_selector_uses_standard_and_configurable_constructors(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def standard(checkpoint, config):
+        calls.append("standard")
+        return "standard-model"
+
+    def configurable(checkpoint, config):
+        calls.append("configurable")
+        return "configurable-model"
+
+    monkeypatch.setattr(build_kokoro, "_load_standard_kokoro_checkpoint", standard)
+    monkeypatch.setattr(build_kokoro, "_load_configurable_decoder_checkpoint", configurable)
+    checkpoint = Path("checkpoint.pth")
+    config = {}
+
+    assert build_kokoro.construct_kokoro_model(checkpoint, config) == "standard-model"
+    assert (
+        build_kokoro.construct_kokoro_model(
+            checkpoint, config, loader="kokoro-configurable-decoder-v1"
+        )
+        == "configurable-model"
+    )
+    assert calls == ["standard", "configurable"]
+
+
+
+def test_normalize_voice_rejects_nonfinite_values() -> None:
+    with pytest.raises(build_kokoro.BuildError, match="non-finite"):
+        build_kokoro.normalize_voice(np.full((510, 1, 256), np.nan), name="af_msa")
 
 
 def test_contextbox_profile_is_pinned_and_has_real_default_voice() -> None:

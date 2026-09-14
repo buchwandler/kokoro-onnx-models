@@ -101,6 +101,7 @@ class LocalTestSpec:
     exact_pykokoro_expected: bool = True
     required_files: tuple[str, ...] = ()
     notes: str = ""
+    sentence: str | None = None
 
 
 SPECS: dict[str, LocalTestSpec] = {
@@ -365,6 +366,25 @@ SPECS: dict[str, LocalTestSpec] = {
             "Current kokorog2p does not support Polish; do not use generic "
             "tokenization until a compatible frontend is integrated."
         ),
+    ),
+    "en-oddadmix-7m-distill": LocalTestSpec(
+        key="en-oddadmix-7m-distill",
+        display_name="Kokoro English 7M Distill (oddadmix)",
+        language="en-us",
+        model_source="github",
+        model_variant="en-oddadmix-7m-distill",
+        expected_speakers=("af_msa",),
+        frontend="pykokoro-native-v1",
+        required_files=("config.json",),
+        sentence=(
+            "Hello. This is the seven million parameter Kokoro model. "
+            "The quick brown fox jumps over the lazy dog. "
+            "At 10:30 a.m., the temperature was 21.5 degrees. "
+            'Dr. Smith said, "Please read this sentence clearly." '
+            "A longer sentence should preserve stable pacing, natural pauses, and "
+            "intelligible consonants without turning into stationary noise."
+        ),
+        notes="Explicit model selection is required; af_msa is the only published style.",
     ),
 }
 
@@ -814,7 +834,7 @@ def run_cli(spec_key: str, argv: list[str] | None = None) -> int:
     with KokoroPipeline(base_config) as pipeline:
         for index, voice in enumerate(selected, start=1):
             lang = _language_for_voice(spec, voice)
-            sentence = SENTENCES[lang]
+            sentence = spec.sentence or SENTENCES[lang]
             try:
                 tokenizer_config = _tokenizer_for(
                     spec, lang, args.allow_frontend_mismatch

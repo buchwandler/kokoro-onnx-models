@@ -65,6 +65,7 @@ Supported build profiles:
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
 | `de-anna` | German | `software-mansion/react-native-executorch-kokoro` | yes |
 | `pl-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | yes |
+| `en-oddadmix-7m-distill` | English | `oddadmix/Kokoro-7M-Distill` | yes, checkpoint build |
 | `pt-eu-logus2k` | European Portuguese | `logus2k/kokoro_tts_eu_pt` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
 | `kk-anuarsv` | Kazakh | `AnuarSv/kokoro-tts-kazakh` | yes |
@@ -87,6 +88,7 @@ kokorog2p and the `df_anna` voice.
 `pl-mateusz` remains staged because the current runtime frontend stack does not
 provide the required Polish text frontend.
 
+The oddadmix 7M profile uses a configuration-driven smaller decoder and publishes only the `af_msa` style used during distillation. Select `en-oddadmix-7m-distill` explicitly; it does not replace the normal English default.
 Thai Wayu is a split ONNX serving bundle (prosody + curves + decoder), not a single KModelForONNX graph. The release contains all graph components, source parameters, the upstream ONNX manifest, and voice/style archives.
 
 Nabra uses the upstream pre-exported FP32 ONNX model. This repository repackages

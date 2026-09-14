@@ -2497,6 +2497,76 @@
           "format": "json"
         }
       ]
+    },
+    "en-oddadmix-7m-distill": {
+      "kind": "build",
+      "profile": "en-oddadmix-7m-distill",
+      "tag": "model-files-english-oddadmix-7m-distill-v1",
+      "model_version": "1.0",
+      "release_version": 1,
+      "source_repository": "oddadmix/Kokoro-7M-Distill",
+      "source_revision": "2ef3dfc29bb8db3d796b98a5cff0dbaef76f54cf",
+      "publish": true,
+      "activate_runtime_registry": true,
+      "license": "Apache-2.0",
+      "language_codes": ["en", "en-us"],
+      "frontend": "pykokoro-native-v1",
+      "runtime": {
+        "default_voice": "af_msa",
+        "voices": ["af_msa"]
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "max_tokens": 510
+      },
+      "assets": [
+        {
+          "source": "model.onnx",
+          "name": "kokoro-english-oddadmix-7m-distill-v1.onnx",
+          "role": "model",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "voices.npz",
+          "name": "voices-english-oddadmix-7m-distill-v1.npz",
+          "role": "voices",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "name": "voices-english-oddadmix-7m-distill-v1.raw.bin",
+          "role": "voices",
+          "format": "raw-float32-le"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
+          "format": "json"
+        },
+        {
+          "source": "config.json",
+          "name": "config-english-oddadmix-7m-distill-v1.json",
+          "role": "config",
+          "format": "json"
+        }
+      ]
     }
   }
 }

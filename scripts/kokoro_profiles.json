@@ -1311,5 +1311,116 @@
       "export_seed": 20260828,
       "requires_random_source_ops": true
     }
+  },
+  "en-oddadmix-7m-distill": {
+    "display_name": "Kokoro English 7M Distill (oddadmix)",
+    "repo_id": "oddadmix/Kokoro-7M-Distill",
+    "revision": "2ef3dfc29bb8db3d796b98a5cff0dbaef76f54cf",
+    "license": "Apache-2.0",
+    "language": "en",
+    "sample_rate": 24000,
+    "model": {
+      "kind": "checkpoint",
+      "path": "kokoro_en_7m.pth",
+      "sha256": "9141c14220e26a16f3b6f3c4f3188aa7d0887dffe1be84b073c75cd06c77e75a",
+      "config": "config.json",
+      "config_sha256": "4e203206481813c0d3cb9e1b8c308d54c10f9e416dd6931036deb2c7e03b241e",
+      "loader": "kokoro-configurable-decoder-v1"
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "af_msa": {
+          "path": "af_msa.pt",
+          "sha256": "9324145629d870a899078ef0a70eabc0706c219ccbf002fa6a18278a201c9664"
+        }
+      }
+    },
+    "frontend_id": "pykokoro-native-v1",
+    "frontend": {
+      "kind": "pykokoro",
+      "name": "Kokoro English native frontend",
+      "experimental": false,
+      "sherpa_text_compatible": false,
+      "note": "English Kokoro frontend. af_msa is the trained/default style."
+    },
+    "release": {
+      "model_filename": "kokoro-english-oddadmix-7m-distill-v1.onnx",
+      "config_filename": "config-english-oddadmix-7m-distill-v1.json",
+      "voices": ["af_msa"],
+      "default_voice": "af_msa",
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-english-oddadmix-7m-distill-v1.npz",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "voices.raw.bin",
+          "filename": "voices-english-oddadmix-7m-distill-v1.raw.bin",
+          "format": "raw-float32-le"
+        }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "upstream-README.md",
+          "filename": "upstream-README.md",
+          "role": "provenance",
+          "format": "markdown"
+        },
+        {
+          "source": "upstream-load_model.py",
+          "filename": "upstream-load_model.py",
+          "role": "provenance",
+          "format": "python"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": {
+        "tokens": "int64",
+        "style": "float32",
+        "speed": "float32"
+      },
+      "outputs": {
+        "audio": "float32",
+        "duration": "int64"
+      },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260828,
+      "requires_random_source_ops": true,
+      "cases": [
+        {
+          "name": "short-english",
+          "text": "Hello. This is a small English speech model.",
+          "phonemes": "həlˈO. ðˌɪs ɪz ˈA smˈɔl ˈɪŋɡlɪʃ spˈiʧ mˈɑdᵊl.",
+          "tokens": [0, 50, 83, 54, 156, 31, 4, 16, 81, 157, 102, 61, 16, 102, 68, 16, 156, 24, 16, 61, 55, 156, 76, 54, 16, 156, 102, 112, 92, 54, 102, 131, 16, 61, 58, 156, 51, 133, 16, 55, 156, 69, 46, 42, 54, 4, 0],
+          "speed": 1.0
+        },
+        {
+          "name": "prosody-and-punctuation",
+          "text": "Today is Monday, and the model should sound clear, natural, and stable.",
+          "phonemes": "tədˈA ɪz mˈʌndˌA,ænd ðə mˈɑdᵊl ʃˌʊd sˈWnd klˈɪɹ,nˈæʧəɹᵊl,ænd stˈAbᵊl.",
+          "tokens": [0, 62, 83, 46, 156, 24, 16, 102, 68, 16, 55, 156, 138, 56, 46, 157, 24, 3, 72, 56, 46, 16, 81, 83, 16, 55, 156, 69, 46, 42, 54, 16, 131, 157, 135, 46, 16, 61, 156, 39, 56, 46, 16, 53, 54, 156, 102, 123, 3, 56, 156, 72, 133, 83, 123, 42, 54, 3, 72, 56, 46, 16, 61, 62, 156, 24, 44, 42, 54, 4, 0],
+          "speed": 1.0
+        }
+      ],
+      "release_validation_corpus": [
+        {"name": "parameter-count", "text": "This is a compact English speech model."},
+        {"name": "pangram", "text": "The quick brown fox jumps over the lazy dog."},
+        {"name": "numbers", "text": "At 10:30 a.m., the temperature was 21.5 degrees."},
+        {"name": "quotation", "text": "Dr. Smith said, \\\"Please read this sentence clearly.\\\""},
+        {"name": "long-sentence", "text": "A longer sentence should preserve stable pacing, natural pauses, and intelligible consonants without turning into stationary noise."}
+      ]
+    }
   }
 }

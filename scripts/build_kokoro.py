@@ -170,6 +170,8 @@ def normalize_voice(value: Any, *, name: str) -> np.ndarray:
             f"Voice {name!r} has shape {tuple(arr.shape)}; expected "
             f"[rows, {STYLE_WIDTH}] or [rows, 1, {STYLE_WIDTH}]"
         )
+    if not np.isfinite(arr).all():
+        raise BuildError(f"Voice {name!r} contains non-finite values")
     return np.ascontiguousarray(arr, dtype="<f4")
 
 
@@ -546,20 +548,66 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
     return report
 
 
-def load_checkpoint_native(checkpoint: Path, config: Mapping[str, Any]) -> Any:
-    """Load a checkpoint with the upstream-native Torch decoder."""
+def _load_standard_kokoro_checkpoint(checkpoint: Path, config: Mapping[str, Any]) -> Any:
     from kokoro import KModel
 
-    model = (
-        KModel(
-            repo_id="hexgrad/Kokoro-82M",
+    return KModel(
+        repo_id="hexgrad/Kokoro-82M",
+        model=str(checkpoint),
+        config=dict(config),
+        disable_complex=False,
+    )
+
+
+
+def _load_configurable_decoder_checkpoint(
+    checkpoint: Path, config: Mapping[str, Any]
+ ) -> Any:
+    from kokoro import KModel
+    from kokoro import model as kokoro_model
+
+    try:
+        from scripts.kokoro_compat import ConfigurableDecoder
+    except ModuleNotFoundError:
+        from kokoro_compat import ConfigurableDecoder
+
+    original_decoder = kokoro_model.Decoder
+    kokoro_model.Decoder = ConfigurableDecoder
+    try:
+        return KModel(
+            repo_id="oddadmix/Kokoro-7M-Distill",
             model=str(checkpoint),
             config=dict(config),
-            disable_complex=False,
+            disable_complex=True,
         )
-        .to("cpu")
-        .eval()
-    )
+    finally:
+        kokoro_model.Decoder = original_decoder
+
+
+
+def construct_kokoro_model(
+    checkpoint: Path,
+    config: Mapping[str, Any],
+    *,
+    loader: str = "kokoro-standard-v1",
+ ) -> Any:
+    constructors = {
+        "kokoro-standard-v1": _load_standard_kokoro_checkpoint,
+        "kokoro-configurable-decoder-v1": _load_configurable_decoder_checkpoint,
+    }
+    try:
+        constructor = constructors[loader]
+    except KeyError as exc:
+        raise BuildError(f"Unknown model loader {loader!r}") from exc
+    return constructor(checkpoint, config)
+
+
+
+def load_checkpoint_native(
+    checkpoint: Path, config: Mapping[str, Any], *, loader: str = "kokoro-standard-v1"
+ ) -> Any:
+    """Load and audit a checkpoint with the selected upstream-compatible loader."""
+    model = construct_kokoro_model(checkpoint, config, loader=loader).to("cpu").eval()
     audit = audit_loaded_checkpoint(model, checkpoint)
     model._checkpoint_load_audit = audit
     components = audit["components"]
@@ -942,6 +990,7 @@ def export_checkpoint_to_onnx(
     voice: np.ndarray | None = None,
     validation: Mapping[str, Any] | None = None,
     postprocess: Mapping[str, Any] | None = None,
+    checkpoint_loader: str = "kokoro-standard-v1",
 ) -> dict[str, Any]:
     import platform
 
@@ -955,7 +1004,9 @@ def export_checkpoint_to_onnx(
         config = json.load(f)
 
     n_token = int(config.get("n_token", len(config.get("vocab", {})) or 178))
-    native_model = load_checkpoint_native(checkpoint, config)
+    native_model = load_checkpoint_native(
+        checkpoint, config, loader=checkpoint_loader
+    )
     native_onnx_wrapper = KModelForONNX(native_model)
     validation_config = validation or {}
     cases = list(validation_config.get("cases") or [])
@@ -1005,7 +1056,9 @@ def export_checkpoint_to_onnx(
             validation=validation_config,
         )
 
-    export_model_base = load_checkpoint_native(checkpoint, config)
+    export_model_base = load_checkpoint_native(
+        checkpoint, config, loader=checkpoint_loader
+    )
     istft_metadata, export_stft = install_exact_onnx_istft(export_model_base)
     export_model = KModelForONNX(export_model_base).eval()
     delegate_validation = {"cases": [], "max_abs_error": 0.0}
@@ -1148,6 +1201,7 @@ def resolve_model(
     repo_id = profile["repo_id"]
     revision = profile.get("revision", "main")
     spec = profile["model"]
+    loader = str(spec.get("loader", "kokoro-standard-v1"))
     config_local = resolve_model_config(profile, cache_dir)
     if config_local is not None:
         verify_source_hash(
@@ -1180,6 +1234,7 @@ def resolve_model(
             voice=voice,
             validation=profile.get("export_validation"),
             postprocess=profile.get("postprocess"),
+            checkpoint_loader=loader
         )
         if export_provenance is not None and metadata:
             export_provenance.update(metadata)
@@ -1454,6 +1509,13 @@ def build_profile(
 
     print(f"[{profile_key}] resolving voices", file=sys.stderr)
     voices = resolve_voices(profile, cache_dir)
+    required_rows = int(profile.get("onnx_contract", {}).get("max_tokens", 510))
+    for name, voice in voices.items():
+        if voice.shape[0] < required_rows:
+            raise BuildError(
+                f"Voice {name!r} has {voice.shape[0]} rows; "
+                f"expected at least {required_rows}"
+            )
     style_shape = write_sherpa_voices_bin(voices, out_dir / "voices.raw.bin")
     write_numpy_voice_archive(voices, out_dir / "voices.npz")
 
