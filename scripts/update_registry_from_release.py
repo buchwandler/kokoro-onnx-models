@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.voice_metadata import validate_voice_metadata
+except ModuleNotFoundError:
+    from voice_metadata import validate_voice_metadata
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "catalog" / "models.json"
 RELEASES = ROOT / "catalog" / "releases.json"
@@ -165,12 +169,25 @@ def _sync_runtime_identity(
         if field in runtime:
             catalog_runtime[field] = runtime[field]
     new_voices = tuple(catalog_runtime.get("voices") or ())
-    if new_voices != old_voices:
-        # Release manifests do not currently carry authoritative per-voice
-        # metadata. Never retain metadata for a different roster.
+    manifest_metadata = runtime.get("voice_metadata")
+    existing_metadata = catalog_runtime.get("voice_metadata")
+    if manifest_metadata is not None:
+        try:
+            catalog_runtime["voice_metadata"] = validate_voice_metadata(
+                list(new_voices), manifest_metadata
+            )
+        except ValueError as exc:
+            raise RegistryReleaseError(str(exc)) from exc
+    elif new_voices == old_voices:
+        pass
+    elif existing_metadata is not None:
+        raise RegistryReleaseError(
+            "Runtime voice roster changed but the release manifest does not "
+            "provide complete voice_metadata for the new roster"
+        )
+    else:
         catalog_runtime.pop("voice_metadata", None)
     model["runtime"] = catalog_runtime
-
 
 def sync_release(
     candidate: Path,

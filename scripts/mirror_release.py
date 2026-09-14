@@ -18,6 +18,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+try:
+    from scripts.voice_metadata import validate_voice_metadata
+except ModuleNotFoundError:
+    from voice_metadata import validate_voice_metadata
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
@@ -462,7 +466,10 @@ def _derive_vocab(source_path: Path, target: Path, spec: dict[str, Any]) -> None
 def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
     configured = dict(spec.get("runtime") or {})
     voices = list(configured.get("voices") or ["default"])
-    return {
+    default_voice = str(configured.get("default_voice", voices[0]))
+    if default_voice not in voices:
+        raise SystemExit(f"Default voice {default_voice!r} is not in the voice roster")
+    runtime = {
         "language_codes": list(
             spec.get("language_codes") or [spec.get("language", "und")]
         ),
@@ -472,10 +479,17 @@ def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
         "tokenizer_vocab_version": str(spec.get("tokenizer_vocab_version", "1.0")),
         "vocabulary_source": str(spec.get("vocabulary_source", "downloaded-config")),
         "max_tokens": int(spec.get("max_tokens", 510)),
-        "default_voice": str(configured.get("default_voice", voices[0])),
+        "default_voice": default_voice,
         "voices": voices,
         "layout": str(spec.get("runtime_layout", "single-onnx-v1")),
     }
+    metadata = configured.get("voice_metadata")
+    if metadata is not None:
+        try:
+            runtime["voice_metadata"] = validate_voice_metadata(voices, metadata)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+    return runtime
 
 
 def _write_checksums(out: Path, assets: list[dict[str, Any]]) -> None:

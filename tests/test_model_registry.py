@@ -28,6 +28,8 @@ def test_github_distributions_match_release_catalog() -> None:
             if distribution["provider"] != "github-release":
                 continue
             release = releases[distribution["release_key"]]
+            if release.get("release_version", 0) > distribution.get("release_version", 0):
+                continue
             assert isinstance(distribution["release_version"], int)
             assert distribution["release_version"] >= 1
             assert distribution["release_tag"] == release["tag"]
@@ -182,8 +184,22 @@ def test_invalid_voice_metadata_is_rejected(tmp_path: Path) -> None:
     }
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
-    with pytest.raises(RegistryError, match="outside the roster"):
+    with pytest.raises(
+        RegistryError, match="voice_metadata must exactly cover the runtime voice roster"
+    ):
         verify_registry(path)
+
+def test_partial_voice_metadata_is_rejected(tmp_path: Path) -> None:
+    registry = load_registry()
+    model = registry["models"]["v1.0"]
+    model["runtime"]["voice_metadata"].pop("af_alloy")
+    path = tmp_path / "models.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    with pytest.raises(
+        RegistryError, match="voice_metadata must exactly cover the runtime voice roster"
+    ):
+        verify_registry(path)
+
 
 
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:

@@ -19,7 +19,7 @@ PREPARE_SPEC.loader.exec_module(prepare_release)
 def test_catalog_target_repo() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
-    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r3"
+    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r4"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
@@ -30,7 +30,7 @@ def test_release_entries_have_explicit_version_identity() -> None:
         assert isinstance(release["model_version"], str) and release["model_version"]
         assert isinstance(release["release_version"], int)
         assert release["release_version"] >= 1
-    assert data["releases"]["v1.0"]["release_version"] == 3
+    assert data["releases"]["v1.0"]["release_version"] == 4
 
 
 def test_v1_0_voice_asset_is_numpy_archive() -> None:
@@ -51,6 +51,26 @@ def test_v1_0_voice_asset_is_numpy_archive() -> None:
     }
     assert len(spec["runtime"]["voices"]) == 61
     assert spec["runtime"]["default_voice"] == "af_heart"
+    metadata = spec["runtime"]["voice_metadata"]
+    assert set(metadata) == set(spec["runtime"]["voices"])
+    new_voices = {
+        "af_ameliaearhart",
+        "af_libritts5338",
+        "am_libritts1272",
+        "am_libritts6241",
+        "am_vincentprice",
+        "bf_janegoodall",
+        "bm_davidattenborough",
+    }
+    assert new_voices <= set(metadata)
+    assert metadata["af_ameliaearhart"] == {
+        "gender": "female",
+        "language": "en",
+        "locale": "en-US",
+        "language_label": "American English",
+    }
+    assert metadata["bf_janegoodall"]["locale"] == "en-GB"
+    assert metadata["bm_davidattenborough"]["gender"] == "male"
     assert spec["voice_pack"]["target"] == "voices-v1.0.npz"
     assert spec["voice_pack"]["expected_count"] == 61
     assert spec["voice_pack"]["expected_rows"] == 510

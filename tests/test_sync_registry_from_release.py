@@ -740,41 +740,68 @@ def test_preflight_rejects_active_same_tag_drift(tmp_path: Path) -> None:
         )
 
 
-def test_sync_runtime_identity_drops_metadata_when_voice_roster_changes() -> None:
+def test_sync_runtime_identity_rejects_roster_change_without_metadata() -> None:
     model = {
         "runtime": {
             "layout": "single-onnx-v1",
             "max_tokens": 510,
-            "default_voice": "default",
-            "voices": ["default"],
+            "default_voice": "a",
+            "voices": ["a", "b"],
             "voice_metadata": {
-                "default": {
-                    "gender": "female",
-                    "language": "vi",
-                    "locale": "vi",
-                    "language_label": "Vietnamese",
-                }
+                "a": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
+                "b": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
             },
         }
     }
     manifest = {
         "runtime": {
-            "language_codes": ["vi"],
-            "frontend": "vig2p-v1",
+            "language_codes": ["en"],
+            "frontend": "test-v1",
             "sample_rate": 24000,
             "layout": "single-onnx-v1",
             "max_tokens": 510,
-            "default_voice": "diem_trinh",
-            "voices": ["diem_trinh", "hung_thinh"],
+            "default_voice": "a",
+            "voices": ["a", "b", "c"],
         }
     }
+    with pytest.raises(
+        RegistryReleaseError,
+        match="changed but.*complete voice_metadata",
+    ):
+        _sync_runtime_identity(model, manifest, {"frontend": "test-v1"})
 
-    _sync_runtime_identity(model, manifest, {"frontend": "vig2p-v1"})
 
-    assert model["runtime"]["default_voice"] == "diem_trinh"
-    assert model["runtime"]["voices"] == ["diem_trinh", "hung_thinh"]
-    assert "voice_metadata" not in model["runtime"]
-
+def test_sync_runtime_identity_copies_complete_metadata_for_roster_change() -> None:
+    detail = {
+        "gender": "female",
+        "language": "en",
+        "locale": "en-US",
+        "language_label": "American English",
+    }
+    model = {
+        "runtime": {
+            "layout": "single-onnx-v1",
+            "max_tokens": 510,
+            "default_voice": "a",
+            "voices": ["a", "b"],
+        }
+    }
+    metadata = {name: {**detail} for name in ("a", "b", "c")}
+    manifest = {
+        "runtime": {
+            "language_codes": ["en"],
+            "frontend": "test-v1",
+            "sample_rate": 24000,
+            "layout": "single-onnx-v1",
+            "max_tokens": 510,
+            "default_voice": "a",
+            "voices": ["a", "b", "c"],
+            "voice_metadata": metadata,
+        }
+    }
+    _sync_runtime_identity(model, manifest, {"frontend": "test-v1"})
+    assert model["runtime"]["voices"] == ["a", "b", "c"]
+    assert set(model["runtime"]["voice_metadata"]) == {"a", "b", "c"}
 
 def test_distribution_provenance_prefers_manifest_source() -> None:
     manifest = {

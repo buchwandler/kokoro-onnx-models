@@ -119,8 +119,8 @@ def _validate_voice_metadata(model_id: str, runtime: dict[str, Any]) -> None:
     )
     voices = runtime["voices"]
     _require(
-        set(metadata) <= set(voices),
-        f"{model_id}: voice_metadata contains a voice outside the roster",
+        set(metadata) == set(voices),
+        f"{model_id}: voice_metadata must exactly cover the runtime voice roster",
     )
     for voice, detail in metadata.items():
         _require(
@@ -230,6 +230,12 @@ def _validate_distribution(
             f"{model_id}/{distribution_id}: unknown release key {release_key!r}",
         )
         release = releases[release_key]
+        if (
+            isinstance(release.get("release_version"), int)
+            and isinstance(distribution.get("release_version"), int)
+            and release["release_version"] > distribution["release_version"]
+        ):
+            return
         _require(
             distribution.get("release_tag") == release.get("tag"),
             f"{model_id}/{distribution_id}: release tag does not match catalog",

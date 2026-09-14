@@ -490,3 +490,38 @@ def test_voice_array_rejects_non_finite_torch_values(
             mirror_release.VoiceSource("voice", "voice.pt", format="torch-pt"),
             256,
         )
+
+def test_runtime_copies_complete_voice_metadata() -> None:
+    metadata = {
+        "af_test": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English",
+        },
+        "am_test": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English",
+        },
+    }
+    runtime = mirror_release._runtime(
+        {"runtime": {"voices": ["af_test", "am_test"], "voice_metadata": metadata}}
+    )
+    assert runtime["voice_metadata"] == metadata
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {"af_test": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"}},
+        {"am_test": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"}, "outside": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"}},
+    ],
+    ids=["partial", "outside-roster"],
+)
+def test_runtime_rejects_incomplete_voice_metadata(metadata: dict[str, object]) -> None:
+    with pytest.raises(SystemExit, match="exactly cover"):
+        mirror_release._runtime(
+            {"runtime": {"voices": ["af_test", "am_test"], "voice_metadata": metadata}}
+        )

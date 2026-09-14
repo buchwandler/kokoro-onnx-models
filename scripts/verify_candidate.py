@@ -260,12 +260,29 @@ def _validate_voice_asset(
 
             with np.load(path, allow_pickle=False) as archive:
                 _require(bool(archive.files), f"Voice archive {path.name} is empty")
-                missing = sorted(set(runtime["voices"]) - set(archive.files))
+                expected = set(runtime["voices"])
+                actual = set(archive.files)
+                missing = sorted(expected - actual)
+                unexpected = sorted(actual - expected)
                 _require(
                     not missing,
                     f"Voice archive {path.name} is missing voices: {', '.join(missing)}",
                 )
+                _require(
+                    not unexpected,
+                    f"Voice archive {path.name} contains unexpected voices: {', '.join(unexpected)}",
+                )
                 handling = asset.get("handling") or {}
+                if "voice_count" in handling:
+                    _require(
+                        handling["voice_count"] == len(runtime["voices"]),
+                        f"Voice archive {path.name} has incorrect handling voice_count",
+                    )
+                if "members" in handling:
+                    _require(
+                        handling["members"] == runtime["voices"],
+                        f"Voice archive {path.name} handling members do not match the runtime roster",
+                    )
                 expected_rows = handling.get("rows")
                 for name in archive.files:
                     values = archive[name]

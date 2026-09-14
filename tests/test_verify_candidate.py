@@ -115,6 +115,45 @@ def test_validate_voice_asset_enforces_declared_rows(tmp_path: Path) -> None:
         verify_candidate._validate_voice_asset(path, asset, {"voices": ["af"]})
 
 
+@pytest.mark.parametrize(
+    ("members", "runtime_voices", "match"),
+    [
+        (["af"], ["af", "am"], "missing voices"),
+        (["af", "am", "extra"], ["af", "am"], "unexpected voices"),
+    ],
+    ids=["missing-voice", "unexpected-voice"],
+)
+def test_validate_voice_asset_requires_exact_roster(
+    tmp_path: Path, members: list[str], runtime_voices: list[str], match: str
+ ) -> None:
+    path = tmp_path / "voices.npz"
+    np.savez(path, **{name: np.zeros((2, 1), dtype=np.float32) for name in members})
+    asset = {"format": "numpy-npz", "handling": {"rows": 2}}
+    with pytest.raises(verify_candidate.CandidateError, match=match):
+        verify_candidate._validate_voice_asset(path, asset, {"voices": runtime_voices})
+
+
+@pytest.mark.parametrize(
+    ("handling", "match"),
+    [
+        ({"voice_count": 3}, "voice_count"),
+        ({"members": ["am", "af"]}, "handling members"),
+    ],
+    ids=["wrong-count", "wrong-members"],
+ )
+def test_validate_voice_asset_requires_matching_handling(
+    tmp_path: Path, handling: dict[str, object], match: str
+ ) -> None:
+    path = tmp_path / "voices.npz"
+    np.savez(
+        path,
+        af=np.zeros((2, 1), dtype=np.float32),
+        am=np.zeros((2, 1), dtype=np.float32),
+    )
+    asset = {"format": "numpy-npz", "handling": {"rows": 2, **handling}}
+    with pytest.raises(verify_candidate.CandidateError, match=match):
+        verify_candidate._validate_voice_asset(path, asset, {"voices": ["af", "am"]})
+
 def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
     manifest_path = candidate / "release-manifest.json"
