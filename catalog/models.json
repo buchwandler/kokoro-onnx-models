@@ -3559,7 +3559,7 @@
     "en-oddadmix-7m-distill": {
       "model_version": "1.0",
       "display_name": "en-oddadmix-7m-distill",
-      "runtime_available": false,
+      "runtime_available": true,
       "language_codes": [
         "en"
       ],
@@ -3599,7 +3599,97 @@
         "source_repository": "oddadmix/Kokoro-7M-Distill"
       },
       "mirror_policy": "optional",
-      "distributions": []
+      "distributions": [
+        {
+          "id": "github-model-files-english-oddadmix-7m-distill-v2",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "en-oddadmix-7m-distill",
+          "release_tag": "model-files-english-oddadmix-7m-distill-v2",
+          "release_version": 2,
+          "runtime_ready": true,
+          "artifacts": [
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 51141,
+              "sha256": "4aab3a4412fb09ca6023200c2fad21a60c543b868a182df88f1aec0f12a7df7e"
+            },
+            {
+              "id": "config-config-english-oddadmix-7m-distill-v1",
+              "role": "config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/config-english-oddadmix-7m-distill-v1.json",
+              "local_name": "config-english-oddadmix-7m-distill-v1.json",
+              "format": "json",
+              "size": 2155,
+              "sha256": "4e203206481813c0d3cb9e1b8c308d54c10f9e416dd6931036deb2c7e03b241e"
+            },
+            {
+              "id": "model-kokoro-english-oddadmix-7m-distill-v1",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/kokoro-english-oddadmix-7m-distill-v1.onnx",
+              "local_name": "kokoro-english-oddadmix-7m-distill-v1.onnx",
+              "format": "onnx",
+              "size": 30549683,
+              "sha256": "a0ef1ee6b848f8f0bae9d8e6dd17a24defb6a0922094129c2a0c9f73d4224216",
+              "quality": "fp32"
+            },
+            {
+              "id": "attribution-upstream-README",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/upstream-README.md",
+              "local_name": "upstream-README.md",
+              "format": "markdown",
+              "size": 3709,
+              "sha256": "8a7cf4764f6bb9ae9287d7a08ac8477f6411422dcd9dc10362a0e124c38a226a"
+            },
+            {
+              "id": "attribution-upstream-load_model",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/upstream-load_model.py",
+              "local_name": "upstream-load_model.py",
+              "format": "python",
+              "size": 1661,
+              "sha256": "8238a00f90822a7b73e2196922aa833f646183883cbfc16cc99bf6a0d94a17d6"
+            },
+            {
+              "id": "voices-voices-english-oddadmix-7m-distill-v1",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/voices-english-oddadmix-7m-distill-v1.npz",
+              "local_name": "voices-english-oddadmix-7m-distill-v1.npz",
+              "format": "numpy-npz",
+              "size": 522506,
+              "sha256": "fbf92738b310d04cdba81d30084fad295590ce3809de1cf8998d9c85491e412e"
+            },
+            {
+              "id": "voices-voices-english-oddadmix-7m-distill-v1.raw",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-english-oddadmix-7m-distill-v2/voices-english-oddadmix-7m-distill-v1.raw.bin",
+              "local_name": "voices-english-oddadmix-7m-distill-v1.raw.bin",
+              "format": "raw-float32-le",
+              "size": 522240,
+              "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
+              "handling": {
+                "dtype": "float32",
+                "shape": [
+                  510,
+                  256
+                ],
+                "endianness": "little"
+              }
+            }
+          ],
+          "provenance": {
+            "source_repository": "oddadmix/Kokoro-7M-Distill",
+            "source_revision": "2ef3dfc29bb8db3d796b98a5cff0dbaef76f54cf",
+            "transform": null,
+            "source_manifest": null
+          }
+        }
+      ]
     }
   }
 }
