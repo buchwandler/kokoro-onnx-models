@@ -77,7 +77,14 @@
           "zm_yunjian",
           "zm_yunxi",
           "zm_yunxia",
-          "zm_yunyang"
+          "zm_yunyang",
+          "af_ameliaearhart",
+          "af_libritts5338",
+          "am_libritts1272",
+          "am_libritts6241",
+          "am_vincentprice",
+          "bf_janegoodall",
+          "bm_davidattenborough"
         ],
         "voice_metadata": {
           "af_alloy": {
@@ -403,6 +410,48 @@
             "language": "zh",
             "locale": "zh",
             "language_label": "Chinese"
+          },
+          "af_ameliaearhart": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_libritts5338": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_libritts1272": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_libritts6241": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_vincentprice": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "bf_janegoodall": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_davidattenborough": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
           }
         }
       },
@@ -433,18 +482,18 @@
       "mirror_policy": "required",
       "distributions": [
         {
-          "id": "github-model-files-v1.0-timestamped-r3",
+          "id": "github-model-files-v1.0-timestamped-r4",
           "provider": "github-release",
           "transport": "https",
           "release_key": "v1.0",
-          "release_tag": "model-files-v1.0-timestamped-r3",
-          "release_version": 3,
+          "release_tag": "model-files-v1.0-timestamped-r4",
+          "release_version": 4,
           "runtime_ready": true,
           "artifacts": [
             {
               "id": "model-kokoro-v1.0",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.onnx",
               "local_name": "kokoro-v1.0.onnx",
               "format": "onnx",
               "size": 325532171,
@@ -454,7 +503,7 @@
             {
               "id": "model-kokoro-v1.0.fp16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.fp16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.fp16.onnx",
               "local_name": "kokoro-v1.0.fp16.onnx",
               "format": "onnx",
               "size": 163232776,
@@ -464,7 +513,7 @@
             {
               "id": "model-kokoro-v1.0.q8",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.q8.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.q8.onnx",
               "local_name": "kokoro-v1.0.q8.onnx",
               "format": "onnx",
               "size": 92361055,
@@ -474,7 +523,7 @@
             {
               "id": "model-kokoro-v1.0.q8f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.q8f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.q8f16.onnx",
               "local_name": "kokoro-v1.0.q8f16.onnx",
               "format": "onnx",
               "size": 86072942,
@@ -484,7 +533,7 @@
             {
               "id": "model-kokoro-v1.0.q4",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.q4.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.q4.onnx",
               "local_name": "kokoro-v1.0.q4.onnx",
               "format": "onnx",
               "size": 305215905,
@@ -494,7 +543,7 @@
             {
               "id": "model-kokoro-v1.0.q4f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.q4f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.q4f16.onnx",
               "local_name": "kokoro-v1.0.q4f16.onnx",
               "format": "onnx",
               "size": 154584426,
@@ -504,7 +553,7 @@
             {
               "id": "model-kokoro-v1.0.uint8",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.uint8.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.uint8.onnx",
               "local_name": "kokoro-v1.0.uint8.onnx",
               "format": "onnx",
               "size": 177464571,
@@ -514,7 +563,7 @@
             {
               "id": "model-kokoro-v1.0.uint8f16",
               "role": "model",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/kokoro-v1.0.uint8f16.onnx",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/kokoro-v1.0.uint8f16.onnx",
               "local_name": "kokoro-v1.0.uint8f16.onnx",
               "format": "onnx",
               "size": 114182909,
@@ -524,7 +573,7 @@
             {
               "id": "vocab-vocab-v1.0",
               "role": "vocab",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/vocab-v1.0.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/vocab-v1.0.json",
               "local_name": "vocab-v1.0.json",
               "format": "json",
               "size": 1385,
@@ -533,7 +582,7 @@
             {
               "id": "voices-voices-v1.0",
               "role": "voices",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/voices-v1.0.npz",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/voices-v1.0.npz",
               "local_name": "voices-v1.0.npz",
               "format": "numpy-npz",
               "size": 27633375,
@@ -541,13 +590,77 @@
               "handling": {
                 "dtype": "float32",
                 "style_width": 256,
-                "voice_count": 54
+                "rows": 510,
+                "voice_count": 61,
+                "members": [
+                  "af_alloy",
+                  "af_aoede",
+                  "af_bella",
+                  "af_heart",
+                  "af_jessica",
+                  "af_kore",
+                  "af_nicole",
+                  "af_nova",
+                  "af_river",
+                  "af_sarah",
+                  "af_sky",
+                  "am_adam",
+                  "am_echo",
+                  "am_eric",
+                  "am_fenrir",
+                  "am_liam",
+                  "am_michael",
+                  "am_onyx",
+                  "am_puck",
+                  "am_santa",
+                  "bf_alice",
+                  "bf_emma",
+                  "bf_isabella",
+                  "bf_lily",
+                  "bm_daniel",
+                  "bm_fable",
+                  "bm_george",
+                  "bm_lewis",
+                  "ef_dora",
+                  "em_alex",
+                  "em_santa",
+                  "ff_siwis",
+                  "hf_alpha",
+                  "hf_beta",
+                  "hm_omega",
+                  "hm_psi",
+                  "if_sara",
+                  "im_nicola",
+                  "jf_alpha",
+                  "jf_gongitsune",
+                  "jf_nezumi",
+                  "jf_tebukuro",
+                  "jm_kumo",
+                  "pf_dora",
+                  "pm_alex",
+                  "pm_santa",
+                  "zf_xiaobei",
+                  "zf_xiaoni",
+                  "zf_xiaoxiao",
+                  "zf_xiaoyi",
+                  "zm_yunjian",
+                  "zm_yunxi",
+                  "zm_yunxia",
+                  "zm_yunyang",
+                  "af_ameliaearhart",
+                  "af_libritts5338",
+                  "am_libritts1272",
+                  "am_libritts6241",
+                  "am_vincentprice",
+                  "bf_janegoodall",
+                  "bm_davidattenborough"
+                ]
               }
             },
             {
               "id": "metadata-source-assets",
               "role": "metadata",
-              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r3/source-assets.json",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-v1.0-timestamped-r4/source-assets.json",
               "local_name": "source-assets.json",
               "format": "json",
               "size": 25267,
