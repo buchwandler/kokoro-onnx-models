@@ -2501,9 +2501,9 @@
     "en-oddadmix-7m-distill": {
       "kind": "build",
       "profile": "en-oddadmix-7m-distill",
-      "tag": "model-files-english-oddadmix-7m-distill-v1",
+      "tag": "model-files-english-oddadmix-7m-distill-v2",
       "model_version": "1.0",
-      "release_version": 1,
+      "release_version": 2,
       "source_repository": "oddadmix/Kokoro-7M-Distill",
       "source_revision": "2ef3dfc29bb8db3d796b98a5cff0dbaef76f54cf",
       "publish": true,
