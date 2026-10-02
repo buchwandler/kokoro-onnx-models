@@ -27,6 +27,21 @@ except ModuleNotFoundError:
         validation_spec.loader.exec_module(validation_module)
         RANDOM_SOURCE_OPS = validation_module.RANDOM_SOURCE_OPS
 
+
+try:
+    from scripts.runtime_contracts import (
+        is_componentized,
+        is_reference_mode,
+        validate_component_set,
+        validate_reference_constraints,
+    )
+except ModuleNotFoundError:
+    from runtime_contracts import (  # type: ignore[no-redef]
+        is_componentized,
+        is_reference_mode,
+        validate_component_set,
+        validate_reference_constraints,
+    )
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ALLOWED_FILES = {"release-manifest.json", "SHA256SUMS", "release-notes.md"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -321,6 +336,55 @@ def _validate_voice_asset(
         )
 
 
+def _validate_source_params_asset(path: Path, asset: dict[str, Any]) -> None:
+    """Check the pickle-free harmonic source parameter archive."""
+    _require(
+        asset["format"] == "numpy-npz",
+        f"Source parameters {path.name} must use the numpy-npz format",
+    )
+    expected = {"weight", "bias", "window"}
+    try:
+        import numpy as np
+
+        with np.load(path, allow_pickle=False) as archive:
+            _require(
+                set(archive.files) == expected,
+                f"Source parameters {path.name} must contain exactly {sorted(expected)}",
+            )
+            weight = np.asarray(archive["weight"])
+            bias = np.asarray(archive["bias"])
+            window = np.asarray(archive["window"])
+            _require(
+                weight.ndim == 2
+                and bias.ndim == 1
+                and weight.shape[0] == bias.shape[0],
+                f"Source parameters {path.name} have invalid weight/bias shapes",
+            )
+            _require(
+                window.ndim == 1 and window.size == 20,
+                f"Source parameters {path.name} window must contain 20 values",
+            )
+            for name in sorted(expected):
+                values = np.asarray(archive[name])
+                _require(
+                    values.dtype == np.float32,
+                    f"Source parameter {name} in {path.name} must be float32",
+                )
+                _require(
+                    bool(np.isfinite(values).all()),
+                    f"Source parameter {name} in {path.name} is not finite",
+                )
+    except ImportError:
+        import zipfile
+
+        _require(
+            zipfile.is_zipfile(path),
+            f"Source parameters {path.name} are not a NumPy archive",
+        )
+    except (OSError, ValueError, KeyError) as exc:
+        raise CandidateError(f"Invalid source parameters {path.name}: {exc}") from exc
+
+
 def _validate_asset_format(
     path: Path, asset: dict[str, Any], manifest: dict[str, Any]
 ) -> None:
@@ -331,6 +395,8 @@ def _validate_asset_format(
         _validate_onnx_asset(path, manifest["onnx_contract"], asset.get("component"))
     elif role == "voices":
         _validate_voice_asset(path, asset, manifest["runtime"])
+    elif asset.get("component") == "source_params":
+        _validate_source_params_asset(path, asset)
 
 
 def _validate_checksums(candidate: Path, assets: list[dict[str, Any]]) -> None:
@@ -633,7 +699,7 @@ def verify_candidate(
     names: set[str] = set()
     slots: set[tuple[str, str, str | None, str | None]] = set()
     model_components: set[str] = set()
-    model_count = voice_count = 0
+    model_count = voice_count = source_params_count = 0
     for asset in assets:
         _require(isinstance(asset, dict), "Manifest asset must be an object")
         for field in ("name", "role", "format", "size", "sha256"):
@@ -686,21 +752,32 @@ def verify_candidate(
                 model_components.add(component)
         elif role == "voices":
             voice_count += 1
+        elif asset.get("component") == "source_params":
+            source_params_count += 1
         _validate_asset_format(asset_path, asset, manifest)
     runtime = manifest["runtime"]
-    if runtime.get("layout") == "split-onnx-v1":
-        expected_components = set(
-            (manifest["onnx_contract"].get("components") or {}).keys()
-        )
-        _require(expected_components, "Split ONNX contract must declare components")
-        _require(
-            expected_components == model_components,
-            "Split ONNX components do not match contract: "
-            f"expected {sorted(expected_components)}, got {sorted(model_components)}",
-        )
+    if is_componentized(runtime.get("layout")):
+        try:
+            validate_component_set(
+                runtime.get("layout"),
+                (manifest["onnx_contract"].get("components") or {}),
+                model_components,
+            )
+        except ValueError as exc:
+            raise CandidateError(str(exc)) from exc
 
     _require(model_count > 0, "Candidate must contain a model asset")
-    _require(voice_count > 0, "Candidate must contain a voices asset")
+    if is_reference_mode(runtime):
+        try:
+            validate_reference_constraints(runtime)
+        except ValueError as exc:
+            raise CandidateError(str(exc)) from exc
+        _require(
+            source_params_count == 1,
+            "Reference-mode candidate must contain exactly one source_params asset",
+        )
+    else:
+        _require(voice_count > 0, "Candidate must contain a voices asset")
     _validate_checksums(candidate, assets)
     unexpected = []
     for path in candidate.rglob("*"):

@@ -49,8 +49,12 @@ class ConfigurableDecoder(nn.Module):
                 ),
             ]
         )
-        self.F0_conv = weight_norm(nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1))
-        self.N_conv = weight_norm(nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1))
+        self.F0_conv = weight_norm(
+            nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1)
+        )
+        self.N_conv = weight_norm(
+            nn.Conv1d(1, 1, kernel_size=3, stride=2, groups=1, padding=1)
+        )
         self.asr_res = nn.Sequential(weight_norm(nn.Conv1d(dim_in, 64, kernel_size=1)))
         self.generator = Generator(
             style_dim,

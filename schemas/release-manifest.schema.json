@@ -72,9 +72,7 @@
         "sample_rate",
         "frontend",
         "frontend_experimental",
-        "max_tokens",
-        "default_voice",
-        "voices"
+        "max_tokens"
       ],
       "properties": {
         "language_codes": {
@@ -89,11 +87,17 @@
         "tokenizer_vocab_version": { "type": "string", "minLength": 1 },
         "vocabulary_source": { "type": "string", "minLength": 1 },
         "max_tokens": { "type": "integer", "minimum": 1 },
+        "voice_mode": { "enum": ["static", "reference"] },
+        "layout": {
+          "enum": ["single-onnx-v1", "split-onnx-v1", "cloning-onnx-v1"]
+        },
+        "speed_supported": { "type": "boolean" },
+        "style_dimensions": { "$ref": "#/$defs/style_dimensions" },
+        "reference": { "$ref": "#/$defs/reference" },
         "default_voice": { "type": "string", "minLength": 1 },
         "voices": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
-          "minItems": 1,
           "uniqueItems": true
         },
         "voice_metadata": {
@@ -102,7 +106,32 @@
           "additionalProperties": { "$ref": "#/$defs/voice_metadata" }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "voice_mode": { "const": "reference" } },
+            "required": ["voice_mode"]
+          },
+          "then": {
+            "required": [
+              "layout",
+              "speed_supported",
+              "style_dimensions",
+              "reference"
+            ],
+            "properties": {
+              "default_voice": false,
+              "voices": { "maxItems": 0 },
+              "voice_metadata": false
+            }
+          },
+          "else": {
+            "required": ["default_voice", "voices"],
+            "properties": { "voices": { "minItems": 1 } }
+          }
+        }
+      ]
     },
     "onnx_contract": {
       "type": "object",
@@ -196,6 +225,37 @@
     }
   },
   "$defs": {
+    "style_dimensions": {
+      "type": "object",
+      "required": ["acoustic", "duration"],
+      "additionalProperties": false,
+      "properties": {
+        "acoustic": { "type": "integer", "minimum": 1 },
+        "duration": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": [
+        "format",
+        "sample_rate",
+        "identity_sample_rate",
+        "min_seconds",
+        "max_seconds",
+        "memory_width",
+        "style_width"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": { "const": "akinvox-cloning-reference-v1" },
+        "sample_rate": { "const": 24000 },
+        "identity_sample_rate": { "const": 16000 },
+        "min_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "max_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "memory_width": { "type": "integer", "minimum": 1 },
+        "style_width": { "type": "integer", "minimum": 1 }
+      }
+    },
     "voice_metadata": {
       "type": "object",
       "required": ["gender", "language", "locale", "language_label"],

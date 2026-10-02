@@ -55,7 +55,13 @@ jobs:
               if profile not in profiles:
                   raise SystemExit(f"Build profile is missing for {key}: {profile}")
               build_release = profiles[profile].get("release") or {}
-              if not build_release.get("model_filename") or not (
+              build_runtime = build_release.get("runtime") or {}
+              if build_runtime.get("voice_mode") == "reference":
+                  if not build_release.get("model_assets"):
+                      raise SystemExit(
+                          f"Build profile {profile} is missing required model_assets mapping metadata"
+                      )
+              elif not build_release.get("model_filename") or not (
                   build_release.get("voice_assets") or build_release.get("voices_filename")
               ):
                   raise SystemExit(
@@ -92,6 +98,11 @@ jobs:
         with:
           repository: buchwandler/pykokoro
           path: pykokoro
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          repository: buchwandler/onnxvoice
+          path: onnxvoice
           fetch-depth: 1
       - name: Build or mirror release
         env:
@@ -140,6 +151,11 @@ jobs:
         run: |
           uv run --extra build python local_test/compare_checkpoint_onnx.py "${{ needs.prepare.outputs.profile }}" --runs 5 --seed 20260828 --keep-build
           test -f ".local-test/compare/${{ needs.prepare.outputs.profile }}/report.json"
+      - name: AkinVox cloning PyTorch/ONNX A/B gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'en-akinvox-cloning-v1' }}
+        run: |
+          uv run --extra build --extra test python local_test/compare_akinvox_cloning_onnx.py --seed 20260926 --keep-build
+          test -f ".local-test/compare/en-akinvox-cloning-v1/report.json"
       - name: Verify candidate
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -215,6 +231,15 @@ jobs:
             smoke=local_test/smoke_ru_zaakirio_dima.py
           fi
           PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" uv run --project pykokoro --extra cpu python "$smoke" --asset-dir "dist/${{ needs.prepare.outputs.tag }}" --strict-release-format
+      - name: AkinVox cloning pykokoro + onnxvoice consumer gate
+        if: ${{ needs.prepare.outputs.kind == 'build' && needs.prepare.outputs.profile == 'en-akinvox-cloning-v1' }}
+        run: |
+          test -f "$GITHUB_WORKSPACE/onnxvoice/onnxvoice/systems/kokoro_cloning.py"
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run --project pykokoro --extra cpu --with "$GITHUB_WORKSPACE/onnxvoice" \
+          python local_test/smoke_en_akinvox_cloning.py \
+            --asset-dir "dist/${{ needs.prepare.outputs.tag }}" \
+            --strict-release-format
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:

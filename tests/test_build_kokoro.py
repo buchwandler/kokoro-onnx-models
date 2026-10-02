@@ -117,12 +117,15 @@ def test_expected_profiles_exist() -> None:
         "de-anna",
         "pl-mateusz",
         "en-oddadmix-7m-distill",
+        "en-akinvox-cloning-v1",
     }
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False
 
 
-def test_loader_selector_uses_standard_and_configurable_constructors(monkeypatch) -> None:
+def test_loader_selector_uses_standard_and_configurable_constructors(
+    monkeypatch,
+) -> None:
     calls: list[str] = []
 
     def standard(checkpoint, config):
@@ -134,7 +137,9 @@ def test_loader_selector_uses_standard_and_configurable_constructors(monkeypatch
         return "configurable-model"
 
     monkeypatch.setattr(build_kokoro, "_load_standard_kokoro_checkpoint", standard)
-    monkeypatch.setattr(build_kokoro, "_load_configurable_decoder_checkpoint", configurable)
+    monkeypatch.setattr(
+        build_kokoro, "_load_configurable_decoder_checkpoint", configurable
+    )
     checkpoint = Path("checkpoint.pth")
     config = {}
 
@@ -146,7 +151,6 @@ def test_loader_selector_uses_standard_and_configurable_constructors(monkeypatch
         == "configurable-model"
     )
     assert calls == ["standard", "configurable"]
-
 
 
 def test_normalize_voice_rejects_nonfinite_values() -> None:

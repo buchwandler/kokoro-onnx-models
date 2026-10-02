@@ -17,7 +17,7 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 19
+    assert len(registry["models"]) == 20
 
 
 def test_github_distributions_match_release_catalog() -> None:
@@ -28,7 +28,9 @@ def test_github_distributions_match_release_catalog() -> None:
             if distribution["provider"] != "github-release":
                 continue
             release = releases[distribution["release_key"]]
-            if release.get("release_version", 0) > distribution.get("release_version", 0):
+            if release.get("release_version", 0) > distribution.get(
+                "release_version", 0
+            ):
                 continue
             assert isinstance(distribution["release_version"], int)
             assert distribution["release_version"] >= 1
@@ -123,6 +125,7 @@ def test_ngoc_huyen_registry_exposes_token_durations() -> None:
     else:
         assert model["distributions"] == []
 
+
 def test_russian_uses_separate_checkpoint_build_releases() -> None:
     registry = load_registry()
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
@@ -185,9 +188,11 @@ def test_invalid_voice_metadata_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(
-        RegistryError, match="voice_metadata must exactly cover the runtime voice roster"
+        RegistryError,
+        match="voice_metadata must exactly cover the runtime voice roster",
     ):
         verify_registry(path)
+
 
 def test_partial_voice_metadata_is_rejected(tmp_path: Path) -> None:
     registry = load_registry()
@@ -196,10 +201,10 @@ def test_partial_voice_metadata_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "models.json"
     path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(
-        RegistryError, match="voice_metadata must exactly cover the runtime voice roster"
+        RegistryError,
+        match="voice_metadata must exactly cover the runtime voice roster",
     ):
         verify_registry(path)
-
 
 
 def test_invalid_registry_cases_are_rejected(tmp_path: Path) -> None:
@@ -253,3 +258,49 @@ def test_thai_split_components_remain_explicit() -> None:
         "curves",
         "decoder",
     }
+
+
+def test_registry_schema_accepts_reference_cloning_without_static_voices() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+
+    schema = json.loads((ROOT / "schemas" / "model-registry.schema.json").read_text())
+    registry = load_registry()
+    jsonschema.Draft202012Validator(schema).validate(registry)
+
+    model = registry["models"]["en-akinvox-cloning-v1"]
+    assert model["runtime"]["voice_mode"] == "reference"
+    assert model["runtime"]["layout"] == "cloning-onnx-v1"
+    assert "voices" not in model["runtime"]
+    assert "default_voice" not in model["runtime"]
+
+
+def test_registry_schema_keeps_static_voice_requirements() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+
+    schema = json.loads((ROOT / "schemas" / "model-registry.schema.json").read_text())
+    registry = load_registry()
+
+    missing_voices = json.loads(json.dumps(registry))
+    missing_voices["models"]["en-oddadmix-7m-distill"]["runtime"].pop("voices")
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(schema).validate(missing_voices)
+
+    fake_reference_voice = json.loads(json.dumps(registry))
+    fake_reference_voice["models"]["en-akinvox-cloning-v1"]["runtime"][
+        "default_voice"
+    ] = "reference"
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(schema).validate(fake_reference_voice)
+
+
+def test_cloning_contract_components_cover_the_exact_graph_set() -> None:
+    model = load_registry()["models"]["en-akinvox-cloning-v1"]
+    assert set(model["onnx_contract"]["components"]) == {
+        "reference_wavlm",
+        "reference_encoders",
+        "reference_mapper",
+        "prosody",
+        "curves",
+        "decoder",
+    }
+    assert model["runtime"]["speed_supported"] is False

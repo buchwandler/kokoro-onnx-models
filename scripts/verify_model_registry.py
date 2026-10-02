@@ -23,6 +23,22 @@ VOICE_LOCALE_RE = re.compile(r"^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$")
 HF_URL_RE = re.compile(r"^https://huggingface\.co/[^/]+/[^/]+/resolve/([^/]+)/.+$")
 
 
+try:
+    from scripts.runtime_contracts import (
+        is_componentized,
+        is_reference_mode,
+        validate_component_set,
+        validate_reference_constraints,
+    )
+except ModuleNotFoundError:
+    from runtime_contracts import (  # type: ignore[no-redef]
+        is_componentized,
+        is_reference_mode,
+        validate_component_set,
+        validate_reference_constraints,
+    )
+
+
 class RegistryError(ValueError):
     pass
 
@@ -169,6 +185,7 @@ def _validate_distribution(
     model_count = 0
     voice_count = 0
     components: set[str] = set()
+    support_components: set[str] = set()
     voice_names: set[str] = set()
     for artifact in artifacts:
         _require(
@@ -185,6 +202,8 @@ def _validate_distribution(
             model_count += 1
             if artifact.get("component"):
                 components.add(artifact["component"])
+        elif artifact.get("component"):
+            support_components.add(artifact["component"])
         if artifact["role"] in {"voice", "voices"}:
             voice_count += 1
             if artifact["role"] == "voice":
@@ -204,18 +223,31 @@ def _validate_distribution(
                 f"{model_id}: Hugging Face runtime URL uses main",
             )
     _require(model_count > 0, f"{model_id}/{distribution_id}: no model artifact")
-    _require(voice_count > 0, f"{model_id}/{distribution_id}: no voice artifact")
+    if is_reference_mode(model["runtime"]):
+        _require(
+            voice_count == 0,
+            f"{model_id}/{distribution_id}: reference model must not ship voice artifacts",
+        )
+        _require(
+            "source_params" in support_components,
+            f"{model_id}/{distribution_id}: cloning model is missing source_params",
+        )
+    else:
+        _require(voice_count > 0, f"{model_id}/{distribution_id}: no voice artifact")
     if voice_names:
         _require(
             voice_names == set(model["runtime"]["voices"]),
             f"{model_id}/{distribution_id}: voice artifacts do not match voice roster",
         )
-    if model["runtime"]["layout"] == "split-onnx-v1":
-        expected = set(model["onnx_contract"].get("components") or {})
-        _require(
-            expected and expected == components,
-            f"{model_id}/{distribution_id}: split model components do not match contract",
-        )
+    if is_componentized(model["runtime"]["layout"]):
+        try:
+            validate_component_set(
+                model["runtime"]["layout"],
+                model["onnx_contract"].get("components") or {},
+                components,
+            )
+        except ValueError as exc:
+            raise RegistryError(str(exc)) from exc
     if distribution["provider"] == "huggingface":
         _require(
             distribution.get("repository") and distribution.get("revision"),
@@ -307,10 +339,16 @@ def verify_registry(
             f"{model_id}: invalid language code",
         )
         runtime = model["runtime"]
-        _require(
-            runtime["default_voice"] in runtime["voices"],
-            f"{model_id}: default voice is not in voice roster",
-        )
+        if not is_reference_mode(runtime):
+            _require(
+                runtime["default_voice"] in runtime["voices"],
+                f"{model_id}: default voice is not in voice roster",
+            )
+        else:
+            try:
+                validate_reference_constraints(runtime)
+            except ValueError as exc:
+                raise RegistryError(str(exc)) from exc
         _validate_voice_metadata(model_id, runtime)
         _require(
             model["mirror_policy"]

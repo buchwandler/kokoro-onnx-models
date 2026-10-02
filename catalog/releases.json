@@ -95,7 +95,374 @@
           "bf_janegoodall",
           "bm_davidattenborough"
         ],
-        "voice_metadata": {"af_alloy": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_aoede": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_bella": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_heart": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_jessica": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_kore": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_nicole": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_nova": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_river": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_sarah": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_sky": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"am_adam": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_echo": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_eric": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_fenrir": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_liam": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_michael": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_onyx": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_puck": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_santa": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"bf_alice": {"gender": "female","language": "en","locale": "en-GB","language_label": "British English"},"bf_emma": {"gender": "female","language": "en","locale": "en-GB","language_label": "British English"},"bf_isabella": {"gender": "female","language": "en","locale": "en-GB","language_label": "British English"},"bf_lily": {"gender": "female","language": "en","locale": "en-GB","language_label": "British English"},"bm_daniel": {"gender": "male","language": "en","locale": "en-GB","language_label": "British English"},"bm_fable": {"gender": "male","language": "en","locale": "en-GB","language_label": "British English"},"bm_george": {"gender": "male","language": "en","locale": "en-GB","language_label": "British English"},"bm_lewis": {"gender": "male","language": "en","locale": "en-GB","language_label": "British English"},"ef_dora": {"gender": "female","language": "es","locale": "es","language_label": "Spanish"},"em_alex": {"gender": "male","language": "es","locale": "es","language_label": "Spanish"},"em_santa": {"gender": "male","language": "es","locale": "es","language_label": "Spanish"},"ff_siwis": {"gender": "female","language": "fr","locale": "fr","language_label": "French"},"hf_alpha": {"gender": "female","language": "hi","locale": "hi","language_label": "Hindi"},"hf_beta": {"gender": "female","language": "hi","locale": "hi","language_label": "Hindi"},"hm_omega": {"gender": "male","language": "hi","locale": "hi","language_label": "Hindi"},"hm_psi": {"gender": "male","language": "hi","locale": "hi","language_label": "Hindi"},"if_sara": {"gender": "female","language": "it","locale": "it","language_label": "Italian"},"im_nicola": {"gender": "male","language": "it","locale": "it","language_label": "Italian"},"jf_alpha": {"gender": "female","language": "ja","locale": "ja","language_label": "Japanese"},"jf_gongitsune": {"gender": "female","language": "ja","locale": "ja","language_label": "Japanese"},"jf_nezumi": {"gender": "female","language": "ja","locale": "ja","language_label": "Japanese"},"jf_tebukuro": {"gender": "female","language": "ja","locale": "ja","language_label": "Japanese"},"jm_kumo": {"gender": "male","language": "ja","locale": "ja","language_label": "Japanese"},"pf_dora": {"gender": "female","language": "pt","locale": "pt","language_label": "Portuguese"},"pm_alex": {"gender": "male","language": "pt","locale": "pt","language_label": "Portuguese"},"pm_santa": {"gender": "male","language": "pt","locale": "pt","language_label": "Portuguese"},"zf_xiaobei": {"gender": "female","language": "zh","locale": "zh","language_label": "Chinese"},"zf_xiaoni": {"gender": "female","language": "zh","locale": "zh","language_label": "Chinese"},"zf_xiaoxiao": {"gender": "female","language": "zh","locale": "zh","language_label": "Chinese"},"zf_xiaoyi": {"gender": "female","language": "zh","locale": "zh","language_label": "Chinese"},"zm_yunjian": {"gender": "male","language": "zh","locale": "zh","language_label": "Chinese"},"zm_yunxi": {"gender": "male","language": "zh","locale": "zh","language_label": "Chinese"},"zm_yunxia": {"gender": "male","language": "zh","locale": "zh","language_label": "Chinese"},"zm_yunyang": {"gender": "male","language": "zh","locale": "zh","language_label": "Chinese"},"af_ameliaearhart": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"af_libritts5338": {"gender": "female","language": "en","locale": "en-US","language_label": "American English"},"am_libritts1272": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_libritts6241": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"am_vincentprice": {"gender": "male","language": "en","locale": "en-US","language_label": "American English"},"bf_janegoodall": {"gender": "female","language": "en","locale": "en-GB","language_label": "British English"},"bm_davidattenborough": {"gender": "male","language": "en","locale": "en-GB","language_label": "British English"}}
+        "voice_metadata": {
+          "af_alloy": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_aoede": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_bella": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_heart": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_jessica": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_kore": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_nicole": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_nova": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_river": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_sarah": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_sky": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_adam": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_echo": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_eric": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_fenrir": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_liam": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_michael": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_onyx": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_puck": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_santa": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "bf_alice": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bf_emma": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bf_isabella": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bf_lily": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_daniel": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_fable": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_george": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_lewis": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "ef_dora": {
+            "gender": "female",
+            "language": "es",
+            "locale": "es",
+            "language_label": "Spanish"
+          },
+          "em_alex": {
+            "gender": "male",
+            "language": "es",
+            "locale": "es",
+            "language_label": "Spanish"
+          },
+          "em_santa": {
+            "gender": "male",
+            "language": "es",
+            "locale": "es",
+            "language_label": "Spanish"
+          },
+          "ff_siwis": {
+            "gender": "female",
+            "language": "fr",
+            "locale": "fr",
+            "language_label": "French"
+          },
+          "hf_alpha": {
+            "gender": "female",
+            "language": "hi",
+            "locale": "hi",
+            "language_label": "Hindi"
+          },
+          "hf_beta": {
+            "gender": "female",
+            "language": "hi",
+            "locale": "hi",
+            "language_label": "Hindi"
+          },
+          "hm_omega": {
+            "gender": "male",
+            "language": "hi",
+            "locale": "hi",
+            "language_label": "Hindi"
+          },
+          "hm_psi": {
+            "gender": "male",
+            "language": "hi",
+            "locale": "hi",
+            "language_label": "Hindi"
+          },
+          "if_sara": {
+            "gender": "female",
+            "language": "it",
+            "locale": "it",
+            "language_label": "Italian"
+          },
+          "im_nicola": {
+            "gender": "male",
+            "language": "it",
+            "locale": "it",
+            "language_label": "Italian"
+          },
+          "jf_alpha": {
+            "gender": "female",
+            "language": "ja",
+            "locale": "ja",
+            "language_label": "Japanese"
+          },
+          "jf_gongitsune": {
+            "gender": "female",
+            "language": "ja",
+            "locale": "ja",
+            "language_label": "Japanese"
+          },
+          "jf_nezumi": {
+            "gender": "female",
+            "language": "ja",
+            "locale": "ja",
+            "language_label": "Japanese"
+          },
+          "jf_tebukuro": {
+            "gender": "female",
+            "language": "ja",
+            "locale": "ja",
+            "language_label": "Japanese"
+          },
+          "jm_kumo": {
+            "gender": "male",
+            "language": "ja",
+            "locale": "ja",
+            "language_label": "Japanese"
+          },
+          "pf_dora": {
+            "gender": "female",
+            "language": "pt",
+            "locale": "pt",
+            "language_label": "Portuguese"
+          },
+          "pm_alex": {
+            "gender": "male",
+            "language": "pt",
+            "locale": "pt",
+            "language_label": "Portuguese"
+          },
+          "pm_santa": {
+            "gender": "male",
+            "language": "pt",
+            "locale": "pt",
+            "language_label": "Portuguese"
+          },
+          "zf_xiaobei": {
+            "gender": "female",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zf_xiaoni": {
+            "gender": "female",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zf_xiaoxiao": {
+            "gender": "female",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zf_xiaoyi": {
+            "gender": "female",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zm_yunjian": {
+            "gender": "male",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zm_yunxi": {
+            "gender": "male",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zm_yunxia": {
+            "gender": "male",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "zm_yunyang": {
+            "gender": "male",
+            "language": "zh",
+            "locale": "zh",
+            "language_label": "Chinese"
+          },
+          "af_ameliaearhart": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "af_libritts5338": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_libritts1272": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_libritts6241": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "am_vincentprice": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English"
+          },
+          "bf_janegoodall": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          },
+          "bm_davidattenborough": {
+            "gender": "male",
+            "language": "en",
+            "locale": "en-GB",
+            "language_label": "British English"
+          }
+        }
       },
       "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
       "source_revision": "dd4401a9add81ac692d20e240d22ec9dda82cc29",
@@ -2564,6 +2931,170 @@
           "source": "config.json",
           "name": "config-english-oddadmix-7m-distill-v1.json",
           "role": "config",
+          "format": "json"
+        }
+      ]
+    },
+    "en-akinvox-cloning-v1": {
+      "kind": "build",
+      "profile": "en-akinvox-cloning-v1",
+      "tag": "model-files-en-akinvox-cloning-v1",
+      "model_version": "1.0.1",
+      "release_version": 1,
+      "source_repository": "AKinvox/kokoro-cloning-v1",
+      "source_revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
+      "publish": true,
+      "activate_runtime_registry": true,
+      "license": "Apache-2.0",
+      "language_codes": ["en"],
+      "frontend": "pykokoro-native-v1",
+      "runtime": {
+        "layout": "cloning-onnx-v1",
+        "voice_mode": "reference",
+        "max_tokens": 510,
+        "speed_supported": false,
+        "style_dimensions": {
+          "acoustic": 128,
+          "duration": 128
+        },
+        "reference": {
+          "format": "akinvox-cloning-reference-v1",
+          "sample_rate": 24000,
+          "identity_sample_rate": 16000,
+          "min_seconds": 3.0,
+          "max_seconds": 30.0,
+          "memory_width": 192,
+          "style_width": 256
+        }
+      },
+      "onnx_contract": {
+        "inputs": {
+          "reference": "reference-conditioned"
+        },
+        "outputs": {
+          "audio": "float32"
+        },
+        "max_tokens": 510,
+        "components": {
+          "reference_wavlm": {
+            "inputs": { "input_values": "float32" },
+            "outputs": { "wavlm": "float32" }
+          },
+          "reference_encoders": {
+            "inputs": { "mel": "float32" },
+            "outputs": { "raw_sdec": "float32", "raw_spred": "float32" }
+          },
+          "reference_mapper": {
+            "inputs": {
+              "mel": "float32",
+              "mel_lengths": "int64",
+              "reference_ids": "int64",
+              "reference_lengths": "int64",
+              "wavlm": "float32",
+              "raw_sdec": "float32",
+              "raw_spred": "float32"
+            },
+            "outputs": {
+              "style": "float32",
+              "reference_memory": "float32",
+              "reference_mask": "bool"
+            }
+          },
+          "prosody": {
+            "inputs": {
+              "input_ids": "int64",
+              "style_dur": "float32",
+              "reference_memory": "float32",
+              "reference_mask": "bool"
+            },
+            "outputs": {
+              "pred_dur": "int64",
+              "d": "float32",
+              "t_en": "float32"
+            }
+          },
+          "curves": {
+            "inputs": { "en": "float32", "style_dur": "float32" },
+            "outputs": { "f0_curve": "float32", "n_curve": "float32" }
+          },
+          "decoder": {
+            "inputs": {
+              "asr": "float32",
+              "f0_curve": "float32",
+              "n_curve": "float32",
+              "style_acou": "float32",
+              "har": "float32"
+            },
+            "outputs": { "audio": "float32" }
+          }
+        }
+      },
+      "assets": [
+        {
+          "source": "reference_wavlm.onnx",
+          "name": "kokoro-akinvox-cloning-reference-wavlm-v1.0.1.onnx",
+          "role": "model",
+          "component": "reference_wavlm",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "reference_encoders.onnx",
+          "name": "kokoro-akinvox-cloning-reference-encoders-v1.0.1.onnx",
+          "role": "model",
+          "component": "reference_encoders",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "reference_mapper.onnx",
+          "name": "kokoro-akinvox-cloning-reference-mapper-v1.0.1.onnx",
+          "role": "model",
+          "component": "reference_mapper",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "prosody.onnx",
+          "name": "kokoro-akinvox-cloning-prosody-v1.0.1.onnx",
+          "role": "model",
+          "component": "prosody",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "curves.onnx",
+          "name": "kokoro-akinvox-cloning-curves-v1.0.1.onnx",
+          "role": "model",
+          "component": "curves",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "decoder.onnx",
+          "name": "kokoro-akinvox-cloning-decoder-v1.0.1.onnx",
+          "role": "model",
+          "component": "decoder",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "source-params.npz",
+          "name": "kokoro-akinvox-cloning-source-params-v1.0.1.npz",
+          "role": "metadata",
+          "component": "source_params",
+          "format": "numpy-npz"
+        },
+        {
+          "source": "config.json",
+          "name": "kokoro-akinvox-cloning-config-v1.0.1.json",
+          "role": "config",
+          "format": "json"
+        },
+        {
+          "source": "bundle.json",
+          "name": "bundle.json",
+          "role": "bundle",
           "format": "json"
         }
       ]

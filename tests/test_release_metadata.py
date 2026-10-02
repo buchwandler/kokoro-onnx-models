@@ -508,3 +508,199 @@ def test_runtime_metadata_rejects_default_outside_bundle_roster(tmp_path: Path) 
             bundle,
             {"default_voice": "default"},
         )
+
+
+def _reference_profile() -> dict:
+    return {
+        "display_name": "Cloning",
+        "repo_id": "org/model",
+        "revision": "a" * 40,
+        "license": "Apache-2.0",
+        "language": "en",
+        "sample_rate": 24000,
+        "frontend_id": "pykokoro-native-v1",
+        "onnx_contract": {
+            "inputs": {"reference": "reference-conditioned"},
+            "outputs": {"audio": "float32"},
+            "max_tokens": 510,
+            "components": {
+                "decoder": {
+                    "inputs": {"har": "float32"},
+                    "outputs": {"audio": "float32"},
+                }
+            },
+        },
+        "release": {
+            "config_filename": "config-cloning-v1.json",
+            "runtime": {
+                "layout": "cloning-onnx-v1",
+                "voice_mode": "reference",
+                "max_tokens": 510,
+                "speed_supported": False,
+                "style_dimensions": {"acoustic": 128, "duration": 128},
+                "reference": {
+                    "format": "akinvox-cloning-reference-v1",
+                    "sample_rate": 24000,
+                    "identity_sample_rate": 16000,
+                    "min_seconds": 3.0,
+                    "max_seconds": 30.0,
+                    "memory_width": 192,
+                    "style_width": 256,
+                },
+            },
+            "model_assets": [
+                {
+                    "source": "decoder.onnx",
+                    "filename": "decoder-cloning-v1.onnx",
+                    "component": "decoder",
+                    "quality": "fp32",
+                    "format": "onnx",
+                }
+            ],
+            "auxiliary_assets": [
+                {
+                    "source": "source-params.npz",
+                    "filename": "source-params-cloning-v1.npz",
+                    "role": "metadata",
+                    "component": "source_params",
+                    "format": "numpy-npz",
+                }
+            ],
+        },
+    }
+
+
+def _run_prepare(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    profiles: dict,
+    releases: dict,
+    profile_key: str,
+) -> Path:
+    build = tmp_path / "build" / profile_key
+    build.mkdir(parents=True)
+    (build / "bundle.json").write_text(
+        json.dumps(
+            {
+                "exporter": {
+                    "outputs": ["audio", "duration"],
+                    "timing": {"output": "duration", "validated": True},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (build / "decoder.onnx").write_bytes(b"onnx")
+    (build / "model.onnx").write_bytes(b"onnx")
+    (build / "voices.bin").write_bytes(b"voices")
+    (build / "config.json").write_text("{}", encoding="utf-8")
+    np.savez(
+        build / "source-params.npz",
+        weight=np.zeros((1, 9), dtype=np.float32),
+        bias=np.zeros(1, dtype=np.float32),
+        window=np.zeros(20, dtype=np.float32),
+    )
+    profiles_path = tmp_path / "profiles.json"
+    releases_path = tmp_path / "releases.json"
+    profiles_path.write_text(json.dumps(profiles), encoding="utf-8")
+    releases_path.write_text(json.dumps({"releases": releases}), encoding="utf-8")
+    monkeypatch.setattr(prepare_release, "PROFILES", profiles_path)
+    monkeypatch.setattr(prepare_release, "RELEASES", releases_path)
+    dist = tmp_path / "dist"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prepare_release.py",
+            profile_key,
+            "--build-root",
+            str(tmp_path / "build"),
+            "--dist",
+            str(dist),
+        ],
+    )
+    assert prepare_release.main() == 0
+    return dist / releases[profile_key]["tag"]
+
+
+def test_reference_release_packages_components_without_voices(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profiles = {"cloning": _reference_profile()}
+    releases = {
+        "cloning": {
+            "kind": "build",
+            "profile": "cloning",
+            "tag": "model-files-cloning",
+            "model_version": "1.0",
+            "release_version": 1,
+        }
+    }
+    out = _run_prepare(tmp_path, monkeypatch, profiles, releases, "cloning")
+
+    manifest = json.loads((out / "release-manifest.json").read_text())
+    runtime = manifest["runtime"]
+    assert runtime["voice_mode"] == "reference"
+    assert "voices" not in runtime
+    assert "default_voice" not in runtime
+    model_assets = [a for a in manifest["assets"] if a["role"] == "model"]
+    assert [a["component"] for a in model_assets] == ["decoder"]
+    assert model_assets[0]["quality"] == "fp32"
+    support = [a for a in manifest["assets"] if a.get("component") == "source_params"]
+    assert [a["role"] for a in support] == ["metadata"]
+    assert not any(a["role"] == "voices" for a in manifest["assets"])
+    assert "Voice mode: reference enrollment" in (out / "release-notes.md").read_text()
+    assert not (out / "voices.bin").exists()
+
+
+def test_legacy_single_model_release_keeps_static_voice_packaging(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profile = {
+        "display_name": "Legacy",
+        "repo_id": "org/legacy",
+        "revision": "b" * 40,
+        "license": "Apache-2.0",
+        "language": "de",
+        "sample_rate": 24000,
+        "frontend_id": "pykokoro-native-v1",
+        "model": {"kind": "checkpoint"},
+        "onnx_contract": {
+            "inputs": {"tokens": "int64", "style": "float32", "speed": "float32"},
+            "outputs": {"audio": "float32", "duration": "int64"},
+            "timing": {
+                "kind": "token-duration-v1",
+                "output": "duration",
+                "unit": "frame",
+                "samples_per_frame": 600,
+                "includes_boundary_tokens": True,
+            },
+            "max_tokens": 510,
+        },
+        "release": {
+            "model_filename": "legacy-v1.onnx",
+            "voices_filename": "voices-legacy-v1.bin",
+            "config_filename": "config-legacy-v1.json",
+        },
+    }
+    profiles = {"legacy": profile}
+    releases = {
+        "legacy": {
+            "kind": "build",
+            "profile": "legacy",
+            "tag": "model-files-legacy",
+            "model_version": "1.0",
+            "release_version": 1,
+        }
+    }
+    out = _run_prepare(tmp_path, monkeypatch, profiles, releases, "legacy")
+
+    manifest = json.loads((out / "release-manifest.json").read_text())
+    model_assets = [a for a in manifest["assets"] if a["role"] == "model"]
+    assert [a["name"] for a in model_assets] == ["legacy-v1.onnx"]
+    assert "component" not in model_assets[0]
+    assert [a["role"] for a in manifest["assets"] if a["role"] == "voices"] == [
+        "voices"
+    ]
+    assert manifest["runtime"]["voices"] == ["default"]
+    assert "Voices: default" in (out / "release-notes.md").read_text()

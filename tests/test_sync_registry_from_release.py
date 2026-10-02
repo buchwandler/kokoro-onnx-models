@@ -748,8 +748,18 @@ def test_sync_runtime_identity_rejects_roster_change_without_metadata() -> None:
             "default_voice": "a",
             "voices": ["a", "b"],
             "voice_metadata": {
-                "a": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"},
-                "b": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"},
+                "a": {
+                    "gender": "female",
+                    "language": "en",
+                    "locale": "en-US",
+                    "language_label": "American English",
+                },
+                "b": {
+                    "gender": "male",
+                    "language": "en",
+                    "locale": "en-US",
+                    "language_label": "American English",
+                },
             },
         }
     }
@@ -803,6 +813,7 @@ def test_sync_runtime_identity_copies_complete_metadata_for_roster_change() -> N
     assert model["runtime"]["voices"] == ["a", "b", "c"]
     assert set(model["runtime"]["voice_metadata"]) == {"a", "b", "c"}
 
+
 def test_distribution_provenance_prefers_manifest_source() -> None:
     manifest = {
         "tag": "model-files-test",
@@ -823,3 +834,66 @@ def test_distribution_provenance_prefers_manifest_source() -> None:
 
     assert distribution["provenance"]["source_repository"] == "manifest/repository"
     assert distribution["provenance"]["source_revision"] == "manifest-revision"
+
+
+def test_catalog_refresh_propagates_reference_runtime_metadata() -> None:
+    manifest = {
+        "runtime": {
+            "language_codes": ["en"],
+            "frontend": "pykokoro-native-v1",
+            "sample_rate": 24000,
+            "max_tokens": 510,
+            "layout": "cloning-onnx-v1",
+            "voice_mode": "reference",
+            "speed_supported": False,
+            "style_dimensions": {"acoustic": 128, "duration": 128},
+            "reference": {"format": "akinvox-cloning-reference-v1"},
+        }
+    }
+    model: dict = {"runtime": {"layout": "single-onnx-v1", "voices": ["af_heart"]}}
+
+    _sync_runtime_identity(model, manifest, {})
+
+    runtime = model["runtime"]
+    assert runtime["layout"] == "cloning-onnx-v1"
+    assert runtime["voice_mode"] == "reference"
+    assert runtime["speed_supported"] is False
+    assert runtime["style_dimensions"] == {"acoustic": 128, "duration": 128}
+    assert runtime["reference"] == {"format": "akinvox-cloning-reference-v1"}
+    assert "voices" not in runtime
+    assert "default_voice" not in runtime
+    assert "voice_metadata" not in runtime
+
+
+def test_catalog_refresh_preserves_static_voice_metadata_for_unchanged_roster() -> None:
+    metadata = {
+        "af_heart": {
+            "gender": "female",
+            "language": "en",
+            "locale": "en-US",
+            "language_label": "American English",
+        }
+    }
+    manifest = {
+        "runtime": {
+            "language_codes": ["en"],
+            "frontend": "pykokoro-native-v1",
+            "sample_rate": 24000,
+            "layout": "single-onnx-v1",
+            "default_voice": "af_heart",
+            "voices": ["af_heart"],
+        }
+    }
+    model: dict = {
+        "runtime": {
+            "layout": "single-onnx-v1",
+            "default_voice": "af_heart",
+            "voices": ["af_heart"],
+            "voice_metadata": metadata,
+        }
+    }
+
+    _sync_runtime_identity(model, manifest, {})
+
+    assert model["runtime"]["voice_metadata"] == metadata
+    assert model["runtime"]["voices"] == ["af_heart"]

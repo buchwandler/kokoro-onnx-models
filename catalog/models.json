@@ -6,16 +6,7 @@
       "model_version": "1.0",
       "display_name": "v1.0",
       "runtime_available": true,
-      "language_codes": [
-        "en",
-        "es",
-        "fr",
-        "hi",
-        "it",
-        "ja",
-        "pt",
-        "zh"
-      ],
+      "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -684,9 +675,7 @@
       "model_version": "1.1",
       "display_name": "v1.1-zh",
       "runtime_available": true,
-      "language_codes": [
-        "zh"
-      ],
+      "language_codes": ["zh"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -1564,12 +1553,7 @@
       "model_version": "1.2",
       "display_name": "v1.2-de-martin",
       "runtime_available": true,
-      "language_codes": [
-        "de",
-        "de-de",
-        "de-at",
-        "de-ch"
-      ],
+      "language_codes": ["de", "de-de", "de-at", "de-ch"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "german-ipa-v1",
       "sample_rate": 24000,
@@ -1577,9 +1561,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "martin",
-        "voices": [
-          "martin"
-        ],
+        "voices": ["martin"],
         "voice_metadata": {
           "martin": {
             "gender": "male",
@@ -1649,9 +1631,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (ContextBoxAI)",
       "runtime_available": true,
-      "language_codes": [
-        "vi"
-      ],
+      "language_codes": ["vi"],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -1758,10 +1738,7 @@
               "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -1779,9 +1756,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (anphunl mirror)",
       "runtime_available": true,
-      "language_codes": [
-        "vi"
-      ],
+      "language_codes": ["vi"],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -1888,10 +1863,7 @@
               "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -1909,9 +1881,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (Ngọc Huyền)",
       "runtime_available": true,
-      "language_codes": [
-        "vi"
-      ],
+      "language_codes": ["vi"],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p Vietnamese",
       "sample_rate": 24000,
@@ -1919,9 +1889,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "ngoc_huyen",
-        "voices": [
-          "ngoc_huyen"
-        ],
+        "voices": ["ngoc_huyen"],
         "voice_metadata": {
           "ngoc_huyen": {
             "gender": "female",
@@ -2013,10 +1981,7 @@
               "sha256": "f7823e5598a615ad98146bedaa8dc558d254086e25eda1f7894d264ee33619e2",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -2034,9 +1999,7 @@
       "model_version": "0.1",
       "display_name": "Nabra-82M Arabic",
       "runtime_available": true,
-      "language_codes": [
-        "ar"
-      ],
+      "language_codes": ["ar"],
       "frontend": "nabra-arabic-v1",
       "frontend_display_name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
       "sample_rate": 24000,
@@ -2044,9 +2007,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ],
+        "voices": ["default"],
         "voice_metadata": {
           "default": {
             "gender": "female",
@@ -2130,10 +2091,7 @@
               "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2152,9 +2110,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro German Kerstin (Crane)",
       "runtime_available": true,
-      "language_codes": [
-        "de"
-      ],
+      "language_codes": ["de"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA compatible frontend",
       "sample_rate": 24000,
@@ -2162,9 +2118,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ],
+        "voices": ["default"],
         "voice_metadata": {
           "default": {
             "gender": "female",
@@ -2230,10 +2184,7 @@
               "sha256": "f96576f656c58221b42ce46c74398dc2a6ffc03b8408abe530d85ebd717ca062",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2270,9 +2221,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro Hebrew NC",
       "runtime_available": false,
-      "language_codes": [
-        "he"
-      ],
+      "language_codes": ["he"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "Hebrew-specific G2P",
       "sample_rate": 24000,
@@ -2280,9 +2229,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": [
-          "default"
-        ]
+        "voices": ["default"]
       },
       "onnx_contract": {
         "inputs": {
@@ -2307,9 +2254,7 @@
       "model_version": "1.1",
       "display_name": "Kokoro Swedish (Joakim multi-speaker)",
       "runtime_available": true,
-      "language_codes": [
-        "sv"
-      ],
+      "language_codes": ["sv"],
       "frontend": "kokorog2p-sv-v1",
       "frontend_display_name": "kokorog2p Swedish",
       "sample_rate": 24000,
@@ -2474,10 +2419,7 @@
               "sha256": "d91053a2a96fbfd66887b7f1a9485d8cacb28edffcb5320f9201ecdfa2e948fb",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -2495,9 +2437,7 @@
       "model_version": "1.1.4",
       "display_name": "Kokoro German Thorsten",
       "runtime_available": true,
-      "language_codes": [
-        "de"
-      ],
+      "language_codes": ["de"],
       "frontend": "kokorog2p-de-thorsten-v1",
       "frontend_display_name": "German Kokoro G2P + Thorsten short-ü normalization",
       "sample_rate": 24000,
@@ -2505,9 +2445,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "thorsten",
-        "voices": [
-          "thorsten"
-        ],
+        "voices": ["thorsten"],
         "voice_metadata": {
           "thorsten": {
             "gender": "male",
@@ -2599,10 +2537,7 @@
               "sha256": "3195c20800f7684494a94b64f30928b9b22ffab1aa46175c784c93ba084e44c5",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -2620,9 +2555,7 @@
       "model_version": "1",
       "display_name": "th-wayu",
       "runtime_available": true,
-      "language_codes": [
-        "th"
-      ],
+      "language_codes": ["th"],
       "frontend": "kokorog2p-th-wayu-v1",
       "frontend_display_name": "kokorog2p-th-wayu-v1",
       "sample_rate": 24000,
@@ -2873,9 +2806,7 @@
       "model_version": "1",
       "display_name": "Kokoro Kazakh (AnuarSv km_m1)",
       "runtime_available": true,
-      "language_codes": [
-        "kk"
-      ],
+      "language_codes": ["kk"],
       "frontend": "kokorog2p-kk-v1",
       "frontend_display_name": "kokorog2p Kazakh",
       "sample_rate": 24000,
@@ -2883,9 +2814,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "km_m1",
-        "voices": [
-          "km_m1"
-        ],
+        "voices": ["km_m1"],
         "voice_metadata": {
           "km_m1": {
             "gender": "male",
@@ -2959,10 +2888,7 @@
               "sha256": "e1cdc89c1d0abcfdbc189fce73a074dfa50b34d08321f9fe20126b8317c9b8f0",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2999,9 +2925,7 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio base)",
       "runtime_available": true,
-      "language_codes": [
-        "ru"
-      ],
+      "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
@@ -3009,10 +2933,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "sveta",
-        "voices": [
-          "sveta",
-          "masha"
-        ],
+        "voices": ["sveta", "masha"],
         "voice_metadata": {
           "sveta": {
             "gender": "female",
@@ -3110,10 +3031,7 @@
               "sha256": "614473e5650e2eaceec2459471cd0cd9ac3431ff2bde7c84cb4bdacef9f00916",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -3131,9 +3049,7 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio Dima)",
       "runtime_available": true,
-      "language_codes": [
-        "ru"
-      ],
+      "language_codes": ["ru"],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
@@ -3141,9 +3057,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "dima",
-        "voices": [
-          "dima"
-        ],
+        "voices": ["dima"],
         "voice_metadata": {
           "dima": {
             "gender": "male",
@@ -3235,10 +3149,7 @@
               "sha256": "e774e8859604164aa27c393fa4393c3a4ff2162d37911a39574551edbc801dcb",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -3256,9 +3167,7 @@
       "model_version": "1.0",
       "display_name": "Kokoro European Portuguese (logus2k)",
       "runtime_available": true,
-      "language_codes": [
-        "pt-pt"
-      ],
+      "language_codes": ["pt-pt"],
       "frontend": "tts-eu-pt-v1",
       "frontend_display_name": "European Portuguese via KokoroG2P + Lexphon",
       "sample_rate": 24000,
@@ -3266,9 +3175,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pt_eu",
-        "voices": [
-          "pt_eu"
-        ],
+        "voices": ["pt_eu"],
         "voice_metadata": {
           "pt_eu": {
             "gender": "female",
@@ -3369,10 +3276,7 @@
               "sha256": "6b91a570c1fe57d4af8ddde39a37d0fb3ebfcdfad7a8621ca0479ae18f53e3c3",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -3390,9 +3294,7 @@
       "model_version": "1",
       "display_name": "Kokoro German Anna",
       "runtime_available": true,
-      "language_codes": [
-        "de"
-      ],
+      "language_codes": ["de"],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA via kokorog2p",
       "sample_rate": 24000,
@@ -3400,9 +3302,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "df_anna",
-        "voices": [
-          "df_anna"
-        ],
+        "voices": ["df_anna"],
         "voice_metadata": {
           "df_anna": {
             "gender": "female",
@@ -3494,10 +3394,7 @@
               "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -3515,9 +3412,7 @@
       "model_version": "1",
       "display_name": "Kokoro Polish (Software Mansion Mateusz)",
       "runtime_available": false,
-      "language_codes": [
-        "pl"
-      ],
+      "language_codes": ["pl"],
       "frontend": "phonemis-pl-v1",
       "frontend_display_name": "Software Mansion Phonemis Polish",
       "sample_rate": 24000,
@@ -3525,9 +3420,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pm_mateusz",
-        "voices": [
-          "pm_mateusz"
-        ]
+        "voices": ["pm_mateusz"]
       },
       "onnx_contract": {
         "inputs": {
@@ -3560,9 +3453,7 @@
       "model_version": "1.0",
       "display_name": "en-oddadmix-7m-distill",
       "runtime_available": true,
-      "language_codes": [
-        "en"
-      ],
+      "language_codes": ["en"],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -3570,9 +3461,7 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "af_msa",
-        "voices": [
-          "af_msa"
-        ]
+        "voices": ["af_msa"]
       },
       "onnx_contract": {
         "inputs": {
@@ -3674,10 +3563,7 @@
               "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
               "handling": {
                 "dtype": "float32",
-                "shape": [
-                  510,
-                  256
-                ],
+                "shape": [510, 256],
                 "endianness": "little"
               }
             }
@@ -3690,6 +3576,103 @@
           }
         }
       ]
+    },
+    "en-akinvox-cloning-v1": {
+      "model_version": "1.0.1",
+      "display_name": "AkinVox Kokoro Cloning v1",
+      "runtime_available": false,
+      "language_codes": ["en"],
+      "frontend": "pykokoro-native-v1",
+      "frontend_display_name": "pykokoro-native-v1",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "cloning-onnx-v1",
+        "voice_mode": "reference",
+        "max_tokens": 510,
+        "speed_supported": false,
+        "style_dimensions": {
+          "acoustic": 128,
+          "duration": 128
+        },
+        "reference": {
+          "format": "akinvox-cloning-reference-v1",
+          "sample_rate": 24000,
+          "identity_sample_rate": 16000,
+          "min_seconds": 3.0,
+          "max_seconds": 30.0,
+          "memory_width": 192,
+          "style_width": 256
+        }
+      },
+      "onnx_contract": {
+        "inputs": {
+          "reference": "reference-conditioned"
+        },
+        "outputs": {
+          "audio": "float32"
+        },
+        "max_tokens": 510,
+        "components": {
+          "reference_wavlm": {
+            "inputs": { "input_values": "float32" },
+            "outputs": { "wavlm": "float32" }
+          },
+          "reference_encoders": {
+            "inputs": { "mel": "float32" },
+            "outputs": { "raw_sdec": "float32", "raw_spred": "float32" }
+          },
+          "reference_mapper": {
+            "inputs": {
+              "mel": "float32",
+              "mel_lengths": "int64",
+              "reference_ids": "int64",
+              "reference_lengths": "int64",
+              "wavlm": "float32",
+              "raw_sdec": "float32",
+              "raw_spred": "float32"
+            },
+            "outputs": {
+              "style": "float32",
+              "reference_memory": "float32",
+              "reference_mask": "bool"
+            }
+          },
+          "prosody": {
+            "inputs": {
+              "input_ids": "int64",
+              "style_dur": "float32",
+              "reference_memory": "float32",
+              "reference_mask": "bool"
+            },
+            "outputs": {
+              "pred_dur": "int64",
+              "d": "float32",
+              "t_en": "float32"
+            }
+          },
+          "curves": {
+            "inputs": { "en": "float32", "style_dur": "float32" },
+            "outputs": { "f0_curve": "float32", "n_curve": "float32" }
+          },
+          "decoder": {
+            "inputs": {
+              "asr": "float32",
+              "f0_curve": "float32",
+              "n_curve": "float32",
+              "style_acou": "float32",
+              "har": "float32"
+            },
+            "outputs": { "audio": "float32" }
+          }
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "AKinvox/kokoro-cloning-v1"
+      },
+      "mirror_policy": "optional",
+      "distributions": []
     }
   }
 }

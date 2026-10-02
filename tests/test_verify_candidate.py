@@ -125,7 +125,7 @@ def test_validate_voice_asset_enforces_declared_rows(tmp_path: Path) -> None:
 )
 def test_validate_voice_asset_requires_exact_roster(
     tmp_path: Path, members: list[str], runtime_voices: list[str], match: str
- ) -> None:
+) -> None:
     path = tmp_path / "voices.npz"
     np.savez(path, **{name: np.zeros((2, 1), dtype=np.float32) for name in members})
     asset = {"format": "numpy-npz", "handling": {"rows": 2}}
@@ -140,10 +140,10 @@ def test_validate_voice_asset_requires_exact_roster(
         ({"members": ["am", "af"]}, "handling members"),
     ],
     ids=["wrong-count", "wrong-members"],
- )
+)
 def test_validate_voice_asset_requires_matching_handling(
     tmp_path: Path, handling: dict[str, object], match: str
- ) -> None:
+) -> None:
     path = tmp_path / "voices.npz"
     np.savez(
         path,
@@ -153,6 +153,7 @@ def test_validate_voice_asset_requires_matching_handling(
     asset = {"format": "numpy-npz", "handling": {"rows": 2, **handling}}
     with pytest.raises(verify_candidate.CandidateError, match=match):
         verify_candidate._validate_voice_asset(path, asset, {"voices": ["af", "am"]})
+
 
 def test_verify_candidate_requires_thorsten_provenance(tmp_path: Path) -> None:
     candidate = _write_candidate(tmp_path)
@@ -604,3 +605,256 @@ def test_expected_release_version_parser_rejects_non_positive_values() -> None:
         verify_candidate._positive_release_version("0")
     with pytest.raises(verify_candidate.argparse.ArgumentTypeError):
         verify_candidate._positive_release_version("2.0")
+
+
+CLONING_CONTRACTS = {
+    "reference_wavlm": {
+        "inputs": {"input_values": "float32"},
+        "outputs": {"wavlm": "float32"},
+    },
+    "reference_encoders": {
+        "inputs": {"mel": "float32"},
+        "outputs": {"raw_sdec": "float32", "raw_spred": "float32"},
+    },
+    "reference_mapper": {
+        "inputs": {
+            "mel": "float32",
+            "mel_lengths": "int64",
+            "reference_ids": "int64",
+            "reference_lengths": "int64",
+            "wavlm": "float32",
+            "raw_sdec": "float32",
+            "raw_spred": "float32",
+        },
+        "outputs": {
+            "style": "float32",
+            "reference_memory": "float32",
+            "reference_mask": "bool",
+        },
+    },
+    "prosody": {
+        "inputs": {
+            "input_ids": "int64",
+            "style_dur": "float32",
+            "reference_memory": "float32",
+            "reference_mask": "bool",
+        },
+        "outputs": {"pred_dur": "int64", "d": "float32", "t_en": "float32"},
+    },
+    "curves": {
+        "inputs": {"en": "float32", "style_dur": "float32"},
+        "outputs": {"f0_curve": "float32", "n_curve": "float32"},
+    },
+    "decoder": {
+        "inputs": {
+            "asr": "float32",
+            "f0_curve": "float32",
+            "n_curve": "float32",
+            "style_acou": "float32",
+            "har": "float32",
+        },
+        "outputs": {"audio": "float32"},
+    },
+}
+
+REFERENCE_RUNTIME = {
+    "language_codes": ["en"],
+    "sample_rate": 24000,
+    "frontend": "pykokoro-native-v1",
+    "frontend_experimental": False,
+    "max_tokens": 510,
+    "voice_mode": "reference",
+    "layout": "cloning-onnx-v1",
+    "speed_supported": False,
+    "style_dimensions": {"acoustic": 128, "duration": 128},
+    "reference": {
+        "format": "akinvox-cloning-reference-v1",
+        "sample_rate": 24000,
+        "identity_sample_rate": 16000,
+        "min_seconds": 3.0,
+        "max_seconds": 30.0,
+        "memory_width": 192,
+        "style_width": 256,
+    },
+}
+
+
+def _write_cloning_candidate(tmp_path: Path) -> Path:
+    onnx = pytest.importorskip("onnx")
+    from onnx import TensorProto, helper
+
+    candidate = tmp_path / "cloning-candidate"
+    candidate.mkdir()
+    types = {
+        "float32": TensorProto.FLOAT,
+        "int64": TensorProto.INT64,
+        "bool": TensorProto.BOOL,
+    }
+    for component, contract in CLONING_CONTRACTS.items():
+        input_infos = [
+            helper.make_tensor_value_info(name, types[kind], [1])
+            for name, kind in contract["inputs"].items()
+        ]
+        output_infos = [
+            helper.make_tensor_value_info(name, types[kind], [1])
+            for name, kind in contract["outputs"].items()
+        ]
+        source = next(iter(contract["inputs"]))
+        nodes = [
+            helper.make_node("Cast", [source], [name], to=types[kind])
+            for name, kind in contract["outputs"].items()
+        ]
+        graph = helper.make_graph(nodes, component, input_infos, output_infos)
+        onnx.save(helper.make_model(graph), candidate / f"{component}.onnx")
+    np.savez(
+        candidate / "source-params.npz",
+        weight=np.zeros((1, 9), dtype=np.float32),
+        bias=np.zeros(1, dtype=np.float32),
+        window=np.zeros(20, dtype=np.float32),
+    )
+    (candidate / "config.json").write_text("{}", encoding="utf-8")
+
+    assets = [
+        {
+            "name": f"{component}.onnx",
+            "role": "model",
+            "format": "onnx",
+            "quality": "fp32",
+            "component": component,
+            "size": (candidate / f"{component}.onnx").stat().st_size,
+            "sha256": hashlib.sha256(
+                (candidate / f"{component}.onnx").read_bytes()
+            ).hexdigest(),
+        }
+        for component in CLONING_CONTRACTS
+    ]
+    for name, role, format_name, component in [
+        ("source-params.npz", "metadata", "numpy-npz", "source_params"),
+        ("config.json", "config", "json", None),
+    ]:
+        asset = {
+            "name": name,
+            "role": role,
+            "format": format_name,
+            "size": (candidate / name).stat().st_size,
+            "sha256": hashlib.sha256((candidate / name).read_bytes()).hexdigest(),
+        }
+        if component:
+            asset["component"] = component
+        assets.append(asset)
+    manifest = {
+        "schema": 2,
+        "runtime_contract": 1,
+        "repository": "buchwandler/kokoro-onnx-models",
+        "tag": "model-files-cloning-test",
+        "profile": "cloning-test",
+        "model_version": "1.0.1",
+        "release_version": 1,
+        "generated_at": "2026-01-01T00:00:00+00:00",
+        "source": {"type": "test", "repository": "source/repo", "revision": "rev"},
+        "license": "Apache-2.0",
+        "publication": {"enabled": True},
+        "runtime": dict(REFERENCE_RUNTIME),
+        "onnx_contract": {
+            "inputs": {"reference": "reference-conditioned"},
+            "outputs": {"audio": "float32"},
+            "max_tokens": 510,
+            "components": {
+                name: {"inputs": c["inputs"], "outputs": c["outputs"]}
+                for name, c in CLONING_CONTRACTS.items()
+            },
+        },
+        "assets": assets,
+    }
+    _write_manifest(candidate, manifest)
+    return candidate
+
+
+def _write_manifest(candidate: Path, manifest: dict) -> None:
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    (candidate / "SHA256SUMS").write_text(
+        "".join(f"{a['sha256']}  {a['name']}\n" for a in manifest["assets"]),
+        encoding="utf-8",
+    )
+
+
+def test_verify_candidate_accepts_reference_only_cloning_candidate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    result = verify_candidate.verify_candidate(candidate)
+
+    runtime = result["manifest"]["runtime"]
+    assert runtime["voice_mode"] == "reference"
+    assert "voices" not in runtime
+    assert "default_voice" not in runtime
+    assert not any(a["role"] == "voices" for a in result["manifest"]["assets"])
+    assert result["asset_count"] == 8
+
+
+def test_verify_candidate_requires_source_params_for_cloning(
+    tmp_path: Path,
+) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    manifest["assets"] = [
+        a for a in manifest["assets"] if a.get("component") != "source_params"
+    ]
+    _write_manifest(candidate, manifest)
+    (candidate / "source-params.npz").unlink()
+
+    with pytest.raises(verify_candidate.CandidateError, match="source_params"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_cloning_component_drift(tmp_path: Path) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    manifest["onnx_contract"]["components"].pop("decoder")
+    manifest["assets"] = [
+        a for a in manifest["assets"] if a.get("component") != "decoder"
+    ]
+    _write_manifest(candidate, manifest)
+    (candidate / "decoder.onnx").unlink()
+
+    with pytest.raises(verify_candidate.CandidateError, match="must be"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_checksums_cover_every_component(tmp_path: Path) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    kept = [a for a in manifest["assets"] if a["name"] != "decoder.onnx"]
+    (candidate / "SHA256SUMS").write_text(
+        "".join(f"{a['sha256']}  {a['name']}\n" for a in kept), encoding="utf-8"
+    )
+
+    with pytest.raises(verify_candidate.CandidateError, match="SHA256SUMS"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_reference_runtime_with_static_voice(
+    tmp_path: Path,
+) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    manifest["runtime"]["default_voice"] = "af_heart"
+    _write_manifest(candidate, manifest)
+
+    with pytest.raises(verify_candidate.CandidateError):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_still_requires_voices_for_static_models(
+    tmp_path: Path,
+) -> None:
+    candidate = _write_split_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    manifest["assets"] = [a for a in manifest["assets"] if a["role"] != "voices"]
+    _write_manifest(candidate, manifest)
+    (candidate / "voices.npz").unlink()
+
+    with pytest.raises(verify_candidate.CandidateError, match="voices asset"):
+        verify_candidate.verify_candidate(candidate)

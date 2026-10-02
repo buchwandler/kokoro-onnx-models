@@ -14,6 +14,11 @@ try:
     from scripts.voice_metadata import validate_voice_metadata
 except ModuleNotFoundError:
     from voice_metadata import validate_voice_metadata
+
+try:
+    from scripts.runtime_contracts import is_reference_mode
+except ModuleNotFoundError:
+    from runtime_contracts import is_reference_mode  # type: ignore[no-redef]
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "catalog" / "models.json"
 RELEASES = ROOT / "catalog" / "releases.json"
@@ -168,9 +173,23 @@ def _sync_runtime_identity(
     model["sample_rate"] = int(runtime["sample_rate"])
     catalog_runtime = dict(model.get("runtime") or {})
     old_voices = tuple(catalog_runtime.get("voices") or ())
-    for field in ("layout", "max_tokens", "default_voice", "voices"):
+    for field in (
+        "layout",
+        "voice_mode",
+        "max_tokens",
+        "default_voice",
+        "voices",
+        "speed_supported",
+        "style_dimensions",
+        "reference",
+    ):
         if field in runtime:
             catalog_runtime[field] = runtime[field]
+    if is_reference_mode(runtime):
+        catalog_runtime.pop("default_voice", None)
+        catalog_runtime.pop("voices", None)
+        catalog_runtime.pop("voice_metadata", None)
+        old_voices = ()
     new_voices = tuple(catalog_runtime.get("voices") or ())
     manifest_metadata = runtime.get("voice_metadata")
     existing_metadata = catalog_runtime.get("voice_metadata")
@@ -201,7 +220,9 @@ def _new_model_from_release(
 ) -> dict[str, Any]:
     runtime = manifest.get("runtime")
     if not isinstance(runtime, dict):
-        raise RegistryReleaseError("Manifest runtime metadata is required for a new model")
+        raise RegistryReleaseError(
+            "Manifest runtime metadata is required for a new model"
+        )
     language_codes = runtime.get("language_codes") or release.get("language_codes")
     frontend = release.get("frontend") or runtime.get("frontend")
     sample_rate = runtime.get("sample_rate")
@@ -213,10 +234,21 @@ def _new_model_from_release(
         raise RegistryReleaseError(
             f"Release metadata is incomplete for new registry model {model_id!r}"
         )
-    if not voices or not default_voice:
-        raise RegistryReleaseError(
-            f"Release runtime metadata is incomplete for new registry model {model_id!r}"
-        )
+    catalog_runtime: dict[str, Any] = {
+        "layout": str(runtime.get("layout", "single-onnx-v1")),
+        "max_tokens": int(runtime.get("max_tokens") or contract.get("max_tokens", 510)),
+    }
+    if is_reference_mode(runtime):
+        for field in ("voice_mode", "speed_supported", "style_dimensions", "reference"):
+            if field in runtime:
+                catalog_runtime[field] = runtime[field]
+    else:
+        if not voices or not default_voice:
+            raise RegistryReleaseError(
+                f"Release runtime metadata is incomplete for new registry model {model_id!r}"
+            )
+        catalog_runtime["default_voice"] = str(default_voice)
+        catalog_runtime["voices"] = list(voices)
     return {
         "model_version": str(release["model_version"]),
         "display_name": str(release.get("display_name") or model_id),
@@ -225,14 +257,7 @@ def _new_model_from_release(
         "frontend": str(frontend),
         "frontend_display_name": str(frontend),
         "sample_rate": int(sample_rate),
-        "runtime": {
-            "layout": str(runtime.get("layout", "single-onnx-v1")),
-            "max_tokens": int(
-                runtime.get("max_tokens") or contract.get("max_tokens", 510)
-            ),
-            "default_voice": str(default_voice),
-            "voices": list(voices),
-        },
+        "runtime": catalog_runtime,
         "onnx_contract": contract,
         "license": {
             "declared": str(release.get("license") or "unknown"),
@@ -242,6 +267,8 @@ def _new_model_from_release(
         "mirror_policy": "optional",
         "distributions": [],
     }
+
+
 def sync_release(
     candidate: Path,
     *,
@@ -290,9 +317,7 @@ def sync_release(
         raise RegistryReleaseError("Registry has no models object")
     model = models.get(model_id)
     if model is None:
-        model = _new_model_from_release(
-            model_id, manifest, release, manifest_contract
-        )
+        model = _new_model_from_release(model_id, manifest, release, manifest_contract)
         models[model_id] = model
     existing = next(
         (

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -192,3 +193,31 @@ def test_existing_release_comparison_is_idempotent() -> None:
 def test_existing_release_difference_fails() -> None:
     with pytest.raises(ReleaseConflictError, match="differs"):
         compare_existing_release(_manifest(), _manifest("b" * 64))
+
+
+def test_akinvox_cloning_release_declares_all_components_and_source_params() -> None:
+    releases = json.loads(
+        (Path(__file__).resolve().parents[1] / "catalog" / "releases.json").read_text()
+    )["releases"]
+    assets = releases["en-akinvox-cloning-v1"]["assets"]
+
+    model_components = {
+        asset["component"] for asset in assets if asset["role"] == "model"
+    }
+    assert model_components == {
+        "reference_wavlm",
+        "reference_encoders",
+        "reference_mapper",
+        "prosody",
+        "curves",
+        "decoder",
+    }
+    assert all(
+        asset["quality"] == "fp32" for asset in assets if asset["role"] == "model"
+    )
+    support = [
+        asset
+        for asset in assets
+        if asset["role"] == "metadata" and asset.get("component") == "source_params"
+    ]
+    assert len(support) == 1 and support[0]["format"] == "numpy-npz"

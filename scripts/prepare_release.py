@@ -15,6 +15,13 @@ PROFILES = ROOT / "scripts" / "kokoro_profiles.json"
 RELEASES = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 
+try:
+    from scripts.runtime_contracts import validate_reference_constraints
+except ModuleNotFoundError:
+    from runtime_contracts import (
+        validate_reference_constraints,  # type: ignore[no-redef]
+    )
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -59,6 +66,8 @@ def _asset_metadata(asset: dict[str, Any], path: Path) -> dict[str, Any]:
     }
     if asset.get("quality") is not None:
         metadata["quality"] = str(asset["quality"])
+    if asset.get("component") is not None:
+        metadata["component"] = str(asset["component"])
     if metadata["role"] == "voices" and metadata["format"] == "raw-float32-le":
         metadata["handling"] = {
             "dtype": "float32",
@@ -112,6 +121,12 @@ def _write_checksums(out: Path, assets: list[dict[str, Any]]) -> None:
     (out / "SHA256SUMS").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _voices_line(runtime: dict[str, Any]) -> str:
+    if runtime.get("voice_mode") == "reference":
+        return "- Voice mode: reference enrollment"
+    return f"- Voices: {', '.join(runtime['voices'])}"
+
+
 def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
     runtime = manifest["runtime"]
     models = [
@@ -128,7 +143,7 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
         f"- Language(s): {', '.join(runtime['language_codes'])}",
         f"- Frontend: {runtime['frontend']}",
         f"- Model qualities: {', '.join(models)}",
-        f"- Voices: {', '.join(runtime['voices'])}",
+        _voices_line(runtime),
         f"- Source: {manifest['source']['repository']} @ {manifest['source']['revision']}",
         f"- License: {manifest['license']}",
         f"- SHA-256: recorded for {len(manifest['assets'])} assets",
@@ -145,6 +160,30 @@ def _runtime_metadata(
 ) -> dict[str, Any]:
     frontend = profile.get("frontend") or {}
     release_runtime = release.get("runtime") or {}
+    if str(release_runtime.get("voice_mode", "static")) == "reference":
+        reference_runtime = {
+            "language_codes": [str(profile.get("language", "und"))],
+            "sample_rate": int(profile.get("sample_rate", 24000)),
+            "frontend": str(
+                profile.get("frontend_id")
+                or frontend.get("name")
+                or "pykokoro-native-v1"
+            ),
+            "frontend_experimental": bool(frontend.get("experimental", False)),
+            "max_tokens": int(release_runtime.get("max_tokens", 510)),
+            "voice_mode": "reference",
+            "layout": str(release_runtime.get("layout", "cloning-onnx-v1")),
+            "speed_supported": bool(release_runtime.get("speed_supported", False)),
+            "style_dimensions": dict(release_runtime.get("style_dimensions") or {}),
+            "reference": dict(release_runtime.get("reference") or {}),
+            "postprocess": profile.get("postprocess", {}),
+            "runtime_hints": profile.get("runtime_hints", {}),
+        }
+        try:
+            validate_reference_constraints(reference_runtime)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+        return reference_runtime
     fallback_voices = list(
         release_runtime.get("voices") or release.get("voices") or ["default"]
     )
@@ -216,15 +255,26 @@ def main() -> int:
         )
 
     src = args.build_root / args.profile
-    voice_assets = release.get("voice_assets") or [
-        {
-            "source": "voices.bin",
-            "filename": release["voices_filename"],
-            "format": "unknown",
-        }
-    ]
+    reference_mode = (
+        str((release.get("runtime") or {}).get("voice_mode", "static")) == "reference"
+    )
+    if reference_mode:
+        voice_assets: list[dict[str, Any]] = []
+    else:
+        voice_assets = release.get("voice_assets") or [
+            {
+                "source": "voices.bin",
+                "filename": release["voices_filename"],
+                "format": "unknown",
+            }
+        ]
     auxiliary_assets = release.get("auxiliary_assets") or []
-    required = [src / "model.onnx", src / "bundle.json"]
+    required = [src / "bundle.json"]
+    required += [
+        src / str(asset["source"]) for asset in release.get("model_assets") or []
+    ]
+    if not release.get("model_assets"):
+        required.append(src / "model.onnx")
     required += [src / str(asset["source"]) for asset in voice_assets]
     required += [src / str(asset["source"]) for asset in auxiliary_assets]
     missing = [str(path) for path in required if not path.is_file()]
@@ -235,28 +285,38 @@ def main() -> int:
     out = args.dist / tag
     out.mkdir(parents=True, exist_ok=True)
     mapping: dict[Path, tuple[Path, dict[str, Any]]] = {
-        src / "model.onnx": (
-            out / str(release["model_filename"]),
-            {"role": "model", "format": "onnx", "quality": "fp32"},
-        ),
-        src / "bundle.json": (
-            out / "bundle.json",
-            {"role": "bundle", "format": "json"},
-        ),
+        src / "bundle.json": (out / "bundle.json", {"role": "bundle", "format": "json"})
     }
+    model_assets = release.get("model_assets") or [
+        {
+            "source": "model.onnx",
+            "filename": release["model_filename"],
+            "format": "onnx",
+            "quality": "fp32",
+        }
+    ]
+    for asset in model_assets:
+        metadata = {
+            "role": "model",
+            "format": str(asset.get("format", "onnx")),
+            "quality": str(asset.get("quality", "fp32")),
+        }
+        if asset.get("component") is not None:
+            metadata["component"] = str(asset["component"])
+        mapping[src / str(asset["source"])] = (out / str(asset["filename"]), metadata)
     for asset in voice_assets:
         mapping[src / str(asset["source"])] = (
             out / str(asset["filename"]),
             {"role": "voices", "format": str(asset.get("format", "unknown"))},
         )
     for asset in auxiliary_assets:
-        mapping[src / str(asset["source"])] = (
-            out / str(asset["filename"]),
-            {
-                "role": str(asset.get("role", "metadata")),
-                "format": str(asset.get("format", "unknown")),
-            },
-        )
+        metadata = {
+            "role": str(asset.get("role", "metadata")),
+            "format": str(asset.get("format", "unknown")),
+        }
+        if asset.get("component") is not None:
+            metadata["component"] = str(asset["component"])
+        mapping[src / str(asset["source"])] = (out / str(asset["filename"]), metadata)
     if (src / "config.json").is_file() and release.get("config_filename"):
         mapping[src / "config.json"] = (
             out / str(release["config_filename"]),

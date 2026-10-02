@@ -491,6 +491,7 @@ def test_voice_array_rejects_non_finite_torch_values(
             256,
         )
 
+
 def test_runtime_copies_complete_voice_metadata() -> None:
     metadata = {
         "af_test": {
@@ -515,8 +516,28 @@ def test_runtime_copies_complete_voice_metadata() -> None:
 @pytest.mark.parametrize(
     "metadata",
     [
-        {"af_test": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"}},
-        {"am_test": {"gender": "male", "language": "en", "locale": "en-US", "language_label": "American English"}, "outside": {"gender": "female", "language": "en", "locale": "en-US", "language_label": "American English"}},
+        {
+            "af_test": {
+                "gender": "female",
+                "language": "en",
+                "locale": "en-US",
+                "language_label": "American English",
+            }
+        },
+        {
+            "am_test": {
+                "gender": "male",
+                "language": "en",
+                "locale": "en-US",
+                "language_label": "American English",
+            },
+            "outside": {
+                "gender": "female",
+                "language": "en",
+                "locale": "en-US",
+                "language_label": "American English",
+            },
+        },
     ],
     ids=["partial", "outside-roster"],
 )

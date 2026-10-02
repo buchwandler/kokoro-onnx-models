@@ -6,4 +6,11 @@ code and documentation. Model weights, voice packs, converted ONNX files, and
 mirrored release assets remain subject to their upstream licenses and required
 attributions. See MODEL_LICENSES.md and each generated release-manifest.json.
 
+Reference-conditioned cloning releases combine third-party components under
+separate terms. `en-akinvox-cloning-v1` includes or derives from AkinVox Kokoro
+Cloning v1, the Kokoro v1.0 base model, StyleTTS2/iSTFTNet decoder code, and
+Microsoft WavLM. Each component keeps its own license and required attribution;
+see the "AkinVox Kokoro Cloning v1 third-party notices" section of
+MODEL_LICENSES.md.
+
 This project is not affiliated with the upstream model publishers.

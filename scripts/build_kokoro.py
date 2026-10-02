@@ -548,7 +548,9 @@ def audit_loaded_checkpoint(model: Any, checkpoint_path: Path) -> dict[str, Any]
     return report
 
 
-def _load_standard_kokoro_checkpoint(checkpoint: Path, config: Mapping[str, Any]) -> Any:
+def _load_standard_kokoro_checkpoint(
+    checkpoint: Path, config: Mapping[str, Any]
+) -> Any:
     from kokoro import KModel
 
     return KModel(
@@ -559,10 +561,9 @@ def _load_standard_kokoro_checkpoint(checkpoint: Path, config: Mapping[str, Any]
     )
 
 
-
 def _load_configurable_decoder_checkpoint(
     checkpoint: Path, config: Mapping[str, Any]
- ) -> Any:
+) -> Any:
     from kokoro import KModel
     from kokoro import model as kokoro_model
 
@@ -584,13 +585,12 @@ def _load_configurable_decoder_checkpoint(
         kokoro_model.Decoder = original_decoder
 
 
-
 def construct_kokoro_model(
     checkpoint: Path,
     config: Mapping[str, Any],
     *,
     loader: str = "kokoro-standard-v1",
- ) -> Any:
+) -> Any:
     constructors = {
         "kokoro-standard-v1": _load_standard_kokoro_checkpoint,
         "kokoro-configurable-decoder-v1": _load_configurable_decoder_checkpoint,
@@ -602,10 +602,9 @@ def construct_kokoro_model(
     return constructor(checkpoint, config)
 
 
-
 def load_checkpoint_native(
     checkpoint: Path, config: Mapping[str, Any], *, loader: str = "kokoro-standard-v1"
- ) -> Any:
+) -> Any:
     """Load and audit a checkpoint with the selected upstream-compatible loader."""
     model = construct_kokoro_model(checkpoint, config, loader=loader).to("cpu").eval()
     audit = audit_loaded_checkpoint(model, checkpoint)
@@ -1004,9 +1003,7 @@ def export_checkpoint_to_onnx(
         config = json.load(f)
 
     n_token = int(config.get("n_token", len(config.get("vocab", {})) or 178))
-    native_model = load_checkpoint_native(
-        checkpoint, config, loader=checkpoint_loader
-    )
+    native_model = load_checkpoint_native(checkpoint, config, loader=checkpoint_loader)
     native_onnx_wrapper = KModelForONNX(native_model)
     validation_config = validation or {}
     cases = list(validation_config.get("cases") or [])
@@ -1234,7 +1231,7 @@ def resolve_model(
             voice=voice,
             validation=profile.get("export_validation"),
             postprocess=profile.get("postprocess"),
-            checkpoint_loader=loader
+            checkpoint_loader=loader,
         )
         if export_provenance is not None and metadata:
             export_provenance.update(metadata)
@@ -1503,6 +1500,19 @@ def build_profile(
     seq_len: int,
     run_checker: bool,
 ) -> Path:
+    if (profile.get("model") or {}).get("kind") == "akinvox-cloning":
+        try:
+            from scripts.akinvox_cloning import build_akinvox_profile
+        except ModuleNotFoundError:
+            from akinvox_cloning import build_akinvox_profile  # type: ignore[no-redef]
+        return build_akinvox_profile(
+            profile_key,
+            profile,
+            out_root,
+            opset=opset,
+            cache_dir=out_root / profile_key / ".cache",
+            run_checker=run_checker,
+        )
     out_dir = out_root / profile_key
     cache_dir = out_dir / ".hf"
     out_dir.mkdir(parents=True, exist_ok=True)

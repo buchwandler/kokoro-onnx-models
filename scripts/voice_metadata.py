@@ -15,13 +15,13 @@ def validate_voice_metadata(
 ) -> dict[str, dict[str, Any]]:
     """Validate complete per-voice metadata and return it unchanged."""
     if not isinstance(metadata, dict):
-        raise ValueError("voice_metadata must be an object")
+        raise TypeError("voice_metadata must be an object")
     if set(metadata) != set(voices):
         raise ValueError("voice_metadata must exactly cover the runtime voice roster")
 
     for voice, detail in metadata.items():
         if not isinstance(detail, dict):
-            raise ValueError(f"{voice}: voice metadata must be an object")
+            raise TypeError(f"{voice}: voice metadata must be an object")
         if detail.get("gender") not in VOICE_GENDERS:
             raise ValueError(f"{voice}: invalid voice gender")
         language = detail.get("language")

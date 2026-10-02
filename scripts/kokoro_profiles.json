@@ -1417,23 +1417,250 @@
           "name": "short-english",
           "text": "Hello. This is a small English speech model.",
           "phonemes": "həlˈO. ðˌɪs ɪz ˈA smˈɔl ˈɪŋɡlɪʃ spˈiʧ mˈɑdᵊl.",
-          "tokens": [0, 50, 83, 54, 156, 31, 4, 16, 81, 157, 102, 61, 16, 102, 68, 16, 156, 24, 16, 61, 55, 156, 76, 54, 16, 156, 102, 112, 92, 54, 102, 131, 16, 61, 58, 156, 51, 133, 16, 55, 156, 69, 46, 42, 54, 4, 0],
+          "tokens": [
+            0, 50, 83, 54, 156, 31, 4, 16, 81, 157, 102, 61, 16, 102, 68, 16,
+            156, 24, 16, 61, 55, 156, 76, 54, 16, 156, 102, 112, 92, 54, 102,
+            131, 16, 61, 58, 156, 51, 133, 16, 55, 156, 69, 46, 42, 54, 4, 0
+          ],
           "speed": 1.0
         },
         {
           "name": "prosody-and-punctuation",
           "text": "Today is Monday, and the model should sound clear, natural, and stable.",
           "phonemes": "tədˈA ɪz mˈʌndˌA,ænd ðə mˈɑdᵊl ʃˌʊd sˈWnd klˈɪɹ,nˈæʧəɹᵊl,ænd stˈAbᵊl.",
-          "tokens": [0, 62, 83, 46, 156, 24, 16, 102, 68, 16, 55, 156, 138, 56, 46, 157, 24, 3, 72, 56, 46, 16, 81, 83, 16, 55, 156, 69, 46, 42, 54, 16, 131, 157, 135, 46, 16, 61, 156, 39, 56, 46, 16, 53, 54, 156, 102, 123, 3, 56, 156, 72, 133, 83, 123, 42, 54, 3, 72, 56, 46, 16, 61, 62, 156, 24, 44, 42, 54, 4, 0],
+          "tokens": [
+            0, 62, 83, 46, 156, 24, 16, 102, 68, 16, 55, 156, 138, 56, 46, 157,
+            24, 3, 72, 56, 46, 16, 81, 83, 16, 55, 156, 69, 46, 42, 54, 16, 131,
+            157, 135, 46, 16, 61, 156, 39, 56, 46, 16, 53, 54, 156, 102, 123, 3,
+            56, 156, 72, 133, 83, 123, 42, 54, 3, 72, 56, 46, 16, 61, 62, 156,
+            24, 44, 42, 54, 4, 0
+          ],
           "speed": 1.0
         }
       ],
       "release_validation_corpus": [
-        {"name": "parameter-count", "text": "This is a compact English speech model."},
-        {"name": "pangram", "text": "The quick brown fox jumps over the lazy dog."},
-        {"name": "numbers", "text": "At 10:30 a.m., the temperature was 21.5 degrees."},
-        {"name": "quotation", "text": "Dr. Smith said, \\\"Please read this sentence clearly.\\\""},
-        {"name": "long-sentence", "text": "A longer sentence should preserve stable pacing, natural pauses, and intelligible consonants without turning into stationary noise."}
+        {
+          "name": "parameter-count",
+          "text": "This is a compact English speech model."
+        },
+        {
+          "name": "pangram",
+          "text": "The quick brown fox jumps over the lazy dog."
+        },
+        {
+          "name": "numbers",
+          "text": "At 10:30 a.m., the temperature was 21.5 degrees."
+        },
+        {
+          "name": "quotation",
+          "text": "Dr. Smith said, \\\"Please read this sentence clearly.\\\""
+        },
+        {
+          "name": "long-sentence",
+          "text": "A longer sentence should preserve stable pacing, natural pauses, and intelligible consonants without turning into stationary noise."
+        }
+      ]
+    }
+  },
+  "en-akinvox-cloning-v1": {
+    "display_name": "AkinVox Kokoro Cloning v1 (English reference)",
+    "repo_id": "AKinvox/kokoro-cloning-v1",
+    "revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
+    "source_type": "huggingface",
+    "license": "Apache-2.0",
+    "language": "en",
+    "sample_rate": 24000,
+    "frontend_id": "pykokoro-native-v1",
+    "model_version": "1.0.1",
+    "model": {
+      "kind": "akinvox-cloning",
+      "pins": {
+        "akinvox": {
+          "repo_id": "AKinvox/kokoro-cloning-v1",
+          "revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
+          "release_tag": "v1.0.1",
+          "files": {
+            "adapter.pt": {
+              "path": "adapter.pt",
+              "sha256": "8baaba2736451833486d98eaa0842f37d66cca7ca0c2474fa77d8efd1505360a"
+            },
+            "reference_mapper.pt": {
+              "path": "reference_mapper.pt",
+              "sha256": "59a6fa222926d4705e14ccde230a7ba4a3b3e5cea879f4bada717ee95f4bb8ba"
+            },
+            "reference_encoders.pt": {
+              "path": "reference_encoders.pt",
+              "sha256": "cc4d60cbd84f5b5b0810d68e8ab15b48bbacefb933bcaf002c7109fe44de4ae4"
+            },
+            "config.json": {
+              "path": "config.json",
+              "sha256": "a5ef3fa79ab3125b61f606c2a0260ef7bb04ef714cdf9bf0260b9864b2630ea0"
+            }
+          }
+        },
+        "kokoro_base": {
+          "repo_id": "hexgrad/Kokoro-82M",
+          "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+          "path": "kokoro-v1_0.pth",
+          "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4"
+        },
+        "wavlm": {
+          "repo_id": "microsoft/wavlm-base-plus-sv",
+          "revision": "feb593a6c23c1cc3d9510425c29b0a14d2b07b1e",
+          "files": {
+            "pytorch_model.bin": "e906bce2fa42fb497a1d1a9ecf81548adb7e03b12a5644e32d2f42f0d6500fad",
+            "config.json": "c6ac8c0ce55b18d4612677931036fe5ce78093e87361c552a173f00a0bb07514",
+            "preprocessor_config.json": "99272fe8ccfab114b68b478681ea47ee3a1ce62bb788cb92dd6e4f69fb1f1da2"
+          }
+        },
+        "source_code": {
+          "repository": "akinvox/kokoro-cloning",
+          "tag": "v1.0.1",
+          "tag_object": "69aed3b4b4026337ad92185a41e586f7ad14470c",
+          "commit": "a44803342ec2f3ac801f89dcfd80f39dd3b83244"
+        }
+      }
+    },
+    "onnx_contract": {
+      "inputs": {
+        "reference": "reference-conditioned"
+      },
+      "outputs": {
+        "audio": "float32"
+      },
+      "max_tokens": 510,
+      "components": {
+        "reference_wavlm": {
+          "inputs": { "input_values": "float32" },
+          "outputs": { "wavlm": "float32" }
+        },
+        "reference_encoders": {
+          "inputs": { "mel": "float32" },
+          "outputs": { "raw_sdec": "float32", "raw_spred": "float32" }
+        },
+        "reference_mapper": {
+          "inputs": {
+            "mel": "float32",
+            "mel_lengths": "int64",
+            "reference_ids": "int64",
+            "reference_lengths": "int64",
+            "wavlm": "float32",
+            "raw_sdec": "float32",
+            "raw_spred": "float32"
+          },
+          "outputs": {
+            "style": "float32",
+            "reference_memory": "float32",
+            "reference_mask": "bool"
+          }
+        },
+        "prosody": {
+          "inputs": {
+            "input_ids": "int64",
+            "style_dur": "float32",
+            "reference_memory": "float32",
+            "reference_mask": "bool"
+          },
+          "outputs": {
+            "pred_dur": "int64",
+            "d": "float32",
+            "t_en": "float32"
+          }
+        },
+        "curves": {
+          "inputs": { "en": "float32", "style_dur": "float32" },
+          "outputs": { "f0_curve": "float32", "n_curve": "float32" }
+        },
+        "decoder": {
+          "inputs": {
+            "asr": "float32",
+            "f0_curve": "float32",
+            "n_curve": "float32",
+            "style_acou": "float32",
+            "har": "float32"
+          },
+          "outputs": { "audio": "float32" }
+        }
+      }
+    },
+    "export_validation": {
+      "export_seed": 20260926,
+      "max_audio_abs": 1.0,
+      "cases": []
+    },
+    "release": {
+      "config_filename": "kokoro-akinvox-cloning-config-v1.0.1.json",
+      "runtime": {
+        "layout": "cloning-onnx-v1",
+        "voice_mode": "reference",
+        "max_tokens": 510,
+        "speed_supported": false,
+        "style_dimensions": {
+          "acoustic": 128,
+          "duration": 128
+        },
+        "reference": {
+          "format": "akinvox-cloning-reference-v1",
+          "sample_rate": 24000,
+          "identity_sample_rate": 16000,
+          "min_seconds": 3.0,
+          "max_seconds": 30.0,
+          "memory_width": 192,
+          "style_width": 256
+        }
+      },
+      "model_assets": [
+        {
+          "source": "reference_wavlm.onnx",
+          "filename": "kokoro-akinvox-cloning-reference-wavlm-v1.0.1.onnx",
+          "component": "reference_wavlm",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "reference_encoders.onnx",
+          "filename": "kokoro-akinvox-cloning-reference-encoders-v1.0.1.onnx",
+          "component": "reference_encoders",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "reference_mapper.onnx",
+          "filename": "kokoro-akinvox-cloning-reference-mapper-v1.0.1.onnx",
+          "component": "reference_mapper",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "prosody.onnx",
+          "filename": "kokoro-akinvox-cloning-prosody-v1.0.1.onnx",
+          "component": "prosody",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "curves.onnx",
+          "filename": "kokoro-akinvox-cloning-curves-v1.0.1.onnx",
+          "component": "curves",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "decoder.onnx",
+          "filename": "kokoro-akinvox-cloning-decoder-v1.0.1.onnx",
+          "component": "decoder",
+          "quality": "fp32",
+          "format": "onnx"
+        }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "source-params.npz",
+          "filename": "kokoro-akinvox-cloning-source-params-v1.0.1.npz",
+          "role": "metadata",
+          "component": "source_params",
+          "format": "numpy-npz"
+        }
       ]
     }
   }
