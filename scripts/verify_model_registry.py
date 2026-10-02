@@ -29,6 +29,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enrollers,
     )
 except ModuleNotFoundError:
     from runtime_contracts import (  # type: ignore[no-redef]
@@ -36,6 +37,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enrollers,
     )
 
 
@@ -280,6 +282,16 @@ def _validate_distribution(
             model.get("model_version") == release.get("model_version"),
             f"{model_id}: model version does not match catalog release",
         )
+        try:
+            validate_voice_enrollers(
+                model.get("runtime"),
+                model_components=components,
+                metadata_components=support_components,
+                model_id=model_id,
+                model_version=str(model.get("model_version", "")),
+            )
+        except ValueError as exc:
+            raise RegistryError(str(exc)) from exc
 
 
 def verify_registry(
@@ -350,6 +362,14 @@ def verify_registry(
             except ValueError as exc:
                 raise RegistryError(str(exc)) from exc
         _validate_voice_metadata(model_id, runtime)
+        try:
+            validate_voice_enrollers(
+                runtime,
+                model_id=model_id,
+                model_version=str(model.get("model_version", "")),
+            )
+        except ValueError as exc:
+            raise RegistryError(str(exc)) from exc
         _require(
             model["mirror_policy"]
             in {"required", "preferred", "optional", "forbidden"},

@@ -897,3 +897,122 @@ def test_catalog_refresh_preserves_static_voice_metadata_for_unchanged_roster() 
 
     assert model["runtime"]["voice_metadata"] == metadata
     assert model["runtime"]["voices"] == ["af_heart"]
+
+
+_INNO_ENROLLERS = [
+    {
+        "id": "inno-v0.2",
+        "kind": "kokoro-voicepack-tuner",
+        "input": "reference-audio",
+        "transcript_required": False,
+        "min_seconds": 3.0,
+        "recommended_seconds": 5.0,
+        "max_seconds": 30.0,
+        "output": {
+            "format": "kokoro-voicepack-v1",
+            "shape": [510, 1, 256],
+            "dtype": "float32",
+        },
+        "model_component": "inno_voicepack",
+        "metadata_component": "inno_tuner",
+    }
+]
+
+
+def _enroller_sync_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    manifest = {
+        "tag": "model-files-test",
+        "profile": "v1.0",
+        "model_version": "1.0",
+        "release_version": 1,
+        "onnx_contract": {"outputs": {"audio": "float32"}},
+        "runtime": {
+            "language_codes": ["en"],
+            "sample_rate": 24000,
+            "frontend": "pykokoro-native-v1",
+            "default_voice": "af_heart",
+            "voices": ["af_heart"],
+            "voice_enrollers": _INNO_ENROLLERS,
+        },
+        "assets": [
+            {
+                "name": "inno-voicepack-v0.2.onnx",
+                "role": "model",
+                "format": "onnx",
+                "quality": "fp32",
+                "component": "inno_voicepack",
+                "size": 4,
+                "sha256": "a" * 64,
+            },
+            {
+                "name": "inno-tuner-v0.2.npz",
+                "role": "metadata",
+                "format": "numpy-npz",
+                "component": "inno_tuner",
+                "size": 4,
+                "sha256": "b" * 64,
+            },
+        ],
+    }
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    registry = tmp_path / "models.json"
+    registry.write_text(
+        json.dumps({"models": {"v1.0": {"distributions": []}}}), encoding="utf-8"
+    )
+    releases = tmp_path / "releases.json"
+    releases.write_text(
+        json.dumps(
+            {
+                "releases": {
+                    "v1.0": {
+                        "tag": "model-files-test",
+                        "model_version": "1.0",
+                        "release_version": 1,
+                        "runtime": {"voice_enrollers": _INNO_ENROLLERS},
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    return candidate, registry, releases
+
+
+def test_sync_release_propagates_voice_enrollers(tmp_path: Path) -> None:
+    candidate, registry, releases = _enroller_sync_fixture(tmp_path)
+    sync_release(
+        candidate,
+        profile="v1.0",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+    updated = json.loads(registry.read_text(encoding="utf-8"))
+    model = updated["models"]["v1.0"]
+    assert model["runtime"]["voice_enrollers"] == _INNO_ENROLLERS
+    distribution = model["distributions"][-1]
+    artifact_ids = [item["id"] for item in distribution["artifacts"]]
+    assert len(artifact_ids) == len(set(artifact_ids))
+    components = {
+        item["component"] for item in distribution["artifacts"] if item.get("component")
+    }
+    assert {"inno_voicepack", "inno_tuner"} <= components
+
+
+def test_sync_release_rejects_enroller_catalog_mismatch(tmp_path: Path) -> None:
+    candidate, registry, releases = _enroller_sync_fixture(tmp_path)
+    document = json.loads(releases.read_text(encoding="utf-8"))
+    document["releases"]["v1.0"]["runtime"]["voice_enrollers"] = []
+    releases.write_text(json.dumps(document), encoding="utf-8")
+    with pytest.raises(RegistryReleaseError, match="voice_enrollers"):
+        sync_release(
+            candidate,
+            profile="v1.0",
+            registry_path=registry,
+            releases_path=releases,
+            update=True,
+        )

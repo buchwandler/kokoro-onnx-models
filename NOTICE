@@ -13,4 +13,11 @@ Microsoft WavLM. Each component keeps its own license and required attribution;
 see the "AkinVox Kokoro Cloning v1 third-party notices" section of
 MODEL_LICENSES.md.
 
+Optional voice-enrollment artifacts (the Inno v0.2 voicepack tuner appended to
+the Kokoro v1.0 release) combine Inno code/adapter (Apache-2.0), WeSpeaker
+speaker-encoder code (Apache-2.0), VoxCeleb initialization attribution
+(CC BY 4.0), and UniSpeech-SAT teacher/derived speaker encoder weights
+(CC BY-SA 3.0). The complete tuner artifact is not Apache-2.0. See the
+"Inno v0.2 voicepack tuner third-party notices" section of MODEL_LICENSES.md.
+
 This project is not affiliated with the upstream model publishers.

@@ -19,7 +19,7 @@ PREPARE_SPEC.loader.exec_module(prepare_release)
 def test_catalog_target_repo() -> None:
     data = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert data["target_repository"] == "buchwandler/kokoro-onnx-models"
-    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r4"
+    assert data["releases"]["v1.0"]["tag"] == "model-files-v1.0-timestamped-r5"
     assert data["releases"]["v1.1-zh"]["tag"] == "model-files-v1.1"
 
 
@@ -30,7 +30,7 @@ def test_release_entries_have_explicit_version_identity() -> None:
         assert isinstance(release["model_version"], str) and release["model_version"]
         assert isinstance(release["release_version"], int)
         assert release["release_version"] >= 1
-    assert data["releases"]["v1.0"]["release_version"] == 4
+    assert data["releases"]["v1.0"]["release_version"] == 5
 
 
 def test_v1_0_voice_asset_is_numpy_archive() -> None:
@@ -704,3 +704,87 @@ def test_legacy_single_model_release_keeps_static_voice_packaging(
     ]
     assert manifest["runtime"]["voices"] == ["default"]
     assert "Voices: default" in (out / "release-notes.md").read_text()
+
+
+def test_v1_0_release_declares_inno_enroller_and_pinned_augmentation() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    spec = data["releases"]["v1.0"]
+    assert spec["release_version"] == 5
+    enrollers = spec["runtime"]["voice_enrollers"]
+    assert [item["id"] for item in enrollers] == ["inno-v0.2"]
+    assert enrollers[0] == {
+        "id": "inno-v0.2",
+        "kind": "kokoro-voicepack-tuner",
+        "input": "reference-audio",
+        "transcript_required": False,
+        "min_seconds": 3.0,
+        "recommended_seconds": 5.0,
+        "max_seconds": 30.0,
+        "output": {
+            "format": "kokoro-voicepack-v1",
+            "shape": [510, 1, 256],
+            "dtype": "float32",
+        },
+        "model_component": "inno_voicepack",
+        "metadata_component": "inno_tuner",
+    }
+    assert spec["onnx_contract"]["components"]["inno_voicepack"] == {
+        "inputs": {
+            "fbank": "float32",
+            "tilt": "float32",
+            "head_stats": "float32",
+            "blend_weights": "float32",
+        },
+        "outputs": {"voicepack": "float32"},
+    }
+
+    augmentation = spec["augmentations"][0]
+    assert augmentation["id"] == "inno-v0.2"
+    assert augmentation["declared_version"] == "0.2.0"
+    assert augmentation["source_repository"] == "remsky/kokoro-inno-clone-tuner"
+    assert augmentation["source_revision"] == (
+        "429617d18ce4d637acea948bdff4cce3ec6cf167"
+    )
+    assert augmentation["code_repository"] == "remsky/inno-kokoro"
+    assert augmentation["code_revision"] == (
+        "892ef184bc932aa3ff9d72c1509d5b81ff6941e6"
+    )
+    assert augmentation["source_files"]["model.safetensors"] == {
+        "size": 23776728,
+        "sha256": "71cb8e93544f697043197f27fa7f13f0f9f9161076b092aaff6d0894fec2b0e8",
+    }
+    assert augmentation["source_files"]["config.json"]["sha256"] == (
+        "319569366235a0c7fed8c34188edb6b713b53f1d56a1334196e8170800f873c8"
+    )
+    by_component = {asset["component"]: asset for asset in augmentation["assets"]}
+    assert set(by_component) == {"inno_voicepack", "inno_tuner", "inno_tuner_config"}
+    assert by_component["inno_voicepack"]["role"] == "model"
+    assert by_component["inno_voicepack"]["quality"] == "fp32"
+    assert by_component["inno_voicepack"]["format"] == "onnx"
+    assert by_component["inno_tuner"]["role"] == "metadata"
+    assert by_component["inno_tuner"]["format"] == "numpy-npz"
+    assert by_component["inno_tuner_config"]["role"] == "metadata"
+    assert by_component["inno_tuner_config"]["format"] == "json"
+
+    assert spec["runtime"]["default_voice"] == "af_heart"
+    assert len(spec["runtime"]["voices"]) == 61
+    assert spec["voice_pack"]["expected_count"] == 61
+
+
+def test_v1_0_release_requires_no_pytorch_runtime_artifacts() -> None:
+    data = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    spec = data["releases"]["v1.0"]
+    formats = {asset["format"] for asset in spec["assets"]}
+    formats |= {asset["format"] for asset in spec["augmentations"][0]["assets"]}
+    assert formats <= {"onnx", "json", "numpy-npz"}
+    registry = json.loads((ROOT / "catalog" / "models.json").read_text())
+    artifacts = registry["models"]["v1.0"]["distributions"][0]["artifacts"]
+    assert not any(
+        artifact["local_name"].endswith((".pt", ".pth", ".safetensors"))
+        for artifact in artifacts
+    )
+    assert {artifact["format"] for artifact in artifacts} <= {
+        "onnx",
+        "json",
+        "numpy-npz",
+    }

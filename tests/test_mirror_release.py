@@ -492,6 +492,132 @@ def test_voice_array_rejects_non_finite_torch_values(
         )
 
 
+def test_main_appends_augmentation_assets_and_enrollers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    model = b"model bytes"
+    build_dir = tmp_path / "build" / "inno-tuner-v0.2"
+    build_dir.mkdir(parents=True)
+    (build_dir / "inno-voicepack-v0.2.onnx").write_bytes(b"graph")
+    (build_dir / "inno-tuner-v0.2.npz").write_bytes(b"tuner")
+    (build_dir / "inno-tuner-v0.2.json").write_bytes(b"{}")
+    enrollers = [
+        {
+            "id": "inno-v0.2",
+            "kind": "kokoro-voicepack-tuner",
+            "input": "reference-audio",
+            "transcript_required": False,
+            "min_seconds": 3.0,
+            "recommended_seconds": 5.0,
+            "max_seconds": 30.0,
+            "output": {
+                "format": "kokoro-voicepack-v1",
+                "shape": [510, 1, 256],
+                "dtype": "float32",
+            },
+            "model_component": "inno_voicepack",
+            "metadata_component": "inno_tuner",
+        }
+    ]
+    catalog = {
+        "target_repository": "buchwandler/kokoro-onnx-models",
+        "releases": {
+            "v1.0": {
+                "kind": "mirror",
+                "source_type": "huggingface",
+                "source_repository": "org/model",
+                "source_revision": "revision",
+                "tag": "model-files-v1.0-timestamped-r5",
+                "model_version": "1.0",
+                "release_version": 5,
+                "license": "Apache-2.0",
+                "runtime": {
+                    "default_voice": "af_test",
+                    "voices": ["af_test"],
+                    "voice_enrollers": enrollers,
+                },
+                "assets": [
+                    {
+                        "source": "model.onnx",
+                        "name": "kokoro.onnx",
+                        "role": "model",
+                        "quality": "fp32",
+                        "format": "onnx",
+                        "size": len(model),
+                        "sha256": asset_hash(model),
+                    }
+                ],
+                "augmentations": [
+                    {
+                        "id": "inno-v0.2",
+                        "kind": "kokoro-voicepack-tuner",
+                        "build_dir": "build/inno-tuner-v0.2",
+                        "declared_version": "0.2.0",
+                        "source_repository": "remsky/kokoro-inno-clone-tuner",
+                        "source_revision": "a" * 40,
+                        "code_repository": "remsky/inno-kokoro",
+                        "code_revision": "b" * 40,
+                        "source_files": {},
+                        "assets": [
+                            {
+                                "source": "inno-voicepack-v0.2.onnx",
+                                "name": "inno-voicepack-v0.2.onnx",
+                                "role": "model",
+                                "component": "inno_voicepack",
+                                "quality": "fp32",
+                                "format": "onnx",
+                            },
+                            {
+                                "source": "inno-tuner-v0.2.npz",
+                                "name": "inno-tuner-v0.2.npz",
+                                "role": "metadata",
+                                "component": "inno_tuner",
+                                "format": "numpy-npz",
+                            },
+                            {
+                                "source": "inno-tuner-v0.2.json",
+                                "name": "inno-tuner-v0.2.json",
+                                "role": "metadata",
+                                "component": "inno_tuner_config",
+                                "format": "json",
+                            },
+                        ],
+                    }
+                ],
+            }
+        },
+    }
+    catalog_path = tmp_path / "releases.json"
+    catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+    monkeypatch.setattr(mirror_release, "CATALOG", catalog_path)
+    monkeypatch.setattr(mirror_release, "ROOT", tmp_path)
+
+    def fake_download(url: str, path: Path) -> None:
+        path.write_bytes(model)
+
+    monkeypatch.setattr(mirror_release, "download", fake_download)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["mirror_release.py", "v1.0", "--dist", str(tmp_path / "dist")],
+    )
+
+    assert mirror_release.main() == 0
+    output = tmp_path / "dist" / "model-files-v1.0-timestamped-r5"
+    manifest = json.loads((output / "release-manifest.json").read_text(encoding="utf-8"))
+    by_name = {asset["name"]: asset for asset in manifest["assets"]}
+    assert by_name["inno-voicepack-v0.2.onnx"]["component"] == "inno_voicepack"
+    assert by_name["inno-voicepack-v0.2.onnx"]["sha256"] == asset_hash(b"graph")
+    assert by_name["inno-tuner-v0.2.npz"]["component"] == "inno_tuner"
+    assert by_name["inno-tuner-v0.2.json"]["component"] == "inno_tuner_config"
+    assert manifest["runtime"]["voice_enrollers"] == enrollers
+    assert manifest["provenance"]["augmentations"][0]["id"] == "inno-v0.2"
+    notes = (output / "release-notes.md").read_text(encoding="utf-8")
+    assert "Voice enrollers: inno-v0.2" in notes
+    assert "CC-BY-SA-3.0" in notes
+    checksums = (output / "SHA256SUMS").read_text(encoding="utf-8")
+    assert "inno-voicepack-v0.2.onnx" in checksums
+
+
 def test_runtime_copies_complete_voice_metadata() -> None:
     metadata = {
         "af_test": {

@@ -25,6 +25,7 @@ license allows redistribution.
 | Kokoro English 7M Distill       | `oddadmix/Kokoro-7M-Distill` at pinned revision `2ef3dfc29bb8db3d796b98a5cff0dbaef76f54cf`                      | Apache-2.0 as declared upstream; the pinned 7M distilled checkpoint and `af_msa` style pack are converted and repacked. `af_msa` is the distillation style and the only published voice.                                                                                                                                                                                                                                                         |
 | Thai Wayu                       | `kunato/wayu-kokoro-thai-v1`                                                                                    | Apache-2.0 as declared upstream. Mirror the pinned ONNX serving bundle unchanged and preserve its split-graph/runtime provenance.                                                                                                                                                                                                                                                                                                                |
 | Kokoro v1.0 Remsky voices       | `remsky/kokoro-inno-clone-tuner` at pinned revision `b8fc665a0a110d663b2cc9e313ec28bcf6bbbbdb`                  | Apache-2.0 is declared by the Hugging Face repository. These seven generated Kokoro-compatible style packs are voice assets only; preserve upstream attribution and the exact revision in release provenance. Names referring to Amelia Earhart, Vincent Price, Jane Goodall, and David Attenborough require maintainer legal and policy review for name, likeness, publicity, personality, and voice rights before redistribution.              |
+| Kokoro v1.0 Inno voicepack tuner | `remsky/kokoro-inno-clone-tuner` v0.2.0 at pinned revision `429617d18ce4d637acea948bdff4cce3ec6cf167` (code `remsky/inno-kokoro` @ `892ef184bc932aa3ff9d72c1509d5b81ff6941e6`) | Mixed licensing: Inno code/adapter Apache-2.0, WeSpeaker code Apache-2.0, VoxCeleb initialization CC BY 4.0, and the UniSpeech-SAT teacher/derived speaker encoder CC BY-SA 3.0. Do **not** describe `inno-voicepack-v0.2.onnx` as simply Apache-2.0. See the "Inno v0.2 voicepack tuner third-party notices" section below. |
 | AkinVox Kokoro Cloning v1       | `AKinvox/kokoro-cloning-v1` at pinned revision `0094666f0a9038ce49789446eb8dd3ddfc848b43` (release `v1.0.1`)    | Apache-2.0 for the AkinVox code and adapter weights, as declared upstream. The bundle combines separately licensed components: the Kokoro v1.0 base (`hexgrad/Kokoro-82M`, Apache-2.0), StyleTTS2/iSTFTNet-derived decoder code, and Microsoft WavLM (`microsoft/wavlm-base-plus-sv`). Preserve every upstream `LICENSE`, `NOTICE` and third-party notice in the release. The top-level AkinVox license does **not** relicense those components. |
 
 ## AkinVox Kokoro Cloning v1 third-party notices
@@ -50,6 +51,34 @@ Boundary rules for this release:
   AkinVox Apache-2.0 declaration.
 - Record the exact source revisions above in `bundle.json`,
   `release-manifest.json` and the release notes.
+
+## Inno v0.2 voicepack tuner third-party notices
+
+The optional v1.0 enrollment artifacts `inno-voicepack-v0.2.onnx`,
+`inno-tuner-v0.2.npz` and `inno-tuner-v0.2.json` are built from
+`remsky/kokoro-inno-clone-tuner` v0.2.0 (`model.safetensors`, `config.json`) and
+the `remsky/inno-kokoro` v0.2.0 source. The complete tuner artifact is **not**
+Apache-2.0; it combines several upstream components under their own terms:
+
+| Component                                                          | Upstream at pinned revision                                          | License to preserve |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------- | ------------------- |
+| Inno code/adapter, style head and prosody head                     | `remsky/inno-kokoro` @ `892ef184bc932aa3ff9d72c1509d5b81ff6941e6`    | Apache-2.0          |
+| WeSpeaker ResNet34 speaker-encoder code (`models/resnet.py`, TSTP) | vendored in the Inno source                                          | Apache-2.0          |
+| VoxCeleb-trained ResNet34-LM initialization                        | VoxCeleb-derived ResNet34-LM weights                                 | CC BY 4.0           |
+| UniSpeech-SAT teacher/derived speaker encoder weights (`enc.*`)    | distilled from `microsoft/unispeech-sat-base-plus-sv`                | CC BY-SA 3.0        |
+
+Boundary rules for this release:
+
+- `model.safetensors` and `config.json` are build-time inputs only. The
+  published artifacts are one ONNX graph, a pickle-free NPZ tuner metadata
+  archive, a JSON sidecar, provenance and checksums.
+- The baked speaker encoder weights make the tuner more restrictive than the
+  seven pre-generated Remsky voice assets; do not relicense them under the
+  top-level Apache-2.0 declaration.
+- The CC BY-SA 3.0 speaker encoder requires an explicit maintainer license
+  review before the tuner is redistributed.
+- Record the exact source revisions and per-file SHA-256 values in
+  `bundle.json`, `release-manifest.json` and the release notes.
 
 ## Danny-Dasilva/inflect-kokoro-voices
 

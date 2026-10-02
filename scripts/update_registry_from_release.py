@@ -16,9 +16,12 @@ except ModuleNotFoundError:
     from voice_metadata import validate_voice_metadata
 
 try:
-    from scripts.runtime_contracts import is_reference_mode
+    from scripts.runtime_contracts import is_reference_mode, validate_voice_enrollers
 except ModuleNotFoundError:
-    from runtime_contracts import is_reference_mode  # type: ignore[no-redef]
+    from runtime_contracts import (  # type: ignore[no-redef]
+        is_reference_mode,
+        validate_voice_enrollers,
+    )
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "catalog" / "models.json"
 RELEASES = ROOT / "catalog" / "releases.json"
@@ -103,6 +106,13 @@ def distribution_from_manifest(
         if role == "provenance":
             role = "attribution"
         artifact_id = f"{role}-{Path(name).stem}"
+        duplicates = [
+            other
+            for other in manifest["assets"]
+            if f"{str(other['role'])}-{Path(str(other['name'])).stem}" == artifact_id
+        ]
+        if len(duplicates) > 1:
+            artifact_id = f"{artifact_id}-{str(item['format'])}"
         artifact = {
             "id": artifact_id,
             "role": role,
@@ -182,6 +192,7 @@ def _sync_runtime_identity(
         "speed_supported",
         "style_dimensions",
         "reference",
+        "voice_enrollers",
     ):
         if field in runtime:
             catalog_runtime[field] = runtime[field]
@@ -249,6 +260,8 @@ def _new_model_from_release(
             )
         catalog_runtime["default_voice"] = str(default_voice)
         catalog_runtime["voices"] = list(voices)
+    if "voice_enrollers" in runtime:
+        catalog_runtime["voice_enrollers"] = runtime["voice_enrollers"]
     return {
         "model_version": str(release["model_version"]),
         "display_name": str(release.get("display_name") or model_id),
@@ -315,6 +328,31 @@ def sync_release(
     models = registry.get("models")
     if not isinstance(models, dict):
         raise RegistryReleaseError("Registry has no models object")
+    manifest_runtime = manifest.get("runtime") or {}
+    if manifest_runtime.get("voice_enrollers") != (release.get("runtime") or {}).get(
+        "voice_enrollers"
+    ):
+        raise RegistryReleaseError(
+            "Manifest voice_enrollers do not match the release catalog"
+        )
+    try:
+        validate_voice_enrollers(
+            manifest_runtime,
+            model_components={
+                str(asset["component"])
+                for asset in manifest["assets"]
+                if asset.get("role") == "model" and asset.get("component")
+            },
+            metadata_components={
+                str(asset["component"])
+                for asset in manifest["assets"]
+                if asset.get("role") != "model" and asset.get("component")
+            },
+            model_id=model_id,
+            model_version=str(manifest.get("model_version", "")),
+        )
+    except ValueError as exc:
+        raise RegistryReleaseError(str(exc)) from exc
     model = models.get(model_id)
     if model is None:
         model = _new_model_from_release(model_id, manifest, release, manifest_contract)

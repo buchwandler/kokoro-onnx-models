@@ -152,6 +152,15 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
         notes.append(
             f"- Builder: {manifest['builder']['repository']} @ {manifest['builder']['commit']}"
         )
+    enrollers = runtime.get("voice_enrollers") or []
+    if enrollers:
+        notes.append(
+            "- Voice enrollers: " + ", ".join(str(item["id"]) for item in enrollers)
+        )
+        notes.append(
+            "- Tuner licensing: Apache-2.0 code and adapter with CC-BY-SA-3.0 "
+            "speaker encoder weights; see MODEL_LICENSES.md"
+        )
     (out / "release-notes.md").write_text("\n".join(notes) + "\n", encoding="utf-8")
 
 
@@ -366,6 +375,9 @@ def main() -> int:
             "exporter": bundle.get("exporter", {}),
         },
     }
+    enrollers = (release.get("runtime") or {}).get("voice_enrollers")
+    if enrollers:
+        manifest["runtime"]["voice_enrollers"] = list(enrollers)
     builder_commit = os.environ.get("GITHUB_SHA")
     if builder_commit:
         manifest["builder"] = {

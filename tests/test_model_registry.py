@@ -304,3 +304,83 @@ def test_cloning_contract_components_cover_the_exact_graph_set() -> None:
         "decoder",
     }
     assert model["runtime"]["speed_supported"] is False
+
+
+def test_v1_0_registry_advertises_inno_enroller_with_unchanged_roster() -> None:
+    registry = load_registry()
+    runtime = registry["models"]["v1.0"]["runtime"]
+    enrollers = runtime["voice_enrollers"]
+    assert [item["id"] for item in enrollers] == ["inno-v0.2"]
+    assert enrollers[0]["model_component"] == "inno_voicepack"
+    assert enrollers[0]["metadata_component"] == "inno_tuner"
+    assert runtime["layout"] == "single-onnx-v1"
+    assert runtime["default_voice"] == "af_heart"
+    assert len(runtime["voices"]) == 61
+    for model_id, model in registry["models"].items():
+        if model_id != "v1.0":
+            assert "voice_enrollers" not in model["runtime"]
+
+
+def test_enroller_validation_rejects_duplicate_ids_and_unordered_durations(
+    tmp_path: Path,
+) -> None:
+    import copy
+
+    registry = load_registry()
+    broken = copy.deepcopy(registry)
+    enrollers = broken["models"]["v1.0"]["runtime"]["voice_enrollers"]
+    enrollers.append(dict(enrollers[0]))
+    registry_path = tmp_path / "models.json"
+    registry_path.write_text(json.dumps(broken), encoding="utf-8")
+    with pytest.raises(RegistryError, match="Duplicate enroller id"):
+        verify_registry(registry_path)
+
+    broken = copy.deepcopy(registry)
+    broken["models"]["v1.0"]["runtime"]["voice_enrollers"][0]["min_seconds"] = 9.0
+    registry_path.write_text(json.dumps(broken), encoding="utf-8")
+    with pytest.raises(RegistryError, match="durations"):
+        verify_registry(registry_path)
+
+
+def test_enroller_validation_rejects_inno_on_incompatible_model(
+    tmp_path: Path,
+) -> None:
+    import copy
+
+    registry = load_registry()
+    broken = copy.deepcopy(registry)
+    enroller = broken["models"]["v1.0"]["runtime"].pop("voice_enrollers")
+    broken["models"]["v1.1-zh"]["runtime"]["voice_enrollers"] = enroller
+    registry_path = tmp_path / "models.json"
+    registry_path.write_text(json.dumps(broken), encoding="utf-8")
+    with pytest.raises(RegistryError, match="Kokoro v1.0"):
+        verify_registry(registry_path)
+
+
+def test_enroller_components_must_exist_in_current_distribution() -> None:
+    from scripts.runtime_contracts import ContractError, validate_voice_enrollers
+
+    enrollers = load_registry()["models"]["v1.0"]["runtime"]["voice_enrollers"]
+    with pytest.raises(ContractError, match="model component"):
+        validate_voice_enrollers(
+            {"voice_enrollers": enrollers},
+            model_components=set(),
+            metadata_components={"inno_tuner"},
+            model_id="v1.0",
+            model_version="1.0",
+        )
+    with pytest.raises(ContractError, match="metadata component"):
+        validate_voice_enrollers(
+            {"voice_enrollers": enrollers},
+            model_components={"inno_voicepack"},
+            metadata_components=set(),
+            model_id="v1.0",
+            model_version="1.0",
+        )
+    validate_voice_enrollers(
+        {"voice_enrollers": enrollers},
+        model_components={"inno_voicepack"},
+        metadata_components={"inno_tuner", "inno_tuner_config"},
+        model_id="v1.0",
+        model_version="1.0",
+    )

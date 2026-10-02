@@ -11,6 +11,24 @@
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
       "runtime": {
+      "voice_enrollers": [
+        {
+          "id": "inno-v0.2",
+          "kind": "kokoro-voicepack-tuner",
+          "input": "reference-audio",
+          "transcript_required": false,
+          "min_seconds": 3.0,
+          "recommended_seconds": 5.0,
+          "max_seconds": 30.0,
+          "output": {
+            "format": "kokoro-voicepack-v1",
+            "shape": [510, 1, 256],
+            "dtype": "float32"
+          },
+          "model_component": "inno_voicepack",
+          "metadata_component": "inno_tuner"
+        }
+      ],
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "af_heart",

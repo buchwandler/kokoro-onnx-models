@@ -83,7 +83,11 @@
         },
         "speed_supported": { "type": "boolean" },
         "style_dimensions": { "$ref": "#/$defs/style_dimensions" },
-        "reference": { "$ref": "#/$defs/reference" }
+        "reference": { "$ref": "#/$defs/reference" },
+        "voice_enrollers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/enroller" }
+        }
       },
       "allOf": [
         {
@@ -150,6 +154,44 @@
         },
         "language_label": { "type": "string", "minLength": 1 },
         "description_key": { "type": "string", "minLength": 1 }
+      }
+    },
+    "enroller": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "input",
+        "transcript_required",
+        "min_seconds",
+        "recommended_seconds",
+        "max_seconds",
+        "output",
+        "model_component",
+        "metadata_component"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "input": { "type": "string", "minLength": 1 },
+        "transcript_required": { "type": "boolean" },
+        "min_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "recommended_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "max_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "output": { "$ref": "#/$defs/enroller_output" },
+        "model_component": { "type": "string", "minLength": 1 },
+        "metadata_component": { "type": "string", "minLength": 1 }
+      }
+    },
+    "enroller_output": {
+      "type": "object",
+      "required": ["format", "shape", "dtype"],
+      "additionalProperties": false,
+      "properties": {
+        "format": { "const": "kokoro-voicepack-v1" },
+        "shape": { "const": [510, 1, 256] },
+        "dtype": { "const": "float32" }
       }
     },
     "contract": {

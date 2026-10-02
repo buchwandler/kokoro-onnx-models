@@ -34,6 +34,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enrollers,
     )
 except ModuleNotFoundError:
     from runtime_contracts import (  # type: ignore[no-redef]
@@ -41,6 +42,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enrollers,
     )
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ALLOWED_FILES = {"release-manifest.json", "SHA256SUMS", "release-notes.md"}
@@ -699,6 +701,7 @@ def verify_candidate(
     names: set[str] = set()
     slots: set[tuple[str, str, str | None, str | None]] = set()
     model_components: set[str] = set()
+    metadata_components: set[str] = set()
     model_count = voice_count = source_params_count = 0
     for asset in assets:
         _require(isinstance(asset, dict), "Manifest asset must be an object")
@@ -752,8 +755,10 @@ def verify_candidate(
                 model_components.add(component)
         elif role == "voices":
             voice_count += 1
-        elif asset.get("component") == "source_params":
-            source_params_count += 1
+        elif asset.get("component"):
+            metadata_components.add(str(asset["component"]))
+            if asset["component"] == "source_params":
+                source_params_count += 1
         _validate_asset_format(asset_path, asset, manifest)
     runtime = manifest["runtime"]
     if is_componentized(runtime.get("layout")):
@@ -765,6 +770,17 @@ def verify_candidate(
             )
         except ValueError as exc:
             raise CandidateError(str(exc)) from exc
+
+    try:
+        validate_voice_enrollers(
+            runtime,
+            model_components=model_components,
+            metadata_components=metadata_components,
+            model_id=str(manifest.get("profile", "")),
+            model_version=str(manifest.get("model_version", "")),
+        )
+    except ValueError as exc:
+        raise CandidateError(str(exc)) from exc
 
     _require(model_count > 0, "Candidate must contain a model asset")
     if is_reference_mode(runtime):

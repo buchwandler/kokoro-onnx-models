@@ -15,10 +15,12 @@ if __package__:
     from .update_registry_from_release import RegistryReleaseError, sync_release
     from .verify_candidate import CandidateError, verify_candidate
     from .verify_model_registry import RegistryError, verify_registry
+    from .runtime_contracts import validate_voice_enrollers
 else:
     from update_registry_from_release import RegistryReleaseError, sync_release
     from verify_candidate import CandidateError, verify_candidate
     from verify_model_registry import RegistryError, verify_registry
+    from runtime_contracts import validate_voice_enrollers
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "catalog" / "models.json"
@@ -115,6 +117,27 @@ def sync_published_release(
         except (CandidateError, KeyError, TypeError) as exc:
             raise ReleaseSyncError(
                 f"Published release failed validation: {exc}"
+            ) from exc
+
+        try:
+            validate_voice_enrollers(
+                manifest.get("runtime"),
+                model_components={
+                    str(asset["component"])
+                    for asset in manifest["assets"]
+                    if asset.get("role") == "model" and asset.get("component")
+                },
+                metadata_components={
+                    str(asset["component"])
+                    for asset in manifest["assets"]
+                    if asset.get("role") != "model" and asset.get("component")
+                },
+                model_id=profile,
+                model_version=str(release["model_version"]),
+            )
+        except ValueError as exc:
+            raise ReleaseSyncError(
+                f"Published release enroller metadata is invalid: {exc}"
             ) from exc
 
         try:

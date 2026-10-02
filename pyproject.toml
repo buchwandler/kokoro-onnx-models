@@ -12,5 +12,9 @@ build = [
   "torch>=2.6",
   "kokoro @ git+https://github.com/semidark/kokoro.git@b96fef9",
   "onnxruntime>=1.20",
+  "safetensors>=0.4",
+  "scipy>=1.11",
+  "praat-parselmouth>=0.4.3",
+  "soundfile>=0.12",
 ]
 test = ["pytest>=8", "scipy>=1.11", "jsonschema>=4", "onnx>=1.17"]

@@ -489,6 +489,9 @@ def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
             runtime["voice_metadata"] = validate_voice_metadata(voices, metadata)
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
+    enrollers = configured.get("voice_enrollers")
+    if enrollers is not None:
+        runtime["voice_enrollers"] = list(enrollers)
     return runtime
 
 
@@ -520,6 +523,15 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
         f"- License: {manifest['license']}",
         f"- SHA-256: recorded for {len(manifest['assets'])} assets",
     ]
+    enrollers = runtime.get("voice_enrollers") or []
+    if enrollers:
+        lines.append(
+            "- Voice enrollers: " + ", ".join(str(item["id"]) for item in enrollers)
+        )
+        lines.append(
+            "- Tuner licensing: Apache-2.0 code and adapter with CC-BY-SA-3.0 "
+            "speaker encoder weights; see MODEL_LICENSES.md"
+        )
     (out / "release-notes.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -718,6 +730,52 @@ def main() -> int:
                 "sha256": sha256(source_assets),
             }
         )
+    augmentation_provenance: list[dict[str, Any]] = []
+    for augmentation in spec.get("augmentations", []):
+        build_dir = ROOT / str(augmentation.get("build_dir", ""))
+        for asset in augmentation.get("assets", []):
+            built = build_dir / str(asset["source"])
+            if not built.is_file():
+                raise SystemExit(
+                    f"Missing built augmentation asset: {built}. "
+                    "Run scripts/export_inno_tuner.py first."
+                )
+            target = out / str(asset["name"])
+            shutil.copy2(built, target)
+            manifest_assets.append(
+                {
+                    "name": str(asset["name"]),
+                    "role": str(asset["role"]),
+                    "format": str(asset["format"]),
+                    "component": str(asset["component"]),
+                    "size": target.stat().st_size,
+                    "sha256": sha256(target),
+                    **(
+                        {"quality": str(asset["quality"])}
+                        if asset.get("quality") is not None
+                        else {}
+                    ),
+                }
+            )
+        bundle_path = build_dir / "bundle.json"
+        bundle = (
+            json.loads(bundle_path.read_text(encoding="utf-8"))
+            if bundle_path.is_file()
+            else {}
+        )
+        augmentation_provenance.append(
+            {
+                "id": str(augmentation["id"]),
+                "kind": str(augmentation["kind"]),
+                "version": str(augmentation["declared_version"]),
+                "source_repository": str(augmentation["source_repository"]),
+                "source_revision": str(augmentation["source_revision"]),
+                "code_repository": str(augmentation["code_repository"]),
+                "code_revision": str(augmentation["code_revision"]),
+                "source_files": augmentation.get("source_files", {}),
+                "license": bundle.get("license", {}),
+            }
+        )
     contract = dict(spec.get("onnx_contract") or {})
     contract.setdefault(
         "inputs", {"tokens": "int64", "style": "float32", "speed": "float32"}
@@ -753,6 +811,8 @@ def main() -> int:
             "source_manifest": "release-manifest.json",
             "assets": transform_provenance,
         }
+    if augmentation_provenance:
+        manifest.setdefault("provenance", {})["augmentations"] = augmentation_provenance
     builder_commit = os.environ.get("GITHUB_SHA")
     if builder_commit:
         manifest["builder"] = {

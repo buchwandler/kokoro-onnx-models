@@ -104,6 +104,27 @@ jobs:
           repository: buchwandler/onnxvoice
           path: onnxvoice
           fetch-depth: 1
+      - name: Cache pinned Inno tuner build inputs
+        if: ${{ needs.prepare.outputs.kind == 'mirror' && needs.prepare.outputs.profile == 'v1.0' }}
+        uses: actions/cache@v4
+        with:
+          path: build/.cache-inno-tuner
+          key: inno-tuner-v0.2-429617d18ce4d637acea948bdff4cce3ec6cf167
+      - name: Build Inno v0.2 enroller and run ONNX plus voicepack parity gates
+        if: ${{ needs.prepare.outputs.kind == 'mirror' && needs.prepare.outputs.profile == 'v1.0' }}
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          uv run --extra build --extra test python scripts/export_inno_tuner.py \
+            --out build/inno-tuner-v0.2 --cache build/.cache-inno-tuner
+          test -f build/inno-tuner-v0.2/inno-voicepack-v0.2.onnx
+          test -f build/inno-tuner-v0.2/inno-tuner-v0.2.npz
+          test -f build/inno-tuner-v0.2/parity-report.json
+          uv run --extra build --extra test python local_test/compare_inno_onnx.py \
+            --build-root build \
+            --cache-root build/.cache-inno-tuner \
+            --output-root .local-test/compare
+          test -f .local-test/compare/en-inno-tuner-v0.2/report.json
       - name: Build or mirror release
         env:
           KIND: ${{ needs.prepare.outputs.kind }}
@@ -240,6 +261,21 @@ jobs:
           python local_test/smoke_en_akinvox_cloning.py \
             --asset-dir "dist/${{ needs.prepare.outputs.tag }}" \
             --strict-release-format
+      - name: Inno enrollment and staged PyKokoro synthesis gate
+        if: ${{ needs.prepare.outputs.kind == 'mirror' && needs.prepare.outputs.profile == 'v1.0' }}
+        run: |
+          PYTHONPATH="$GITHUB_WORKSPACE/pykokoro" \
+          uv run \
+            --project pykokoro \
+            --extra cpu \
+            --with 'kokorog2p>=0.9.5,<1.0' \
+            --with scipy --with soundfile --with safetensors --with praat-parselmouth --with torch \
+            python local_test/compare_inno_onnx.py \
+              --build-root build \
+              --cache-root build/.cache-inno-tuner \
+              --output-root .local-test/compare \
+              --synthesis \
+              --asset-dir "dist/${{ needs.prepare.outputs.tag }}"
       - name: Upload immutable candidate
         uses: actions/upload-artifact@v4
         with:
@@ -247,6 +283,7 @@ jobs:
           path: |
             dist/${{ needs.prepare.outputs.tag }}
             .local-test/compare/de-thorsten
+            .local-test/compare/en-inno-tuner-v0.2
             .local-test/compare/pt-eu-logus2k
             .local-test/compare/sv-joakim
             .local-test/compare/vi-ngoc-huyen

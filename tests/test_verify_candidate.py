@@ -858,3 +858,143 @@ def test_verify_candidate_still_requires_voices_for_static_models(
 
     with pytest.raises(verify_candidate.CandidateError, match="voices asset"):
         verify_candidate.verify_candidate(candidate)
+
+
+_INNO_ENROLLER = {
+    "id": "inno-v0.2",
+    "kind": "kokoro-voicepack-tuner",
+    "input": "reference-audio",
+    "transcript_required": False,
+    "min_seconds": 3.0,
+    "recommended_seconds": 5.0,
+    "max_seconds": 30.0,
+    "output": {
+        "format": "kokoro-voicepack-v1",
+        "shape": [510, 1, 256],
+        "dtype": "float32",
+    },
+    "model_component": "inno_voicepack",
+    "metadata_component": "inno_tuner",
+}
+
+
+def _candidate_with_enroller(tmp_path: Path) -> Path:
+    candidate = _write_candidate(tmp_path)
+    try:
+        import onnx
+        from onnx import TensorProto, helper
+    except ImportError:
+        pytest.skip("onnx is required for enroller graph checks")
+    graph = helper.make_graph(
+        [helper.make_node("Identity", ["fbank"], ["voicepack"])],
+        "inno",
+        [
+            helper.make_tensor_value_info("fbank", TensorProto.FLOAT, [1, None, 80]),
+            helper.make_tensor_value_info("tilt", TensorProto.FLOAT, [1]),
+            helper.make_tensor_value_info("head_stats", TensorProto.FLOAT, [1, 2]),
+            helper.make_tensor_value_info("blend_weights", TensorProto.FLOAT, [1, None]),
+        ],
+        [helper.make_tensor_value_info("voicepack", TensorProto.FLOAT, [510, 1, 256])],
+    )
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["profile"] = "v1.0"
+    manifest["onnx_contract"]["components"] = {
+        "inno_voicepack": {
+            "inputs": {
+                "fbank": "float32",
+                "tilt": "float32",
+                "head_stats": "float32",
+                "blend_weights": "float32",
+            },
+            "outputs": {"voicepack": "float32"},
+        }
+    }
+    manifest["runtime"]["voice_enrollers"] = [_INNO_ENROLLER]
+    assets = manifest["assets"]
+    for name, role, fmt, component, quality in (
+        ("inno-voicepack-v0.2.onnx", "model", "onnx", "inno_voicepack", "fp32"),
+        ("inno-tuner-v0.2.npz", "metadata", "numpy-npz", "inno_tuner", None),
+        ("inno-tuner-v0.2.json", "metadata", "json", "inno_tuner_config", None),
+    ):
+        path = candidate / name
+        if component == "inno_voicepack":
+            onnx.save(helper.make_model(graph), str(path))
+        elif component == "inno_tuner":
+            np.savez(
+                path,
+                blend_stats=np.zeros((2, 3), dtype=np.float32),
+                blend_grades=np.zeros(2, dtype=np.float32),
+                blend_scale=np.ones(3, dtype=np.float32),
+                blend_gate=np.asarray(4.0, dtype=np.float32),
+                grade_pen=np.asarray(1.0, dtype=np.float32),
+            )
+        else:
+            path.write_text(
+                '{"blend_names": ["a", "b"], "version": "0.2.0"}', encoding="utf-8"
+            )
+        asset = {
+            "name": name,
+            "role": role,
+            "format": fmt,
+            "component": component,
+            "size": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+        if quality:
+            asset["quality"] = quality
+        assets.append(asset)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    (candidate / "SHA256SUMS").write_text(
+        "\n".join(f"{asset['sha256']}  {asset['name']}" for asset in assets) + "\n",
+        encoding="utf-8",
+    )
+    return candidate
+
+
+def _refresh_checksums(candidate: Path) -> None:
+    manifest = json.loads(
+        (candidate / "release-manifest.json").read_text(encoding="utf-8")
+    )
+    (candidate / "SHA256SUMS").write_text(
+        "\n".join(f"{asset['sha256']}  {asset['name']}" for asset in manifest["assets"])
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def test_verify_candidate_accepts_inno_enrollers_with_components(
+    tmp_path: Path,
+) -> None:
+    candidate = _candidate_with_enroller(tmp_path)
+    result = verify_candidate.verify_candidate(candidate, expected_profile="v1.0")
+    assert result["manifest"]["runtime"]["voice_enrollers"] == [_INNO_ENROLLER]
+
+
+def test_verify_candidate_rejects_enroller_with_missing_metadata_component(
+    tmp_path: Path,
+) -> None:
+    candidate = _candidate_with_enroller(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["assets"] = [
+        asset for asset in manifest["assets"] if asset["name"] != "inno-tuner-v0.2.npz"
+    ]
+    (candidate / "inno-tuner-v0.2.npz").unlink()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    _refresh_checksums(candidate)
+    with pytest.raises(verify_candidate.CandidateError, match="metadata component"):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_unordered_enroller_durations(
+    tmp_path: Path,
+) -> None:
+    candidate = _candidate_with_enroller(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["runtime"]["voice_enrollers"][0]["min_seconds"] = 9.0
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    _refresh_checksums(candidate)
+    with pytest.raises(verify_candidate.CandidateError, match="durations"):
+        verify_candidate.verify_candidate(candidate)

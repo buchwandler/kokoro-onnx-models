@@ -5,9 +5,9 @@
     "v1.0": {
       "kind": "mirror",
       "profile": "v1.0",
-      "tag": "model-files-v1.0-timestamped-r4",
+      "tag": "model-files-v1.0-timestamped-r5",
       "model_version": "1.0",
-      "release_version": 4,
+      "release_version": 5,
       "license": "Apache-2.0",
       "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
       "onnx_contract": {
@@ -21,6 +21,19 @@
           "durations": "float32"
         },
         "max_tokens": 510,
+        "components": {
+          "inno_voicepack": {
+            "inputs": {
+              "fbank": "float32",
+              "tilt": "float32",
+              "head_stats": "float32",
+              "blend_weights": "float32"
+            },
+            "outputs": {
+              "voicepack": "float32"
+            }
+          }
+        },
         "timing": {
           "kind": "token-duration-v1",
           "output": "durations",
@@ -31,6 +44,24 @@
       },
       "frontend": "pykokoro-native-v1",
       "runtime": {
+        "voice_enrollers": [
+          {
+            "id": "inno-v0.2",
+            "kind": "kokoro-voicepack-tuner",
+            "input": "reference-audio",
+            "transcript_required": false,
+            "min_seconds": 3.0,
+            "recommended_seconds": 5.0,
+            "max_seconds": 30.0,
+            "output": {
+              "format": "kokoro-voicepack-v1",
+              "shape": [510, 1, 256],
+              "dtype": "float32"
+            },
+            "model_component": "inno_voicepack",
+            "metadata_component": "inno_tuner"
+          }
+        ],
         "default_voice": "af_heart",
         "voices": [
           "af_alloy",
@@ -467,6 +498,55 @@
       "source_repository": "onnx-community/Kokoro-82M-v1.0-ONNX-timestamped",
       "source_revision": "dd4401a9add81ac692d20e240d22ec9dda82cc29",
       "source_type": "huggingface",
+      "augmentations": [
+        {
+          "id": "inno-v0.2",
+          "kind": "kokoro-voicepack-tuner",
+          "build_dir": "build/inno-tuner-v0.2",
+          "source_type": "huggingface",
+          "source_repository": "remsky/kokoro-inno-clone-tuner",
+          "source_revision": "429617d18ce4d637acea948bdff4cce3ec6cf167",
+          "source_tag": "v0.2.0",
+          "code_repository": "remsky/inno-kokoro",
+          "code_revision": "892ef184bc932aa3ff9d72c1509d5b81ff6941e6",
+          "code_tag": "v0.2.0",
+          "declared_version": "0.2.0",
+          "source_files": {
+            "model.safetensors": {
+              "size": 23776728,
+              "sha256": "71cb8e93544f697043197f27fa7f13f0f9f9161076b092aaff6d0894fec2b0e8"
+            },
+            "config.json": {
+              "size": 1594,
+              "sha256": "319569366235a0c7fed8c34188edb6b713b53f1d56a1334196e8170800f873c8"
+            }
+          },
+          "assets": [
+            {
+              "source": "inno-voicepack-v0.2.onnx",
+              "name": "inno-voicepack-v0.2.onnx",
+              "role": "model",
+              "component": "inno_voicepack",
+              "quality": "fp32",
+              "format": "onnx"
+            },
+            {
+              "source": "inno-tuner-v0.2.npz",
+              "name": "inno-tuner-v0.2.npz",
+              "role": "metadata",
+              "component": "inno_tuner",
+              "format": "numpy-npz"
+            },
+            {
+              "source": "inno-tuner-v0.2.json",
+              "name": "inno-tuner-v0.2.json",
+              "role": "metadata",
+              "component": "inno_tuner_config",
+              "format": "json"
+            }
+          ]
+        }
+      ],
       "assets": [
         {
           "source": "onnx/model.onnx",
