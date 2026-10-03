@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Staged pykokoro + onnxvoice consumer gate for the AkinVox cloning bundle.
+"""Staged PyKokoro frontend and OnnxVoice gate for AkinVox cloning.
 
-Enrolls one public or repository-owned synthetic reference and synthesizes two
-different target sentences through `onnxvoice`'s `cloning-onnx-v1` runtime,
-driven by the pykokoro frontend. The bundle is consumed as ONNX/JSON/NPZ only:
-no PyTorch, Transformers or AkinVox package is imported.
+PyKokoro's prepared G2P frontend supplies real phone IDs, then OnnxVoice enrolls a
+synthetic reference and synthesizes two target texts. This exercises the low-level
+consumer path. PyKokoro's high-level synthesizer does not yet expose reference cloning,
+so this gate does not claim full user-facing runtime readiness.
 """
 
 from __future__ import annotations
@@ -31,6 +31,16 @@ COMPONENT_KEYS = (
     "curves",
     "decoder",
 )
+
+
+REFERENCE_TEXT = "I am speaking in a calm and steady voice."
+TARGET_TEXTS = {
+    "short": "Hello there.",
+    "long": (
+        "This is a longer test sentence for reference-conditioned speech synthesis. "
+        "It has more words and enough phonemes to produce a longer waveform."
+    ),
+}
 
 
 def _load_runtime(asset_dir: Path, runtime_metadata: dict):
@@ -66,6 +76,18 @@ def _resample_24k_to_16k(wave: np.ndarray) -> np.ndarray:
         np.linspace(0, len(wave) - 1, count), np.arange(len(wave)), wave
     ).astype(np.float32)
 
+
+
+def _phonemize(frontend, config, request_id: str, text: str) -> list[int]:
+    from pykokoro import SynthesisSegment
+
+    prepared = frontend.phonemize(
+        SynthesisSegment(id=request_id, text=text, language="en-us"), config
+    )
+    tokens = list(prepared.token_ids)
+    if not tokens:
+        raise SystemExit(f"{request_id}: PyKokoro returned no token IDs")
+    return tokens
 
 def run(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -103,6 +125,21 @@ def run(argv: list[str] | None = None) -> int:
     else:
         links = None
 
+
+    from pykokoro import GenerationConfig, SynthesisConfig, TokenizerConfig
+    from pykokoro.prepared_g2p import PreparedG2PAdapter
+
+    frontend = PreparedG2PAdapter()
+    frontend_config = SynthesisConfig(
+        model_variant="v1.0",
+        generation=GenerationConfig(lang="en-us"),
+        tokenizer_config=TokenizerConfig(use_spacy=False),
+    )
+    reference_tokens = _phonemize(frontend, frontend_config, "reference", REFERENCE_TEXT)
+    targets = {
+        name: _phonemize(frontend, frontend_config, name, text)
+        for name, text in TARGET_TEXTS.items()
+    }
     runtime_metadata = {
         "layout": "cloning-onnx-v1",
         "voice_mode": "reference",
@@ -134,15 +171,9 @@ def run(argv: list[str] | None = None) -> int:
 
     wave24 = _synthetic_reference(args.reference_seconds, args.seed)
     wave16 = _resample_24k_to_16k(wave24)
-    reference_tokens = list(np.arange(1, 25, dtype=np.int64))
     reference = runtime.prepare_reference(
         reference_tokens, audio_24k=wave24, audio_16k=wave16
     )
-
-    targets = {
-        "short": list(np.arange(1, 33, dtype=np.int64)),
-        "long": list(np.arange(1, 121, dtype=np.int64)),
-    }
     results = {}
     args.output.mkdir(parents=True, exist_ok=True)
     for name, tokens in targets.items():
@@ -163,6 +194,13 @@ def run(argv: list[str] | None = None) -> int:
     report = {
         "profile": PROFILE_KEY,
         "voice_mode": "reference",
+        "consumer_api": "onnxvoice.prepare_reference+infer",
+        "client_readiness": "not_proven",
+        "frontend": "pykokoro.PreparedG2PAdapter",
+        "frontend_model": "v1.0",
+        "language": "en-us",
+        "reference_text": REFERENCE_TEXT,
+        "target_texts": TARGET_TEXTS,
         "reference_seconds": args.reference_seconds,
         "seed": args.seed,
         "status": "pass",

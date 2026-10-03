@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10,<3.13"
+# dependencies = [
+#   "huggingface-hub==0.36.0",
+#   "munch==4.0.0",
+#   "numpy==1.26.4",
+#   "onnx==1.17.0",
+#   "onnxruntime==1.20.1",
+#   "scipy==1.14.0",
+#   "tokenizers==0.22.2",
+#   "torch==2.6.0",
+#   "torchaudio==2.6.0",
+#   "transformers==4.57.3",
+# ]
+# ///
 """Dedicated build-time exporter for AkinVox Kokoro Cloning v1 ONNX bundles.
 
 AkinVox cloning is a substantially different architecture from the ordinary
@@ -256,7 +271,12 @@ def validate_source_pins(profile: Mapping[str, Any]) -> None:
     _require(
         isinstance(wavlm_files, Mapping) and wavlm_files, "WavLM pin lists no files"
     )
-    for name in ("pytorch_model.bin", "config.json", "preprocessor_config.json"):
+    for name in (
+        "pytorch_model.bin",
+        "config.json",
+        "preprocessor_config.json",
+        "README.md",
+    ):
         _require(name in wavlm_files, f"WavLM pin is missing {name}")
     for name, digest in wavlm_files.items():
         _require_digest(digest, f"WavLM file pin {name}")
@@ -267,9 +287,23 @@ def validate_source_pins(profile: Mapping[str, Any]) -> None:
         bool(source_code.get("repository")), "source_code pin is missing repository"
     )
     _require_commit(source_code.get("commit"), "source_code commit")
+    wavlm_license = pins["wavlm"].get("license_source")
+    _require(isinstance(wavlm_license, Mapping), "WavLM pin is missing license_source")
     _require(
-        bool(source_code.get("tag")), "source_code pin must record its release tag"
+        bool(wavlm_license.get("repository")),
+        "WavLM license source is missing repository",
     )
+    _require_commit(wavlm_license.get("revision"), "WavLM license revision")
+    _require(bool(wavlm_license.get("path")), "WavLM license source is missing path")
+    _require(
+        bool(wavlm_license.get("local_file")),
+        "WavLM license source is missing local_file",
+    )
+    _require(
+        wavlm_license.get("license") == "CC BY-SA 3.0",
+        "Unexpected WavLM license identifier",
+    )
+    _require_digest(wavlm_license.get("sha256"), "WavLM license source SHA-256")
 
 
 def component_contract() -> dict[str, Any]:
@@ -633,15 +667,15 @@ def resolve_sources(profile: Mapping[str, Any], cache_dir: Path) -> dict[str, Pa
 
 
 def _base_state_candidates(raw_state: Mapping[str, Any]) -> dict[str, Any]:
-    """Translate legacy weight_norm keys to parametrized-weight keys."""
-    translated = dict(raw_state)
-    for key, value in raw_state.items():
+    """Normalize checkpoint keys for strict loading into parametrized modules."""
+    translated: dict[str, Any] = {}
+    for name, value in raw_state.items():
+        key = name.removeprefix("module.")
         if key.endswith(".weight_g"):
-            translated[key[:-9] + ".parametrizations.weight.original0"] = value
-            translated.pop(key, None)
+            key = key[:-9] + ".parametrizations.weight.original0"
         elif key.endswith(".weight_v"):
-            translated[key[:-9] + ".parametrizations.weight.original1"] = value
-            translated.pop(key, None)
+            key = key[:-9] + ".parametrizations.weight.original1"
+        translated[key] = value
     return translated
 
 
@@ -799,6 +833,49 @@ def materialize_lora(
     }
 
 
+
+def materialize_spectral_norm(modules: Sequence[Any]) -> dict[str, Any]:
+    """Bake frozen spectral-normalization weights for ONNX export."""
+    from torch.nn.utils import parametrize
+
+    materialized = 0
+    visited: set[int] = set()
+    for root in modules:
+        for module in root.modules():
+            if id(module) in visited:
+                continue
+            visited.add(id(module))
+            registry = getattr(module, "parametrizations", None)
+            if registry is None:
+                continue
+            for name in list(registry.keys()):
+                transforms = tuple(getattr(registry, name))
+                _require(
+                    name == "weight"
+                    and transforms
+                    and all(
+                        type(transform).__name__ == "_SpectralNorm"
+                        for transform in transforms
+                    ),
+                    f"Unexpected AkinVox parametrization on {type(module).__name__}.{name}",
+                )
+                parametrize.remove_parametrizations(module, name, leave_parametrized=True)
+                materialized += 1
+
+    remaining = [
+        module
+        for root in modules
+        for module in root.modules()
+        if getattr(module, "parametrizations", None)
+        and len(module.parametrizations)
+    ]
+    _require(not remaining, "AkinVox parametrizations remain before ONNX export")
+    return {
+        "materialized_spectral_norm_modules": materialized,
+        "remaining_parametrizations": len(remaining),
+        "weights_frozen": True,
+    }
+
 def extract_source_params(decoder: Any, out_path: Path) -> dict[str, Any]:
     """Export the non-neural harmonic source parameters for the ONNX runtime."""
     source = decoder.generator.m_source.l_linear
@@ -849,6 +926,92 @@ def _safe_wave(wave: Any) -> Any:
     )
 
 
+def _onnx_instance_norm(value: Any, eps: float) -> Any:
+    import torch
+
+    centered = value - value.mean(dim=-1, keepdim=True)
+    variance = centered.square().mean(dim=-1, keepdim=True)
+    return centered / torch.sqrt(variance + eps)
+
+
+def _onnx_half_downsample(value: Any) -> Any:
+    import torch
+
+    return torch.nn.functional.avg_pool2d(
+        value, 2, ceil_mode=True, count_include_pad=False
+    )
+
+
+def _onnx_multihead_attention(
+    attention: Any, query: Any, key: Any, value: Any, key_padding_mask: Any
+) -> Any:
+    import torch
+    import torch.nn.functional as functional
+
+    heads = attention.num_heads
+    head_width = attention.embed_dim // heads
+    query_weight, key_weight, value_weight = attention.in_proj_weight.chunk(
+        3, dim=0
+    )
+    query_bias, key_bias, value_bias = attention.in_proj_bias.chunk(3, dim=0)
+
+    def split_heads(projected: Any) -> Any:
+        return projected.unflatten(-1, (heads, head_width)).transpose(1, 2)
+
+    projected_query = split_heads(
+        functional.linear(query, query_weight, query_bias)
+    )
+    projected_key = split_heads(functional.linear(key, key_weight, key_bias))
+    projected_value = split_heads(functional.linear(value, value_weight, value_bias))
+    scores = (
+        torch.matmul(projected_query, projected_key.transpose(-2, -1))
+        / head_width**0.5
+    )
+    scores = scores.masked_fill(
+        key_padding_mask[:, None, None, :], torch.finfo(scores.dtype).min
+    )
+    weights = torch.softmax(scores, dim=-1)
+    context = torch.matmul(weights, projected_value).transpose(1, 2).flatten(-2)
+    return functional.linear(
+        context, attention.out_proj.weight, attention.out_proj.bias
+    )
+
+
+def _onnx_phone_attention(
+    module: Any, phones: Any, phone_mask: Any, prompt: Any
+) -> Any:
+    memory, memory_mask, _ = prompt
+    query = module.query(module.norm(phones.transpose(1, 2)))
+    attended = _onnx_multihead_attention(
+        module.attention, query, memory, memory, memory_mask
+    )
+    delta = module.output(attended).masked_fill(phone_mask.unsqueeze(-1), 0)
+    return phones + delta.transpose(1, 2)
+
+
+def _onnx_transformer_encoder(encoder: Any, value: Any, mask: Any) -> Any:
+    for layer in encoder.layers:
+        if not layer.norm_first:
+            raise AkinvoxBuildError("AkinVox reference sequence must use pre-norm layers")
+        attention_input = layer.norm1(value)
+        attended = _onnx_multihead_attention(
+            layer.self_attn,
+            attention_input,
+            attention_input,
+            attention_input,
+            mask,
+        )
+        value = value + layer.dropout1(attended)
+        feedforward_input = layer.norm2(value)
+        feedforward = layer.linear1(feedforward_input)
+        feedforward = layer.activation(feedforward)
+        feedforward = layer.dropout(feedforward)
+        value = value + layer.dropout2(layer.linear2(feedforward))
+    if encoder.norm is not None:
+        value = encoder.norm(value)
+    return value
+
+
 def _onnx_text_encoder(text_encoder: Any, input_ids: Any) -> Any:
     """ONNX-safe ``TextEncoder`` path for the un-padded batch-1 export case."""
     value = text_encoder.embedding(input_ids).transpose(1, 2)
@@ -862,7 +1025,7 @@ def _onnx_duration_encoder(duration_encoder: Any, value: Any, style: Any) -> Any
     """ONNX-safe ``DurationEncoder`` path for the un-padded batch-1 export case."""
     import torch
 
-    rows = value.shape[1]
+    rows = value.shape[-1]
     style_rows = style[:, None, :].expand(-1, rows, -1)
     hidden = torch.cat([value.transpose(1, 2), style_rows], dim=-1).transpose(1, 2)
     for block in duration_encoder.lstms:
@@ -884,18 +1047,29 @@ def wrapper_types() -> Any:
     from torch import nn
 
     class ReferenceWavLM(nn.Module):
-        """Normalize 16 kHz audio and return the normalized x-vector embedding."""
+        """Return L2-normalized speaker embeddings from raw 16 kHz audio."""
 
         def __init__(self, identity: Any) -> None:
             super().__init__()
             self.identity = identity
 
         def forward(self, input_values: Any) -> Any:
-            mean = input_values.mean()
-            variance = ((input_values - mean) ** 2).mean()
-            normalized = (input_values - mean) / torch.sqrt(variance + 1.0e-7)
-            embedding = self.identity(input_values=normalized).embeddings.float()
-            return torch.nn.functional.normalize(embedding, dim=-1, eps=1.0e-8)
+            embedding = self.identity(input_values=input_values).embeddings.float()
+            return torch.nn.functional.normalize(embedding, dim=-1)
+
+    class ONNXDownSample(nn.Module):
+        def __init__(self, layer_type: str) -> None:
+            super().__init__()
+            self.layer_type = layer_type
+
+        def forward(self, value: Any) -> Any:
+            if self.layer_type == "none":
+                return value
+            if self.layer_type == "timepreserve":
+                return torch.nn.functional.avg_pool2d(value, (2, 1))
+            if self.layer_type == "half":
+                return _onnx_half_downsample(value)
+            raise ValueError(f"Unsupported AkinVox downsample type: {self.layer_type}")
 
     class ReferenceEncoders(nn.Module):
         """Export the frozen AkinVox observation encoders."""
@@ -904,6 +1078,12 @@ def wrapper_types() -> Any:
             super().__init__()
             self.style_encoder = core["style_encoder"]
             self.predictor_encoder = core["predictor_encoder"]
+
+            for encoder in (self.style_encoder, self.predictor_encoder):
+                for parent in list(encoder.modules()):
+                    for name, child in list(parent.named_children()):
+                        if type(child).__name__ == "DownSample":
+                            setattr(parent, name, ONNXDownSample(child.layer_type))
 
         def forward(self, mel: Any) -> tuple[Any, Any]:
             return self.style_encoder(mel).float(), self.predictor_encoder(mel).float()
@@ -940,18 +1120,39 @@ def wrapper_types() -> Any:
             value = torch.nn.functional.gelu(shared.conv2(value))
             lengths = (lengths + 1) // 2
             mask = shared.mask(lengths, value.shape[-1])
-            value = shared.reference_transcript(
-                shared.norm(value.transpose(1, 2)), mask, reference_ids, phone_mask
+            transcript = shared.reference_transcript
+            acoustic = shared.norm(value.transpose(1, 2))
+            text = transcript.embedding(reference_ids)
+            text = transcript.text_norm(
+                text
+                + _positions(
+                    text.shape[1], text.shape[2], text.device, text.dtype
+                )[None]
             )
-            value = shared.sequence(
+            delta = _onnx_multihead_attention(
+                transcript.attention,
+                transcript.acoustic_norm(acoustic),
+                text,
+                text,
+                phone_mask,
+            )
+            value = acoustic + transcript.output(delta).masked_fill(
+                mask[..., None], 0
+            )
+            value = _onnx_transformer_encoder(
+                shared.sequence,
                 value
                 + _positions(value.shape[1], 192, value.device, value.dtype)[None],
-                src_key_padding_mask=mask,
+                mask,
             )
             value = value.masked_fill(mask[..., None], 0)
             denominator = lengths[:, None].to(value.dtype)
             mean = value.sum(1) / denominator
-            variance = (value - mean[:, None]).square().masked_fill(mask[..., None], 0)
+            variance = (
+                (value - mean[:, None]).square()
+                .masked_fill(mask[..., None], 0)
+                .sum(1)
+            )
             stats = torch.cat(
                 (mean, (variance / denominator).clamp_min(1.0e-8).sqrt()), -1
             )
@@ -983,8 +1184,8 @@ def wrapper_types() -> Any:
             prompt = (reference_memory, reference_mask, None)
             hidden = self.bert(input_ids, attention_mask=(~text_mask).int())
             duration_embedding = self.bert_encoder(hidden).transpose(-1, -2)
-            duration_embedding = self.prosody_attention(
-                duration_embedding, text_mask, prompt
+            duration_embedding = _onnx_phone_attention(
+                self.prosody_attention, duration_embedding, text_mask, prompt
             )
             duration_context = _onnx_duration_encoder(
                 self.predictor.text_encoder, duration_embedding, style_dur
@@ -993,8 +1194,11 @@ def wrapper_types() -> Any:
             duration_logits = self.predictor.duration_proj(duration_hidden)
             pred_dur = torch.sigmoid(duration_logits).sum(dim=-1).squeeze(0)
             pred_dur = torch.round(pred_dur).clamp(min=1).to(torch.int64)
-            content = self.content_attention(
-                _onnx_text_encoder(self.text_encoder, input_ids), text_mask, prompt
+            content = _onnx_phone_attention(
+                self.content_attention,
+                _onnx_text_encoder(self.text_encoder, input_ids),
+                text_mask,
+                prompt,
             )
             return pred_dur, duration_context, content
 
@@ -1016,6 +1220,14 @@ def wrapper_types() -> Any:
                 noise = block(noise, style_dur)
             return f0, self.predictor.N_proj(noise).squeeze(1)
 
+    class ONNXInstanceNorm1d(nn.Module):
+        def __init__(self, eps: float) -> None:
+            super().__init__()
+            self.eps = eps
+
+        def forward(self, value: Any) -> Any:
+            return _onnx_instance_norm(value, self.eps)
+
     class Decoder(nn.Module):
         """ONNX-safe decoder consuming a precomputed harmonic source spectrum."""
 
@@ -1024,6 +1236,10 @@ def wrapper_types() -> Any:
             self.decoder = core["decoder"]
             self.generator = core["decoder"].generator
             self.slope = slope
+
+            for module in self.decoder.modules():
+                if type(module).__name__ == "AdaIN1d":
+                    module.norm = ONNXInstanceNorm1d(module.norm.eps)
 
         def forward(
             self,
@@ -1128,17 +1344,22 @@ def export_component(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     input_names = list(contract["inputs"])
     output_names = list(contract["outputs"])
-    with torch.no_grad():
-        torch.onnx.export(
-            wrapper,
-            tuple(args),
-            str(out_path),
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes=dict(contract["dynamic_axes"]),
-            opset_version=opset,
-            dynamo=False,
-        )
+    mha_fastpath = torch.backends.mha.get_fastpath_enabled()
+    torch.backends.mha.set_fastpath_enabled(False)
+    try:
+        with torch.no_grad():
+            torch.onnx.export(
+                wrapper,
+                tuple(args),
+                str(out_path),
+                input_names=input_names,
+                output_names=output_names,
+                dynamic_axes=dict(contract["dynamic_axes"]),
+                opset_version=opset,
+                dynamo=False,
+            )
+    finally:
+        torch.backends.mha.set_fastpath_enabled(mha_fastpath)
     model = onnx.load(str(out_path), load_external_data=True)
     onnx.checker.check_model(model)
     _require(
@@ -1279,7 +1500,7 @@ def probe_inputs() -> dict[str, tuple[Any, ...]]:
     """Return one representative input tuple per component graph."""
     import torch
 
-    mel_frames = 64
+    mel_frames = 128
     reference_tokens = 24
     memory_rows = mel_frames // 4
     text_tokens = 32
@@ -1317,11 +1538,9 @@ def probe_inputs() -> dict[str, tuple[Any, ...]]:
 
 def _native_mels(wave: np.ndarray) -> tuple[Any, Any]:
     """Compute AkinVox reference mels with the pinned upstream PyTorch path."""
-    import torch
-
-    mel = _upstream_preprocess()(torch.from_numpy(np.asarray(wave, dtype=np.float32)))
+    mel = _upstream_preprocess()(np.asarray(wave, dtype=np.float32))
     padded = np.pad(np.asarray(wave, dtype=np.float32), (5000, 5000))
-    encoder_mel = _upstream_preprocess()(torch.from_numpy(padded)).squeeze()
+    encoder_mel = _upstream_preprocess()(padded).squeeze()
     even = encoder_mel.shape[-1] - encoder_mel.shape[-1] % 2
     return mel, encoder_mel[:, :even][None, None]
 
@@ -1357,21 +1576,22 @@ def _native_encode_reference(
     value = value.masked_fill(mask[..., None], 0)
     denominator = halved[:, None].to(value.dtype)
     mean = value.sum(1) / denominator
-    variance = (value - mean[:, None]).square().masked_fill(mask[..., None], 0)
+    variance = (
+        (value - mean[:, None]).square()
+        .masked_fill(mask[..., None], 0)
+        .sum(1)
+    )
     stats = torch.cat((mean, (variance / denominator).clamp_min(1.0e-8).sqrt()), -1)
     return (value, mask, stats)
 
 
-def _native_wavlm(wave: np.ndarray) -> Any:
+def _native_wavlm(wave: np.ndarray, identity: Any) -> Any:
     import torch
 
-    identity = sys.modules.get("_akinvox_wavlm_identity")
-    if identity is None:
-        raise AkinvoxBuildError("WavLM identity model is not loaded")
     wave16 = _resample_wave(wave, IDENTITY_SAMPLE_RATE)
     inputs = torch.from_numpy(np.ascontiguousarray(wave16[None, :]))
     embedding = identity(input_values=inputs).embeddings.float()
-    return torch.nn.functional.normalize(embedding, dim=-1, eps=1.0e-8)
+    return torch.nn.functional.normalize(embedding, dim=-1)
 
 
 def _native_speech(
@@ -1396,7 +1616,7 @@ def _native_speech(
     duration_float = torch.sigmoid(duration_logits).sum(dim=-1).squeeze(0)
     durations = torch.round(duration_float).clamp(min=1).long()
     index = torch.repeat_interleave(torch.arange(durations.numel()), durations)
-    en = duration_context.transpose(0, 2, 1)[:, :, index]
+    en = duration_context.transpose(1, 2)[:, :, index]
     f0_curve, n_curve = core["predictor"].predict_f0_noise(en, style[:, 128:])
     content = mapper.content(
         core["text_encoder"](input_ids, lengths, mask), mask, prompt
@@ -1412,11 +1632,11 @@ def _native_speech(
 
 
 def _resample_wave(wave: np.ndarray, sample_rate: int) -> np.ndarray:
-    source_rate = SAMPLE_RATE
-    count = round(len(wave) * sample_rate / source_rate)
-    return np.interp(
-        np.linspace(0, len(wave) - 1, count), np.arange(len(wave)), wave
-    ).astype(np.float32)
+    import torch
+    import torchaudio
+
+    source = torch.from_numpy(np.ascontiguousarray(wave, dtype=np.float32))
+    return torchaudio.functional.resample(source, SAMPLE_RATE, sample_rate).numpy()
 
 
 def run_parity(
@@ -1447,7 +1667,7 @@ def run_parity(
     }
     assert_component_parity(component_report)
 
-    native = _NativePipeline(core, mapper)
+    native = _NativePipeline(core, mapper, wrappers["reference_wavlm"].identity)
     consumer = _ConsumerPipeline(sessions, source_params)
     cases_report = []
     for case in cases:
@@ -1543,19 +1763,21 @@ def _component_case(
 class _NativePipeline:
     """AkinVox PyTorch reference path used as the parity ground truth."""
 
-    def __init__(self, core: Mapping[str, Any], mapper: Any) -> None:
+    def __init__(self, core: Mapping[str, Any], mapper: Any, wavlm: Any) -> None:
         self.core = core
         self.mapper = mapper
+        self.wavlm = wavlm
 
     def enroll(self, wave: np.ndarray, tokens: np.ndarray) -> dict[str, Any]:
         import torch
 
         mel, encoder_mel = _native_mels(wave)
         reference_ids = torch.tensor([[0, *tokens.tolist(), 0]], dtype=torch.long)
-        lengths = torch.tensor([reference_ids.shape[1]], dtype=torch.long)
-        prompt = _native_encode_reference(self.mapper, mel, lengths, reference_ids)
+        mel_lengths = torch.tensor([mel.shape[-1]], dtype=torch.long)
+        reference_lengths = torch.tensor([reference_ids.shape[1]], dtype=torch.long)
+        prompt = _native_encode_reference(self.mapper, mel, mel_lengths, reference_ids)
         wavlm, raw_sdec, raw_spred = self._observations(encoder_mel, wave)
-        style = self.mapper(wavlm, raw_sdec, raw_spred, lengths - 1, prompt)
+        style = self.mapper(wavlm, raw_sdec, raw_spred, reference_lengths - 1, prompt)
         return {
             "style": style.detach().cpu().numpy(),
             "memory": prompt[0].detach().cpu().numpy(),
@@ -1584,7 +1806,7 @@ class _NativePipeline:
         mel = torch.from_numpy(np.asarray(encoder_mel, dtype=np.float32))
         raw_sdec = self.core["style_encoder"](mel).float()
         raw_spred = self.core["predictor_encoder"](mel).float()
-        return (_native_wavlm(wave), raw_sdec, raw_spred)
+        return (_native_wavlm(wave, self.wavlm), raw_sdec, raw_spred)
 
 
 class _ConsumerPipeline:
@@ -1688,6 +1910,78 @@ def verify_no_runtime_checkpoints(out_dir: Path) -> None:
         _require(not leaked, f"PyTorch artifacts leaked into the bundle: {leaked}")
 
 
+def copy_license_assets(
+    profile: Mapping[str, Any], sources: Mapping[str, Path], out_dir: Path
+) -> list[dict[str, Any]]:
+    """Copy pinned upstream license and attribution material into the bundle."""
+    root = Path(__file__).resolve().parents[1]
+    pins = pinned_sources(profile)
+    source_code = pins["source_code"]
+    wavlm_license = pins["wavlm"]["license_source"]
+    wavlm_license_path = root / str(wavlm_license["local_file"])
+    _require(
+        sha256(wavlm_license_path) == wavlm_license["sha256"],
+        "Bundled WavLM license text does not match its pinned source",
+    )
+    records = [
+        (
+            Path(sources["source_code"]) / "LICENSE",
+            "licenses/AKINVOX_LICENSE.txt",
+            f"{source_code['repository']}@{source_code['commit']}/LICENSE",
+        ),
+        (
+            Path(sources["source_code"]) / "NOTICE",
+            "licenses/AKINVOX_NOTICE.txt",
+            f"{source_code['repository']}@{source_code['commit']}/NOTICE",
+        ),
+        (
+            Path(sources["source_code"]) / "THIRD_PARTY_LICENSES.md",
+            "licenses/AKINVOX_THIRD_PARTY_LICENSES.md",
+            f"{source_code['repository']}@{source_code['commit']}/THIRD_PARTY_LICENSES.md",
+        ),
+        (
+            Path(sources["source_code"]) / "licenses/KOKORO_LICENSE",
+            "licenses/KOKORO_LICENSE.txt",
+            f"{source_code['repository']}@{source_code['commit']}/licenses/KOKORO_LICENSE",
+        ),
+        (
+            Path(sources["source_code"]) / "licenses/STYLE_TTS2_LICENSE",
+            "licenses/STYLE_TTS2_LICENSE.txt",
+            f"{source_code['repository']}@{source_code['commit']}/licenses/STYLE_TTS2_LICENSE",
+        ),
+        (
+            wavlm_license_path,
+            "licenses/WAVLM_CC-BY-SA-3.0.txt",
+            f"{wavlm_license['repository']}@{wavlm_license['revision']}/{wavlm_license['path']}",
+        ),
+        (
+            Path(sources["wavlm:README.md"]),
+            "licenses/WAVLM_MODEL_CARD.md",
+            f"{pins['wavlm']['repo_id']}@{pins['wavlm']['revision']}/README.md",
+        ),
+        (
+            root / "licenses/akinvox/LICENSE_NOTICES.md",
+            "licenses/LICENSE_NOTICES.md",
+            "project license summary",
+        ),
+    ]
+    artifacts = []
+    for source, relative, origin in records:
+        _require(source.is_file(), f"Missing required license notice source: {source}")
+        destination = out_dir / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+        artifacts.append(
+            {
+                "path": relative,
+                "source": origin,
+                "sha256": sha256(destination),
+                "size": destination.stat().st_size,
+            }
+        )
+    return artifacts
+
+
 def export_bundle(
     profile: Mapping[str, Any],
     out_dir: Path,
@@ -1715,11 +2009,13 @@ def export_bundle(
     core, mapper, audit = build_native_model(upstream, config, sources)
     lora = materialize_lora(core, config)
 
+    spectral_norm = materialize_spectral_norm([*core.values(), mapper])
     names = build_filenames()
     source_params = extract_source_params(
         core["decoder"], out_dir / names["source_params"]
     )
     shutil.copyfile(sources["akinvox:config.json"], out_dir / names["config"])
+    license_artifacts = copy_license_assets(profile, sources, out_dir)
 
     istft = install_onnx_istft(core["decoder"].generator)
     types = wrapper_types()
@@ -1777,6 +2073,7 @@ def export_bundle(
     del session
     return {
         "source_params": source_params,
+        "license_notice_artifacts": license_artifacts,
         "exporter": {
             "module": "scripts/akinvox_cloning.py",
             "opset": opset,
@@ -1785,6 +2082,7 @@ def export_bundle(
             "components": exports,
             "checkpoint_load": audit,
             "lora_materialization": lora,
+            "spectral_norm_materialization": spectral_norm,
             "decoder_reconstruction": {
                 "native_delegate_validation": {"cases": []},
                 **istft,
@@ -1798,16 +2096,25 @@ def export_bundle(
     }
 
 
+def validate_wavlm_preprocessing(preprocessing: Mapping[str, Any]) -> None:
+    """Require the WavLM input contract used by AkinVox enrollment."""
+    _require(
+        preprocessing.get("sampling_rate") == IDENTITY_SAMPLE_RATE,
+        "WavLM preprocessor sampling rate does not match enrollment",
+    )
+    _require(
+        preprocessing.get("do_normalize") is False,
+        "WavLM preprocessor must preserve raw waveform amplitude",
+    )
+
+
 def _load_wavlm(sources: Mapping[str, Path], cache_dir: Path) -> Any:
     from transformers import WavLMForXVector
 
     folder = sources["wavlm:config.json"].parent
     with (folder / "preprocessor_config.json").open("r", encoding="utf-8") as handle:
         preprocessing = json.load(handle)
-    _require(
-        preprocessing.get("do_normalize") is True,
-        "WavLM preprocessor must declare do_normalize",
-    )
+    validate_wavlm_preprocessing(preprocessing)
     identity = WavLMForXVector.from_pretrained(
         str(folder), local_files_only=True, use_safetensors=False
     )
@@ -1860,6 +2167,10 @@ def build_akinvox_profile(
         "revision": str(profile["revision"]),
         "source_artifacts": pinned_sources(profile),
         "license": str(profile["license"]),
+        "license_notices": dict(
+            (profile.get("release") or {}).get("license_notices") or {}
+        ),
+        "license_notice_artifacts": summary["license_notice_artifacts"],
         "language": str(profile["language"]),
         "sample_rate": SAMPLE_RATE,
         "speakers": [],
@@ -1900,7 +2211,7 @@ def main(argv: list[str] | None = None) -> int:
         profile,
         args.out,
         opset=args.opset,
-        cache_dir=args.out / args.profile / ".cache",
+        cache_dir=args.out / ".cache" / args.profile,
         run_checker=not args.skip_check,
     )
     print(out_dir)

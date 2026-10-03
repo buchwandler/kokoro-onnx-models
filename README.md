@@ -182,11 +182,9 @@ and per-release manifests.
 
 ## Reference enrollment releases
 
-`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` profile. It is
-reference-conditioned and ships no static voices: `voice_mode` is `reference`,
-there is no `default_voice`, and consumers enroll a 3–30 second reference with its
-verbatim transcript instead of selecting a stock voice. There is deliberately no
-fake/default stock voice in the model registry.
+`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` candidate. It passed local component parity and a low-level OnnxVoice enrollment and synthesis smoke test, but it is not published or consumer-ready. The registry keeps `runtime_available: false` with no distributions because PyKokoro's high-level inference API does not expose the reference-enrollment bridge. The low-level smoke test does not prove high-level client readiness.
+
+The bundle is reference-conditioned and ships no static voices: `voice_mode` is `reference`, there is no `default_voice`, and there is no fabricated voice pack.
 
 The bundle is ONNX-only. Six component graphs cover enrollment
 (`reference_wavlm`, `reference_encoders`, `reference_mapper`) and synthesis
@@ -195,8 +193,10 @@ the seeded harmonic source's `weight`, `bias` and `window`. No PyTorch checkpoin
 or LoRA tensor is a runtime asset; all 199 LoRA updates are materialized into the
 exported weights at build time.
 
-FP32 is the only quality in the first release. Quantized variants are deferred
+FP32 is the only quality in the initial candidate. Quantized variants are deferred
 until the runtime and catalog support per-component quality labels.
+
+Publication is disabled pending review of a conflict between AkinVox's WavLM MIT notice and the pinned WavLM model card's CC BY-SA 3.0 license link. See [`MODEL_LICENSES.md`](MODEL_LICENSES.md) and the bundled license notices. The AkinVox license applies only to its contributions.
 
 ## Not a Kokoro voice pack: Inflect voices
 

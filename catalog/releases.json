@@ -3023,9 +3023,22 @@
       "release_version": 1,
       "source_repository": "AKinvox/kokoro-cloning-v1",
       "source_revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
-      "publish": true,
-      "activate_runtime_registry": true,
-      "license": "Apache-2.0",
+      "publish": false,
+      "activate_runtime_registry": false,
+      "license": "Component-specific terms; AkinVox Apache-2.0 contributions only, see bundled notices",
+      "license_notices": {
+        "statement": "AkinVox's Apache-2.0 declaration applies only to AkinVox contributions. The WavLM model-card-linked license conflicts with the MIT label in AkinVox's upstream notice, so publication is disabled pending maintainer review. See the separately licensed notice assets. This metadata does not imply that AkinVox relicenses dependencies.",
+        "assets": [
+          "LICENSE_NOTICES.md",
+          "AkinVox-LICENSE.txt",
+          "AkinVox-NOTICE.txt",
+          "AkinVox-THIRD_PARTY_LICENSES.md",
+          "Kokoro-LICENSE.txt",
+          "StyleTTS2-LICENSE.txt",
+          "WavLM-CC-BY-SA-3.0.txt",
+          "WavLM-MODEL_CARD.md"
+        ]
+      },
       "language_codes": ["en"],
       "frontend": "pykokoro-native-v1",
       "runtime": {
@@ -3176,6 +3189,62 @@
           "name": "bundle.json",
           "role": "bundle",
           "format": "json"
+        },
+        {
+          "source": "licenses/AKINVOX_LICENSE.txt",
+          "name": "AkinVox-LICENSE.txt",
+          "role": "license",
+          "component": "akinvox",
+          "format": "text"
+        },
+        {
+          "source": "licenses/AKINVOX_NOTICE.txt",
+          "name": "AkinVox-NOTICE.txt",
+          "role": "attribution",
+          "component": "akinvox",
+          "format": "text"
+        },
+        {
+          "source": "licenses/AKINVOX_THIRD_PARTY_LICENSES.md",
+          "name": "AkinVox-THIRD_PARTY_LICENSES.md",
+          "role": "attribution",
+          "component": "akinvox",
+          "format": "markdown"
+        },
+        {
+          "source": "licenses/KOKORO_LICENSE.txt",
+          "name": "Kokoro-LICENSE.txt",
+          "role": "license",
+          "component": "kokoro",
+          "format": "text"
+        },
+        {
+          "source": "licenses/STYLE_TTS2_LICENSE.txt",
+          "name": "StyleTTS2-LICENSE.txt",
+          "role": "license",
+          "component": "styletts2",
+          "format": "text"
+        },
+        {
+          "source": "licenses/WAVLM_CC-BY-SA-3.0.txt",
+          "name": "WavLM-CC-BY-SA-3.0.txt",
+          "role": "license",
+          "component": "wavlm",
+          "format": "text"
+        },
+        {
+          "source": "licenses/WAVLM_MODEL_CARD.md",
+          "name": "WavLM-MODEL_CARD.md",
+          "role": "attribution",
+          "component": "wavlm",
+          "format": "markdown"
+        },
+        {
+          "source": "licenses/LICENSE_NOTICES.md",
+          "name": "LICENSE_NOTICES.md",
+          "role": "attribution",
+          "component": "license-notices",
+          "format": "markdown"
         }
       ]
     }

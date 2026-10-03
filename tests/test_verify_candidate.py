@@ -794,6 +794,38 @@ def test_verify_candidate_accepts_reference_only_cloning_candidate(
     assert result["asset_count"] == 8
 
 
+def test_verify_candidate_checks_declared_license_notice_assets(tmp_path: Path) -> None:
+    candidate = _write_cloning_candidate(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    for name, role, format_name in [
+        ("LICENSE.txt", "license", "text"),
+        ("ATTRIBUTION.md", "attribution", "markdown"),
+    ]:
+        path = candidate / name
+        path.write_text(f"{name} notice\n", encoding="utf-8")
+        manifest["assets"].append(
+            {
+                "name": name,
+                "role": role,
+                "format": format_name,
+                "size": path.stat().st_size,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    manifest["license_notices"] = {
+        "statement": "Components retain independent terms.",
+        "assets": ["LICENSE.txt", "ATTRIBUTION.md"],
+    }
+    _write_manifest(candidate, manifest)
+
+    verify_candidate.verify_candidate(candidate)
+
+    manifest["license_notices"]["assets"].remove("ATTRIBUTION.md")
+    _write_manifest(candidate, manifest)
+    with pytest.raises(verify_candidate.CandidateError, match="must exactly match"):
+        verify_candidate.verify_candidate(candidate)
+
+
 def test_verify_candidate_requires_source_params_for_cloning(
     tmp_path: Path,
 ) -> None:

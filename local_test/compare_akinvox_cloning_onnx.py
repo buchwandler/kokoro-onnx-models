@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -25,12 +26,12 @@ DEFAULT_BUILD_ROOT = ROOT / ".local-test" / "akinvox-build"
 DEFAULT_OUTPUT_ROOT = ROOT / ".local-test" / "compare"
 
 
-def _load_profile(profiles_path: Path) -> dict:
+def _load_profile(profiles_path: Path, profile_key: str) -> dict:
     profiles = json.loads(profiles_path.read_text(encoding="utf-8"))
     try:
-        return profiles[PROFILE_KEY]
+        return profiles[profile_key]
     except KeyError as exc:
-        raise SystemExit(f"Unknown profile: {PROFILE_KEY}") from exc
+        raise SystemExit(f"Unknown profile: {profile_key}") from exc
 
 
 def run(argv: list[str] | None = None) -> int:
@@ -47,9 +48,13 @@ def run(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-check", action="store_true")
     args = parser.parse_args(argv)
 
-    profile = _load_profile(args.profiles)
+    profile = dict(_load_profile(args.profiles, args.profile))
+    profile["export_validation"] = {
+        **dict(profile.get("export_validation") or {}),
+        "export_seed": args.seed,
+    }
     out_dir = args.build_root / args.profile
-    cache_dir = out_dir / ".cache"
+    cache_dir = args.build_root / ".cache" / args.profile
     print(f"[{args.profile}] building ONNX-only cloning bundle", file=sys.stderr)
     akinvox.build_akinvox_profile(
         args.profile,
@@ -102,6 +107,8 @@ def run(argv: list[str] | None = None) -> int:
     (output_dir / "parity-report.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    if not args.keep_build:
+        shutil.rmtree(out_dir, ignore_errors=True)
     print(output_dir / "report.json")
     return 0
 

@@ -7,6 +7,8 @@
 #   "onnx",
 #   "onnxruntime",
 #   "torch",
+#   "transformers==4.57.3",
+#   "tokenizers==0.22.2",
 #   "kokoro @ git+https://github.com/semidark/kokoro.git@b96fef9",
 # ]
 # ///
@@ -1510,7 +1512,7 @@ def build_profile(
             profile,
             out_root,
             opset=opset,
-            cache_dir=out_root / profile_key / ".cache",
+            cache_dir=out_root / ".cache" / profile_key,
             run_checker=run_checker,
         )
     out_dir = out_root / profile_key

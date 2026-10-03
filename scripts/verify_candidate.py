@@ -662,6 +662,34 @@ def _validate_checkpoint_provenance(manifest: dict[str, Any]) -> None:
             )
 
 
+def _validate_license_notice_assets(
+    manifest: dict[str, Any], assets: list[dict[str, Any]]
+) -> None:
+    notices = manifest.get("license_notices")
+    if notices is None:
+        return
+    _require(isinstance(notices, dict), "License notices must be an object")
+    _require(
+        isinstance(notices.get("statement"), str) and bool(notices["statement"]),
+        "License notices are missing their scope statement",
+    )
+    notice_names = notices.get("assets")
+    _require(
+        isinstance(notice_names, list)
+        and all(isinstance(name, str) and name for name in notice_names),
+        "License notices must list their assets",
+    )
+    bundled_names = {
+        str(asset["name"])
+        for asset in assets
+        if asset.get("role") in {"license", "attribution"}
+    }
+    _require(
+        set(notice_names) == bundled_names,
+        "License notice assets must exactly match bundled license and attribution assets",
+    )
+
+
 def verify_candidate(
     candidate: Path,
     *,
@@ -761,6 +789,7 @@ def verify_candidate(
                 source_params_count += 1
         _validate_asset_format(asset_path, asset, manifest)
     runtime = manifest["runtime"]
+    _validate_license_notice_assets(manifest, assets)
     if is_componentized(runtime.get("layout")):
         try:
             validate_component_set(

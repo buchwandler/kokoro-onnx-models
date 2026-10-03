@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import types
@@ -26,7 +28,44 @@ prepare_release = importlib.util.module_from_spec(PREPARE_SPEC)
 PREPARE_SPEC.loader.exec_module(prepare_release)
 
 
+def _string_list_assignment(text: str, name: str) -> list[str]:
+    match = re.search(rf"(?m)^{re.escape(name)}\s*=\s*(\[[\s\S]*?\])", text)
+    assert match is not None, f"Missing {name} list"
+    values = ast.literal_eval(match.group(1))
+    assert isinstance(values, list) and all(isinstance(value, str) for value in values)
+    return values
+
+
+def _pep723_dependencies(script_path: Path) -> list[str]:
+    source = script_path.read_text()
+    block = source.split("# /// script", 1)[1].split("# ///", 1)[0]
+    metadata = "\n".join(line.removeprefix("#").lstrip() for line in block.splitlines())
+    return _string_list_assignment(metadata, "dependencies")
+
+
+def test_build_dependencies_pin_modern_transformers_and_tokenizers() -> None:
+    script_dependencies = _pep723_dependencies(ROOT / "scripts" / "build_kokoro.py")
+    project_text = (ROOT / "pyproject.toml").read_text()
+    build_dependencies = _string_list_assignment(project_text, "build")
+    akinvox_dependencies = _pep723_dependencies(ROOT / "scripts" / "akinvox_cloning.py")
+    assert "torch==2.6.0" in akinvox_dependencies
+    assert "torchaudio==2.6.0" in akinvox_dependencies
+    assert "munch==4.0.0" in akinvox_dependencies
+    assert "transformers==4.57.3" in akinvox_dependencies
+    assert "tokenizers==0.22.2" in akinvox_dependencies
+    assert "torchaudio==2.6.0" not in script_dependencies
+
+    for dependencies in (script_dependencies, build_dependencies):
+        assert "transformers==4.57.3" in dependencies
+        assert "tokenizers==0.22.2" in dependencies
+        assert not any(
+            dependency in {"transformers==4.12.2", "tokenizers==0.10.3"}
+            for dependency in dependencies
+        )
+
+
 def test_install_exact_onnx_istft_returns_installed_instance(monkeypatch) -> None:
+
     class FakeExactOnnxISTFT:
         def __init__(self, **kwargs):
             self.kwargs = kwargs

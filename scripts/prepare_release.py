@@ -148,6 +148,12 @@ def _write_release_notes(out: Path, manifest: dict[str, Any]) -> None:
         f"- License: {manifest['license']}",
         f"- SHA-256: recorded for {len(manifest['assets'])} assets",
     ]
+    license_notices = manifest.get("license_notices") or {}
+    if license_notices:
+        notes.append(f"- License scope: {license_notices['statement']}")
+        notes.append(
+            "- License and attribution assets: " + ", ".join(license_notices["assets"])
+        )
     if manifest.get("builder"):
         notes.append(
             f"- Builder: {manifest['builder']['repository']} @ {manifest['builder']['commit']}"
@@ -366,6 +372,7 @@ def main() -> int:
             "revision": str(profile.get("revision", "main")),
         },
         "license": str(profile["license"]),
+        "license_notices": dict(release.get("license_notices") or {}),
         "publication": {"enabled": bool(release_spec.get("publish", True))},
         "runtime": _runtime_metadata(profile, out / "bundle.json", release),
         "onnx_contract": contract,
@@ -373,6 +380,7 @@ def main() -> int:
         "provenance": {
             "source_artifacts": bundle.get("source_artifacts", {}),
             "exporter": bundle.get("exporter", {}),
+            "license_notice_artifacts": bundle.get("license_notice_artifacts", []),
         },
     }
     enrollers = (release.get("runtime") or {}).get("voice_enrollers")

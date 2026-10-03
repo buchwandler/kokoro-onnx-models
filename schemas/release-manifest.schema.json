@@ -57,6 +57,19 @@
       "additionalProperties": true
     },
     "license": { "type": "string", "minLength": 1 },
+    "license_notices": {
+      "type": "object",
+      "required": ["statement", "assets"],
+      "additionalProperties": false,
+      "properties": {
+        "statement": { "type": "string", "minLength": 1 },
+        "assets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
     "publication": {
       "type": "object",
       "required": ["enabled"],
