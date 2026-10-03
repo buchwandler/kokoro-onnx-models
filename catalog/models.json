@@ -3685,8 +3685,8 @@
         }
       },
       "license": {
-        "declared": "Component-specific terms; see MODEL_LICENSES.md",
-        "redistribution": "publication disabled pending WavLM license reconciliation",
+        "declared": "Apache-2.0 for AkinVox code and weights, including commercial use; third-party components retain their own terms",
+        "redistribution": "publication approved with upstream component notices preserved",
         "source_repository": "AKinvox/kokoro-cloning-v1"
       },
       "mirror_policy": "optional",

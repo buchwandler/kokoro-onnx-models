@@ -3023,11 +3023,11 @@
       "release_version": 1,
       "source_repository": "AKinvox/kokoro-cloning-v1",
       "source_revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
-      "publish": false,
+      "publish": true,
       "activate_runtime_registry": false,
-      "license": "Component-specific terms; AkinVox Apache-2.0 contributions only, see bundled notices",
+      "license": "Apache-2.0 for AkinVox code and weights, including commercial use; see bundled third-party notices",
       "license_notices": {
-        "statement": "AkinVox's Apache-2.0 declaration applies only to AkinVox contributions. The WavLM model-card-linked license conflicts with the MIT label in AkinVox's upstream notice, so publication is disabled pending maintainer review. See the separately licensed notice assets. This metadata does not imply that AkinVox relicenses dependencies.",
+        "statement": "AkinVox code and weights are Apache-2.0, including commercial use. The WavLM model card links to CC BY-SA 3.0 while AkinVox's upstream notice labels WavLM MIT; both notices are preserved, and maintainer review approved publication with these component-specific terms documented. See the bundled notices. No AkinVox license is applied to other components.",
         "assets": [
           "LICENSE_NOTICES.md",
           "AkinVox-LICENSE.txt",

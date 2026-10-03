@@ -182,7 +182,7 @@ and per-release manifests.
 
 ## Reference enrollment releases
 
-`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` candidate. It passed local component parity and a low-level OnnxVoice enrollment and synthesis smoke test, but it is not published or consumer-ready. The registry keeps `runtime_available: false` with no distributions because PyKokoro's high-level inference API does not expose the reference-enrollment bridge. The low-level smoke test does not prove high-level client readiness.
+`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` candidate. Maintainer review approved publication under Apache-2.0 for AkinVox code and weights, including commercial use; separately licensed upstream components retain their own terms, documented in the bundled notices. The candidate is not yet published or consumer-ready. The registry keeps `runtime_available: false` with no distributions because PyKokoro's high-level inference API does not expose the reference-enrollment bridge. The low-level smoke test does not prove high-level client readiness.
 
 The bundle is reference-conditioned and ships no static voices: `voice_mode` is `reference`, there is no `default_voice`, and there is no fabricated voice pack.
 
@@ -196,7 +196,7 @@ exported weights at build time.
 FP32 is the only quality in the initial candidate. Quantized variants are deferred
 until the runtime and catalog support per-component quality labels.
 
-Publication is disabled pending review of a conflict between AkinVox's WavLM MIT notice and the pinned WavLM model card's CC BY-SA 3.0 license link. See [`MODEL_LICENSES.md`](MODEL_LICENSES.md) and the bundled license notices. The AkinVox license applies only to its contributions.
+Publication is approved after review of AkinVox's Apache-2.0 code and weights license, including commercial use. The WavLM MIT/CC BY-SA 3.0 notice discrepancy and all upstream notices remain documented in [`MODEL_LICENSES.md`](MODEL_LICENSES.md) and the bundled license notices. Runtime availability remains disabled until the high-level reference-enrollment bridge is supported.
 
 ## Not a Kokoro voice pack: Inflect voices
 

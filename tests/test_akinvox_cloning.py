@@ -841,7 +841,7 @@ def test_profile_model_assets_match_published_filenames() -> None:
     ]
     assert {asset["filename"] for asset in notice_assets} == set(notices["assets"])
     assert (
-        "does not imply that AkinVox relicenses dependencies" in notices["statement"]
+        "No AkinVox license is applied to other components" in notices["statement"]
     )
     assert "WavLM" in notices["statement"]
 
@@ -851,8 +851,8 @@ def test_release_catalog_declares_every_component_and_support_asset() -> None:
 
     assert release["model_version"] == "1.0.1"
     assert release["release_version"] == 1
-    assert release["publish"] is False
-    assert "AkinVox Apache-2.0 contributions only" in release["license"]
+    assert release["publish"] is True
+    assert "Apache-2.0 for AkinVox code and weights, including commercial use" in release["license"]
     assert release["license_notices"] == PROFILE["release"]["license_notices"]
     assert release["activate_runtime_registry"] is False
     assert release["runtime"]["voice_mode"] == "reference"
@@ -889,7 +889,7 @@ def test_registry_entry_uses_reference_runtime_without_fake_voice() -> None:
     assert "default_voice" not in model["runtime"]
     assert model["runtime_available"] is False
     assert model["distributions"] == []
-    assert model["license"]["redistribution"].startswith("publication disabled")
+    assert model["license"]["redistribution"].startswith("publication approved")
     assert set(model["onnx_contract"]["components"]) == set(akinvox.COMPONENTS)
     contracts.validate_reference_constraints(model["runtime"])
 
