@@ -53,6 +53,8 @@ def test_build_dependencies_pin_modern_transformers_and_tokenizers() -> None:
     assert "munch==4.0.0" in akinvox_dependencies
     assert "transformers==4.57.3" in akinvox_dependencies
     assert "tokenizers==0.22.2" in akinvox_dependencies
+    assert "munch==4.0.0" in build_dependencies
+    assert "torchaudio==2.6.0" in build_dependencies
     assert "torchaudio==2.6.0" not in script_dependencies
 
     for dependencies in (script_dependencies, build_dependencies):

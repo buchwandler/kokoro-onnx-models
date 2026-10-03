@@ -136,7 +136,11 @@ jobs:
           if [ "$KIND" = "mirror" ]; then
             uv run --with pytest --with numpy --with 'torch>=2.6' python scripts/mirror_release.py "$RELEASE_KEY"
           else
-            uv run scripts/build_kokoro.py build "$PROFILE"
+            if [ "$PROFILE" = "en-akinvox-cloning-v1" ]; then
+              uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"
+            else
+              uv run scripts/build_kokoro.py build "$PROFILE"
+            fi
             prep_args=("$PROFILE")
             if [ "$ALLOW_RESTRICTED" = "true" ]; then prep_args+=(--allow-restricted); fi
             uv run --with numpy python scripts/prepare_release.py "${prep_args[@]}"

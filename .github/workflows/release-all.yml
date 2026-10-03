@@ -61,7 +61,11 @@ jobs:
           if [ "$KIND" = "mirror" ]; then
             uv run --with numpy --with 'torch>=2.6' python scripts/mirror_release.py "$RELEASE_KEY"
           else
-            uv run scripts/build_kokoro.py build "$PROFILE"
+            if [ "$PROFILE" = "en-akinvox-cloning-v1" ]; then
+              uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"
+            else
+              uv run scripts/build_kokoro.py build "$PROFILE"
+            fi
             uv run --with numpy python scripts/prepare_release.py "$PROFILE"
           fi
       - name: Checkpoint A/B and staged consumer gate

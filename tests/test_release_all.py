@@ -97,6 +97,10 @@ def test_sync_workflow_skips_staged_runtime_activation() -> None:
     assert 'get("activate_runtime_registry", True)' in workflow
     assert 'if [ "$activate" != "true" ]; then' in workflow
     assert "continue" in workflow
+    assert (
+        'uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"'
+        in workflow
+    )
 
 
 def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:

@@ -953,6 +953,10 @@ def test_akinvox_workflow_requires_gate_reports() -> None:
 
     assert "uv run --python 3.12 --extra build --extra test" in workflow
     assert (
+        'uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"'
+        in workflow
+    )
+    assert (
         'test -f ".local-test/compare/en-akinvox-cloning-v1/report.json"' in workflow
     )
     assert (
