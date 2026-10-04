@@ -564,7 +564,6 @@ def test_main_appends_augmentation_assets_and_enrollers(
                                 "name": "inno-voicepack-v0.2.onnx",
                                 "role": "model",
                                 "component": "inno_voicepack",
-                                "quality": "fp32",
                                 "format": "onnx",
                             },
                             {
@@ -603,11 +602,15 @@ def test_main_appends_augmentation_assets_and_enrollers(
 
     assert mirror_release.main() == 0
     output = tmp_path / "dist" / "model-files-v1.0-timestamped-r5"
-    manifest = json.loads((output / "release-manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (output / "release-manifest.json").read_text(encoding="utf-8")
+    )
     by_name = {asset["name"]: asset for asset in manifest["assets"]}
     assert by_name["inno-voicepack-v0.2.onnx"]["component"] == "inno_voicepack"
     assert by_name["inno-voicepack-v0.2.onnx"]["sha256"] == asset_hash(b"graph")
+    assert "quality" not in by_name["inno-voicepack-v0.2.onnx"]
     assert by_name["inno-tuner-v0.2.npz"]["component"] == "inno_tuner"
+    assert "quality" not in by_name["inno-tuner-v0.2.npz"]
     assert by_name["inno-tuner-v0.2.json"]["component"] == "inno_tuner_config"
     assert manifest["runtime"]["voice_enrollers"] == enrollers
     assert manifest["provenance"]["augmentations"][0]["id"] == "inno-v0.2"

@@ -941,7 +941,6 @@ def _enroller_sync_fixture(tmp_path: Path) -> tuple[Path, Path, Path]:
                 "name": "inno-voicepack-v0.2.onnx",
                 "role": "model",
                 "format": "onnx",
-                "quality": "fp32",
                 "component": "inno_voicepack",
                 "size": 4,
                 "sha256": "a" * 64,
@@ -1001,6 +1000,37 @@ def test_sync_release_propagates_voice_enrollers(tmp_path: Path) -> None:
         item["component"] for item in distribution["artifacts"] if item.get("component")
     }
     assert {"inno_voicepack", "inno_tuner"} <= components
+    inno_artifacts = [
+        item
+        for item in distribution["artifacts"]
+        if item.get("component") in {"inno_voicepack", "inno_tuner"}
+    ]
+    assert len(inno_artifacts) == 2
+    assert {(item["role"], item["component"]) for item in inno_artifacts} == {
+        ("model", "inno_voicepack"),
+        ("metadata", "inno_tuner"),
+    }
+    assert all(item.get("quality") is None for item in inno_artifacts)
+
+
+def test_sync_release_keeps_inno_enroller_staged_when_activation_is_disabled(
+    tmp_path: Path,
+) -> None:
+    candidate, registry, releases = _enroller_sync_fixture(tmp_path)
+    document = json.loads(releases.read_text(encoding="utf-8"))
+    document["releases"]["v1.0"]["activate_runtime_registry"] = False
+    releases.write_text(json.dumps(document), encoding="utf-8")
+    before = registry.read_text(encoding="utf-8")
+
+    sync_release(
+        candidate,
+        profile="v1.0",
+        registry_path=registry,
+        releases_path=releases,
+        update=True,
+    )
+
+    assert registry.read_text(encoding="utf-8") == before
 
 
 def test_sync_release_rejects_enroller_catalog_mismatch(tmp_path: Path) -> None:

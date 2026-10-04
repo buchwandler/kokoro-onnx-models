@@ -34,7 +34,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
-        validate_voice_enrollers,
+        validate_voice_enroller_artifacts,
     )
 except ModuleNotFoundError:
     from runtime_contracts import (  # type: ignore[no-redef]
@@ -42,7 +42,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
-        validate_voice_enrollers,
+        validate_voice_enroller_artifacts,
     )
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 ALLOWED_FILES = {"release-manifest.json", "SHA256SUMS", "release-notes.md"}
@@ -726,10 +726,17 @@ def verify_candidate(
     )
     _validate_exporter_contract(manifest)
     _validate_transform_provenance(manifest)
+    runtime = manifest["runtime"]
+    inno_model_components = {
+        str(enroller.get("model_component"))
+        for enroller in (runtime or {}).get("voice_enrollers", [])
+        if isinstance(enroller, dict)
+        and enroller.get("id") == "inno-v0.2"
+        and enroller.get("model_component") == "inno_voicepack"
+    }
     names: set[str] = set()
     slots: set[tuple[str, str, str | None, str | None]] = set()
     model_components: set[str] = set()
-    metadata_components: set[str] = set()
     model_count = voice_count = source_params_count = 0
     for asset in assets:
         _require(isinstance(asset, dict), "Manifest asset must be an object")
@@ -771,9 +778,6 @@ def verify_candidate(
         slots.add(slot)
         if role == "model":
             model_count += 1
-            _require(
-                bool(asset.get("quality")), f"Model asset {name} is missing quality"
-            )
             component = asset.get("component")
             if component is not None:
                 _require(
@@ -781,14 +785,15 @@ def verify_candidate(
                     f"Model asset {name} has an invalid component",
                 )
                 model_components.add(component)
+            _require(
+                bool(asset.get("quality")) or component in inno_model_components,
+                f"Model asset {name} is missing quality",
+            )
         elif role == "voices":
             voice_count += 1
-        elif asset.get("component"):
-            metadata_components.add(str(asset["component"]))
-            if asset["component"] == "source_params":
-                source_params_count += 1
+        elif asset.get("component") == "source_params":
+            source_params_count += 1
         _validate_asset_format(asset_path, asset, manifest)
-    runtime = manifest["runtime"]
     _validate_license_notice_assets(manifest, assets)
     if is_componentized(runtime.get("layout")):
         try:
@@ -801,10 +806,9 @@ def verify_candidate(
             raise CandidateError(str(exc)) from exc
 
     try:
-        validate_voice_enrollers(
+        validate_voice_enroller_artifacts(
             runtime,
-            model_components=model_components,
-            metadata_components=metadata_components,
+            assets,
             model_id=str(manifest.get("profile", "")),
             model_version=str(manifest.get("model_version", "")),
         )

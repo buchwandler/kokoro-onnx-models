@@ -306,19 +306,25 @@ def test_cloning_contract_components_cover_the_exact_graph_set() -> None:
     assert model["runtime"]["speed_supported"] is False
 
 
-def test_v1_0_registry_advertises_inno_enroller_with_unchanged_roster() -> None:
+def test_v1_0_registry_omits_inno_enroller_until_release_activation() -> None:
     registry = load_registry()
     runtime = registry["models"]["v1.0"]["runtime"]
-    enrollers = runtime["voice_enrollers"]
+    release_catalog = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )
+    release_runtime = release_catalog["releases"]["v1.0"]["runtime"]
+    enrollers = release_runtime["voice_enrollers"]
+
     assert [item["id"] for item in enrollers] == ["inno-v0.2"]
     assert enrollers[0]["model_component"] == "inno_voicepack"
     assert enrollers[0]["metadata_component"] == "inno_tuner"
+    assert "voice_enrollers" not in runtime
+    assert registry["models"]["v1.0"]["distributions"][0]["release_version"] == 4
     assert runtime["layout"] == "single-onnx-v1"
     assert runtime["default_voice"] == "af_heart"
     assert len(runtime["voices"]) == 61
-    for model_id, model in registry["models"].items():
-        if model_id != "v1.0":
-            assert "voice_enrollers" not in model["runtime"]
+    for model in registry["models"].values():
+        assert "voice_enrollers" not in model["runtime"]
 
 
 def test_enroller_validation_rejects_duplicate_ids_and_unordered_durations(
@@ -327,16 +333,22 @@ def test_enroller_validation_rejects_duplicate_ids_and_unordered_durations(
     import copy
 
     registry = load_registry()
-    broken = copy.deepcopy(registry)
-    enrollers = broken["models"]["v1.0"]["runtime"]["voice_enrollers"]
-    enrollers.append(dict(enrollers[0]))
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    enrollers = releases["releases"]["v1.0"]["runtime"]["voice_enrollers"]
     registry_path = tmp_path / "models.json"
+
+    broken = copy.deepcopy(registry)
+    duplicate_enrollers = copy.deepcopy(enrollers)
+    duplicate_enrollers.append(dict(duplicate_enrollers[0]))
+    broken["models"]["v1.0"]["runtime"]["voice_enrollers"] = duplicate_enrollers
     registry_path.write_text(json.dumps(broken), encoding="utf-8")
     with pytest.raises(RegistryError, match="Duplicate enroller id"):
         verify_registry(registry_path)
 
     broken = copy.deepcopy(registry)
-    broken["models"]["v1.0"]["runtime"]["voice_enrollers"][0]["min_seconds"] = 9.0
+    invalid_enrollers = copy.deepcopy(enrollers)
+    invalid_enrollers[0]["min_seconds"] = 9.0
+    broken["models"]["v1.0"]["runtime"]["voice_enrollers"] = invalid_enrollers
     registry_path.write_text(json.dumps(broken), encoding="utf-8")
     with pytest.raises(RegistryError, match="durations"):
         verify_registry(registry_path)
@@ -345,14 +357,12 @@ def test_enroller_validation_rejects_duplicate_ids_and_unordered_durations(
 def test_enroller_validation_rejects_inno_on_incompatible_model(
     tmp_path: Path,
 ) -> None:
-    import copy
-
     registry = load_registry()
-    broken = copy.deepcopy(registry)
-    enroller = broken["models"]["v1.0"]["runtime"].pop("voice_enrollers")
-    broken["models"]["v1.1-zh"]["runtime"]["voice_enrollers"] = enroller
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    enrollers = releases["releases"]["v1.0"]["runtime"]["voice_enrollers"]
+    registry["models"]["v1.1-zh"]["runtime"]["voice_enrollers"] = enrollers
     registry_path = tmp_path / "models.json"
-    registry_path.write_text(json.dumps(broken), encoding="utf-8")
+    registry_path.write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(RegistryError, match="Kokoro v1.0"):
         verify_registry(registry_path)
 
@@ -360,7 +370,8 @@ def test_enroller_validation_rejects_inno_on_incompatible_model(
 def test_enroller_components_must_exist_in_current_distribution() -> None:
     from scripts.runtime_contracts import ContractError, validate_voice_enrollers
 
-    enrollers = load_registry()["models"]["v1.0"]["runtime"]["voice_enrollers"]
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    enrollers = releases["releases"]["v1.0"]["runtime"]["voice_enrollers"]
     with pytest.raises(ContractError, match="model component"):
         validate_voice_enrollers(
             {"voice_enrollers": enrollers},
@@ -384,3 +395,83 @@ def test_enroller_components_must_exist_in_current_distribution() -> None:
         model_id="v1.0",
         model_version="1.0",
     )
+
+
+@pytest.mark.parametrize(
+    ("present_component", "missing_component_message"),
+    [
+        ("inno_tuner", "model component"),
+        ("inno_voicepack", "metadata component"),
+    ],
+)
+def test_stale_release_does_not_skip_enroller_artifact_validation(
+    tmp_path: Path,
+    present_component: str,
+    missing_component_message: str,
+) -> None:
+    import copy
+
+    registry = load_registry()
+    releases_path = ROOT / "catalog" / "releases.json"
+    releases = json.loads(releases_path.read_text(encoding="utf-8"))
+    release = releases["releases"]["v1.0"]
+    model = registry["models"]["v1.0"]
+    model["runtime"]["voice_enrollers"] = release["runtime"]["voice_enrollers"]
+    distribution = model["distributions"][0]
+    assert release["release_version"] > distribution["release_version"]
+
+    role = "model" if present_component == "inno_voicepack" else "metadata"
+    artifact = {
+        "id": f"{role}-{present_component}",
+        "role": role,
+        "url": f"https://github.com/example/release/{present_component}",
+        "local_name": f"{present_component}.bin",
+        "format": "onnx" if role == "model" else "numpy-npz",
+        "size": 1,
+        "sha256": "0" * 64,
+        "component": present_component,
+    }
+    distribution["artifacts"].append(artifact)
+
+    registry_path = tmp_path / "models.json"
+    registry_path.write_text(json.dumps(copy.deepcopy(registry)), encoding="utf-8")
+    with pytest.raises(RegistryError, match=missing_component_message):
+        verify_registry(registry_path, releases_path=releases_path)
+
+
+@pytest.mark.parametrize(
+    ("duplicate_component", "expected_message"),
+    [
+        ("inno_voicepack", "exactly one model component"),
+        ("inno_tuner", "exactly one metadata component"),
+    ],
+)
+def test_enroller_support_components_must_be_unique(
+    duplicate_component: str,
+    expected_message: str,
+) -> None:
+    from scripts.runtime_contracts import (
+        ContractError,
+        validate_voice_enroller_artifacts,
+    )
+
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
+    enrollers = releases["releases"]["v1.0"]["runtime"]["voice_enrollers"]
+    artifacts = [
+        {"role": "model", "component": "inno_voicepack"},
+        {"role": "metadata", "component": "inno_tuner"},
+    ]
+    artifacts.append(
+        {
+            "role": "model" if duplicate_component == "inno_voicepack" else "metadata",
+            "component": duplicate_component,
+        }
+    )
+
+    with pytest.raises(ContractError, match=expected_message):
+        validate_voice_enroller_artifacts(
+            {"voice_enrollers": enrollers},
+            artifacts,
+            model_id="v1.0",
+            model_version="1.0",
+        )

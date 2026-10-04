@@ -924,7 +924,9 @@ def _candidate_with_enroller(tmp_path: Path) -> Path:
             helper.make_tensor_value_info("fbank", TensorProto.FLOAT, [1, None, 80]),
             helper.make_tensor_value_info("tilt", TensorProto.FLOAT, [1]),
             helper.make_tensor_value_info("head_stats", TensorProto.FLOAT, [1, 2]),
-            helper.make_tensor_value_info("blend_weights", TensorProto.FLOAT, [1, None]),
+            helper.make_tensor_value_info(
+                "blend_weights", TensorProto.FLOAT, [1, None]
+            ),
         ],
         [helper.make_tensor_value_info("voicepack", TensorProto.FLOAT, [510, 1, 256])],
     )
@@ -945,7 +947,7 @@ def _candidate_with_enroller(tmp_path: Path) -> Path:
     manifest["runtime"]["voice_enrollers"] = [_INNO_ENROLLER]
     assets = manifest["assets"]
     for name, role, fmt, component, quality in (
-        ("inno-voicepack-v0.2.onnx", "model", "onnx", "inno_voicepack", "fp32"),
+        ("inno-voicepack-v0.2.onnx", "model", "onnx", "inno_voicepack", None),
         ("inno-tuner-v0.2.npz", "metadata", "numpy-npz", "inno_tuner", None),
         ("inno-tuner-v0.2.json", "metadata", "json", "inno_tuner_config", None),
     ):
@@ -1001,6 +1003,62 @@ def test_verify_candidate_accepts_inno_enrollers_with_components(
     candidate = _candidate_with_enroller(tmp_path)
     result = verify_candidate.verify_candidate(candidate, expected_profile="v1.0")
     assert result["manifest"]["runtime"]["voice_enrollers"] == [_INNO_ENROLLER]
+
+
+def test_release_manifest_schema_allows_only_unqualified_inno_model_component(
+    tmp_path: Path,
+) -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    candidate = _candidate_with_enroller(tmp_path)
+    manifest = json.loads((candidate / "release-manifest.json").read_text())
+    schema = json.loads((ROOT / "schemas" / "release-manifest.schema.json").read_text())
+    validator = jsonschema.Draft202012Validator(schema)
+    validator.validate(manifest)
+
+    base_model = next(
+        asset for asset in manifest["assets"] if asset["name"] == "model.onnx"
+    )
+    base_model.pop("quality")
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate(manifest)
+
+
+def test_verify_candidate_rejects_quality_scoped_inno_graph(tmp_path: Path) -> None:
+    candidate = _candidate_with_enroller(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    graph = next(
+        asset
+        for asset in manifest["assets"]
+        if asset.get("component") == "inno_voicepack"
+    )
+    graph["quality"] = "fp32"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(
+        verify_candidate.CandidateError,
+        match="Inno artifacts must be shared across base model qualities",
+    ):
+        verify_candidate.verify_candidate(candidate)
+
+
+def test_verify_candidate_rejects_enroller_with_missing_model_component(
+    tmp_path: Path,
+) -> None:
+    candidate = _candidate_with_enroller(tmp_path)
+    manifest_path = candidate / "release-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["assets"] = [
+        asset
+        for asset in manifest["assets"]
+        if asset.get("component") != "inno_voicepack"
+    ]
+    (candidate / "inno-voicepack-v0.2.onnx").unlink()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    _refresh_checksums(candidate)
+
+    with pytest.raises(verify_candidate.CandidateError, match="model component"):
+        verify_candidate.verify_candidate(candidate)
 
 
 def test_verify_candidate_rejects_enroller_with_missing_metadata_component(

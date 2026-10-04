@@ -38,6 +38,9 @@ REFERENCE_FORMAT = "akinvox-cloning-reference-v1"
 SUPPORT_COMPONENTS = ("source_params",)
 
 TUNER_ENROLLER_KIND = "kokoro-voicepack-tuner"
+INNO_ENROLLER_ID = "inno-v0.2"
+INNO_MODEL_COMPONENT = "inno_voicepack"
+INNO_METADATA_COMPONENT = "inno_tuner"
 VOICEPACK_FORMAT = "kokoro-voicepack-v1"
 VOICEPACK_SHAPE = (510, 1, 256)
 ENROLLER_FIELDS = (
@@ -227,7 +230,10 @@ def validate_voice_enrollers(
             f"Enroller {enroller_id}: durations must satisfy 0 < min <= recommended <= max",
         )
         output = enroller["output"]
-        _require(isinstance(output, Mapping), f"Enroller {enroller_id}: output must be an object")
+        _require(
+            isinstance(output, Mapping),
+            f"Enroller {enroller_id}: output must be an object",
+        )
         _require(
             output.get("format") == VOICEPACK_FORMAT,
             f"Enroller {enroller_id}: output format must be {VOICEPACK_FORMAT!r}",
@@ -249,7 +255,22 @@ def validate_voice_enrollers(
                 f"Enroller {enroller_id}: metadata component "
                 f"{enroller['metadata_component']!r} is missing from the artifacts",
             )
-        if str(enroller["kind"]) == TUNER_ENROLLER_KIND or enroller_id.startswith("inno-"):
+        if enroller_id == INNO_ENROLLER_ID:
+            _require(
+                enroller["kind"] == TUNER_ENROLLER_KIND,
+                "Inno enroller kind must be the Kokoro voicepack tuner",
+            )
+            _require(
+                enroller["model_component"] == INNO_MODEL_COMPONENT,
+                f"Inno model component must be {INNO_MODEL_COMPONENT!r}",
+            )
+            _require(
+                enroller["metadata_component"] == INNO_METADATA_COMPONENT,
+                f"Inno metadata component must be {INNO_METADATA_COMPONENT!r}",
+            )
+        if str(enroller["kind"]) == TUNER_ENROLLER_KIND or enroller_id.startswith(
+            "inno-"
+        ):
             _require(
                 model_id == "v1.0" and model_version == "1.0",
                 f"Enroller {enroller_id}: the Inno voicepack tuner is only compatible "
@@ -258,4 +279,63 @@ def validate_voice_enrollers(
             _require(
                 str(enroller["input"]) == "reference-audio",
                 f"Enroller {enroller_id}: tuner input must be reference audio",
+            )
+
+
+def validate_voice_enroller_artifacts(
+    runtime: Mapping[str, Any] | None,
+    artifacts: Iterable[Mapping[str, Any]],
+    *,
+    model_id: str = "",
+    model_version: str = "",
+) -> None:
+    """Validate the exact artifacts required by each declared voice enroller."""
+    enrollers = (runtime or {}).get("voice_enrollers")
+    if enrollers is None:
+        return
+    artifact_list = list(artifacts)
+    validate_voice_enrollers(
+        runtime,
+        model_components={
+            str(item.get("component"))
+            for item in artifact_list
+            if item.get("role") == "model" and item.get("component")
+        },
+        metadata_components={
+            str(item.get("component"))
+            for item in artifact_list
+            if item.get("role") == "metadata" and item.get("component")
+        },
+        model_id=model_id,
+        model_version=model_version,
+    )
+    for enroller in enrollers:
+        model_component = str(enroller["model_component"])
+        metadata_component = str(enroller["metadata_component"])
+        model_artifacts = [
+            item
+            for item in artifact_list
+            if item.get("role") == "model" and item.get("component") == model_component
+        ]
+        metadata_artifacts = [
+            item
+            for item in artifact_list
+            if item.get("role") == "metadata"
+            and item.get("component") == metadata_component
+        ]
+        _require(
+            len(model_artifacts) == 1,
+            f"Enroller {enroller['id']}: expected exactly one model component "
+            f"{model_component!r}",
+        )
+        _require(
+            len(metadata_artifacts) == 1,
+            f"Enroller {enroller['id']}: expected exactly one metadata component "
+            f"{metadata_component!r}",
+        )
+        if enroller["id"] == INNO_ENROLLER_ID:
+            _require(
+                model_artifacts[0].get("quality") is None
+                and metadata_artifacts[0].get("quality") is None,
+                "Inno artifacts must be shared across base model qualities",
             )

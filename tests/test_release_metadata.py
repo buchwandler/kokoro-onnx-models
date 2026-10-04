@@ -746,9 +746,7 @@ def test_v1_0_release_declares_inno_enroller_and_pinned_augmentation() -> None:
         "429617d18ce4d637acea948bdff4cce3ec6cf167"
     )
     assert augmentation["code_repository"] == "remsky/inno-kokoro"
-    assert augmentation["code_revision"] == (
-        "892ef184bc932aa3ff9d72c1509d5b81ff6941e6"
-    )
+    assert augmentation["code_revision"] == "892ef184bc932aa3ff9d72c1509d5b81ff6941e6"
     assert augmentation["source_files"]["model.safetensors"] == {
         "size": 23776728,
         "sha256": "71cb8e93544f697043197f27fa7f13f0f9f9161076b092aaff6d0894fec2b0e8",
@@ -759,8 +757,8 @@ def test_v1_0_release_declares_inno_enroller_and_pinned_augmentation() -> None:
     by_component = {asset["component"]: asset for asset in augmentation["assets"]}
     assert set(by_component) == {"inno_voicepack", "inno_tuner", "inno_tuner_config"}
     assert by_component["inno_voicepack"]["role"] == "model"
-    assert by_component["inno_voicepack"]["quality"] == "fp32"
     assert by_component["inno_voicepack"]["format"] == "onnx"
+    assert "quality" not in by_component["inno_voicepack"]
     assert by_component["inno_tuner"]["role"] == "metadata"
     assert by_component["inno_tuner"]["format"] == "numpy-npz"
     assert by_component["inno_tuner_config"]["role"] == "metadata"

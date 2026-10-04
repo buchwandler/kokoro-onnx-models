@@ -234,8 +234,17 @@
         "additionalProperties": false,
         "allOf": [
           {
-            "if": { "properties": { "role": { "const": "model" } } },
-            "then": { "required": ["quality"] }
+            "if": {
+              "properties": {
+                "role": { "const": "model" },
+                "component": { "const": "inno_voicepack" }
+              },
+              "required": ["role", "component"]
+            },
+            "else": {
+              "if": { "properties": { "role": { "const": "model" } } },
+              "then": { "required": ["quality"] }
+            }
           }
         ]
       }

@@ -29,6 +29,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enroller_artifacts,
         validate_voice_enrollers,
     )
 except ModuleNotFoundError:
@@ -37,6 +38,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_voice_enroller_artifacts,
         validate_voice_enrollers,
     )
 
@@ -73,7 +75,11 @@ def _validate_schema(registry: dict[str, Any], schema_path: Path) -> None:
 
 
 def _validate_artifact(
-    artifact: dict[str, Any], *, model_id: str, distribution_id: str
+    artifact: dict[str, Any],
+    *,
+    model_id: str,
+    distribution_id: str,
+    allow_unqualified_model: bool = False,
 ) -> None:
     required = ("id", "role", "url", "local_name", "format", "size", "sha256")
     _require(
@@ -102,7 +108,7 @@ def _validate_artifact(
     role = artifact["role"]
     if role == "model":
         _require(
-            bool(artifact.get("quality")),
+            bool(artifact.get("quality")) or allow_unqualified_model,
             f"{model_id}: model {artifact['id']} is missing quality",
         )
     if role in {"voice", "voices"} and artifact["format"] == "raw-float32-le":
@@ -189,6 +195,15 @@ def _validate_distribution(
     components: set[str] = set()
     support_components: set[str] = set()
     voice_names: set[str] = set()
+    enroller_model_components = {
+        str(enroller.get("model_component"))
+        for enroller in (model.get("runtime") or {}).get("voice_enrollers", [])
+        if (
+            isinstance(enroller, dict)
+            and enroller.get("id") == "inno-v0.2"
+            and enroller.get("model_component") == "inno_voicepack"
+        )
+    }
     for artifact in artifacts:
         _require(
             isinstance(artifact, dict),
@@ -199,7 +214,14 @@ def _validate_distribution(
             f"{model_id}/{distribution_id}: duplicate artifact id {artifact['id']}",
         )
         artifact_ids.add(artifact["id"])
-        _validate_artifact(artifact, model_id=model_id, distribution_id=distribution_id)
+        _validate_artifact(
+            artifact,
+            model_id=model_id,
+            distribution_id=distribution_id,
+            allow_unqualified_model=(
+                artifact.get("component") in enroller_model_components
+            ),
+        )
         if artifact["role"] == "model":
             model_count += 1
             if artifact.get("component"):
@@ -257,6 +279,15 @@ def _validate_distribution(
         )
     if distribution.get("runtime_ready") is not True:
         return
+    try:
+        validate_voice_enroller_artifacts(
+            model.get("runtime"),
+            artifacts,
+            model_id=model_id,
+            model_version=str(model.get("model_version", "")),
+        )
+    except ValueError as exc:
+        raise RegistryError(str(exc)) from exc
     if distribution["provider"] == "github-release":
         release_key = distribution.get("release_key")
         _require(
@@ -282,16 +313,6 @@ def _validate_distribution(
             model.get("model_version") == release.get("model_version"),
             f"{model_id}: model version does not match catalog release",
         )
-        try:
-            validate_voice_enrollers(
-                model.get("runtime"),
-                model_components=components,
-                metadata_components=support_components,
-                model_id=model_id,
-                model_version=str(model.get("model_version", "")),
-            )
-        except ValueError as exc:
-            raise RegistryError(str(exc)) from exc
 
 
 def verify_registry(

@@ -527,7 +527,6 @@
               "name": "inno-voicepack-v0.2.onnx",
               "role": "model",
               "component": "inno_voicepack",
-              "quality": "fp32",
               "format": "onnx"
             },
             {
