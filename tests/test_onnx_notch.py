@@ -47,9 +47,7 @@ def test_embed_notch_filters_runs_in_onnxruntime(tmp_path: Path) -> None:
         [helper.make_tensor_value_info("input", TensorProto.FLOAT, [None])],
         [helper.make_tensor_value_info("audio", TensorProto.FLOAT, [None])],
     )
-    model = helper.make_model(
-        graph, opset_imports=[helper.make_opsetid("", 14)]
-    )
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 14)])
     model.ir_version = 13
     onnx.save(model, model_path)
 

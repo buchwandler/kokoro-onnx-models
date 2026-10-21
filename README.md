@@ -182,21 +182,42 @@ and per-release manifests.
 
 ## Reference enrollment releases
 
-`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` candidate. Maintainer review approved publication under Apache-2.0 for AkinVox code and weights, including commercial use; separately licensed upstream components retain their own terms, documented in the bundled notices. The candidate is not yet published or consumer-ready. The registry keeps `runtime_available: false` with no distributions because PyKokoro's high-level inference API does not expose the reference-enrollment bridge. The low-level smoke test does not prove high-level client readiness.
+`en-akinvox-cloning-v1` is the first `cloning-onnx-v1` reference-cloning release. Maintainer review approved publication under Apache-2.0 for AkinVox code and weights, including commercial use; separately licensed upstream components retain their own terms. The WavLM MIT/CC BY-SA 3.0 notice discrepancy and all upstream notices are documented in [`MODEL_LICENSES.md`](MODEL_LICENSES.md) and the bundled license notices.
 
-The bundle is reference-conditioned and ships no static voices: `voice_mode` is `reference`, there is no `default_voice`, and there is no fabricated voice pack.
+This model is reference-conditioned: it has no static voice roster, `default_voice`, or fabricated voice pack. Its ONNX-only bundle has six graph components: enrollment (`reference_wavlm`, `reference_encoders`, `reference_mapper`) and synthesis (`prosody`, `curves`, `decoder`), plus a pickle-free `source-params.npz` containing the seeded harmonic source's `weight`, `bias`, and `window`. PyTorch checkpoints and LoRA tensors are not runtime assets; the exporter materializes the LoRA updates into the published weights. FP32 is the initial quality.
 
-The bundle is ONNX-only. Six component graphs cover enrollment
-(`reference_wavlm`, `reference_encoders`, `reference_mapper`) and synthesis
-(`prosody`, `curves`, `decoder`), plus a pickle-free `source-params.npz` holding
-the seeded harmonic source's `weight`, `bias` and `window`. No PyTorch checkpoint
-or LoRA tensor is a runtime asset; all 199 LoRA updates are materialized into the
-exported weights at build time.
+AkinVox supports English reference enrollment and English synthesis only. Use a 3–30 second reference recording with a transcript that exactly matches the spoken English; the generated audio is 24 kHz. The model supports only `speed=1.0`. The enrolled `ReferenceVoice` is reusable, but it is not a named static Kokoro voice.
 
-FP32 is the only quality in the initial candidate. Quantized variants are deferred
-until the runtime and catalog support per-component quality labels.
+The release metadata opts into `activate_runtime_registry`, but that setting does not make the generated registry ready on its own. Before publication and successful catalog synchronization, `catalog/models.json` remains staged with `runtime_available: false` and no distributions. After the candidate passes its release gates and `publish-release` completes the `sync-catalog` job, the workflow generates the runtime-ready registry entry. Do not hand-edit `catalog/models.json` or treat the activation flag as a substitute for that workflow.
 
-Publication is approved after review of AkinVox's Apache-2.0 code and weights license, including commercial use. The WavLM MIT/CC BY-SA 3.0 notice discrepancy and all upstream notices remain documented in [`MODEL_LICENSES.md`](MODEL_LICENSES.md) and the bundled license notices. Runtime availability remains disabled until the high-level reference-enrollment bridge is supported.
+After publication and catalog sync, use PyKokoro's public reference-enrollment API:
+
+```python
+import soundfile as sf
+from pykokoro import GenerationConfig, KokoroSynthesizer, SynthesisConfig
+
+config = SynthesisConfig(
+    model_variant="en-akinvox-cloning-v1",
+    generation=GenerationConfig(lang="en-us", speed=1.0),
+)
+
+with KokoroSynthesizer(config) as synthesizer:
+    reference = synthesizer.enroll_voice(
+        "reference.wav",
+        reference_text="The exact English words spoken in reference.wav.",
+        engine="akinvox",
+        language="en-us",
+        name="my-reference",
+    )
+    result = synthesizer.synthesize_text(
+        "This sentence will use the enrolled reference voice.",
+        language="en-us",
+        voice=reference,
+    )
+    sf.write("output.wav", result.audio, result.sample_rate)
+```
+
+The example requires the published release to be synchronized before a normal catalog-backed install can resolve the model. Synthetic references used by the release smoke verify API wiring and runtime contracts only; they do not demonstrate subjective voice quality.
 
 ## Not a Kokoro voice pack: Inflect voices
 

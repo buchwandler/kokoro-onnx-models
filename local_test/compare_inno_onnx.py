@@ -60,9 +60,7 @@ def _load_upstream(source_dir: Path) -> Any:
 
 
 def _reference_clips(extra: list[Path]) -> list[tuple[str, np.ndarray, int]]:
-    clips = [
-        (name, wav, inno.SR_ENC) for name, wav in inno.synthetic_reference_clips()
-    ]
+    clips = [(name, wav, inno.SR_ENC) for name, wav in inno.synthetic_reference_clips()]
     for path in extra:
         import soundfile as sf
 
@@ -101,9 +99,7 @@ def _waveform_metrics(expected: np.ndarray, actual: np.ndarray) -> dict[str, Any
         "lengths": [len(expected), len(actual)],
         "rms": [float(np.sqrt((left**2).mean())), float(np.sqrt((right**2).mean()))],
         "peak": [float(np.abs(left).max()), float(np.abs(right).max())],
-        "rms_delta": float(
-            abs(np.sqrt((left**2).mean()) - np.sqrt((right**2).mean()))
-        ),
+        "rms_delta": float(abs(np.sqrt((left**2).mean()) - np.sqrt((right**2).mean()))),
         "peak_delta": float(abs(np.abs(left).max() - np.abs(right).max())),
         "correlation": correlation,
         "mean_abs_error": float(np.abs(left - right).mean()),
@@ -236,9 +232,7 @@ def compare(
                 torch.from_numpy(encoder_wav)[None]
             ).numpy()[0]
         host_features = inno.host_fbank(encoder_wav)
-        feature_error = float(
-            np.abs(upstream_features - host_features).max()
-        )
+        feature_error = float(np.abs(upstream_features - host_features).max())
         upstream_pack, upstream_weights = upstream.enroll(
             torch.from_numpy(np.asarray(wav, dtype=np.float32)), sr, upstream_tuner
         )
@@ -273,7 +267,9 @@ def compare(
         }
         if run_synthesis:
             if synthesis_asset_dir is None:
-                raise SystemExit("--synthesis requires --asset-dir with staged v1.0 assets")
+                raise SystemExit(
+                    "--synthesis requires --asset-dir with staged v1.0 assets"
+                )
             case["synthesis"] = _synthesis_pack_metrics(
                 upstream_pack.numpy(),
                 np.asarray(onnx_pack, dtype=np.float32),
@@ -284,7 +280,10 @@ def compare(
 
     status = "pass"
     for case in cases:
-        checks = [case["feature_parity"]["within_tolerance"], case["voicepack"]["within_tolerance"]]
+        checks = [
+            case["feature_parity"]["within_tolerance"],
+            case["voicepack"]["within_tolerance"],
+        ]
         if "synthesis" in case:
             checks.append(case["synthesis"]["within_tolerance"])
         if not all(checks):

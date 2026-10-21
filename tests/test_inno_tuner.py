@@ -36,9 +36,7 @@ def test_source_pins_are_immutable_and_complete() -> None:
     )
     assert AUGMENTATION["code_repository"] == "remsky/inno-kokoro"
     assert AUGMENTATION["code_tag"] == "v0.2.0"
-    assert AUGMENTATION["code_revision"] == (
-        "892ef184bc932aa3ff9d72c1509d5b81ff6941e6"
-    )
+    assert AUGMENTATION["code_revision"] == ("892ef184bc932aa3ff9d72c1509d5b81ff6941e6")
     assert pins["tuner"]["release_tag"] == "v0.2.0"
     assert set(pins["tuner"]["files"]) == {"model.safetensors", "config.json"}
     for details in pins["tuner"]["files"].values():
@@ -94,9 +92,9 @@ def _write_safetensors(
 def _state_fixture(path: Path, packs: int = 4) -> Path:
     rng = np.random.default_rng(0)
     tensors = {
-        "enc.backbone.conv1.weight": rng.standard_normal(
-            (32, 1, 3, 3)
-        ).astype(np.float16),
+        "enc.backbone.conv1.weight": rng.standard_normal((32, 1, 3, 3)).astype(
+            np.float16
+        ),
         "enc.proj.0.weight": rng.standard_normal((1024, 256)).astype(np.float16),
         "heads.style.0.weight": rng.standard_normal((512, 512)).astype(np.float32),
         "heads.style.0.bias": np.zeros(512, dtype=np.float32),
@@ -203,9 +201,9 @@ def test_prosody_measurements_match_upstream_self_checks() -> None:
     assert abs(rate - 5) < 0.7
 
     white = rng.standard_normal(sr * 4).astype(np.float32)
-    pink = np.fft.irfft(
-        np.fft.rfft(white) / np.sqrt(np.arange(1, sr * 2 + 2))
-    ).astype(np.float32)
+    pink = np.fft.irfft(np.fft.rfft(white) / np.sqrt(np.arange(1, sr * 2 + 2))).astype(
+        np.float32
+    )
     assert abs(inno.host_tilt(white, sr)) < 0.3
     assert abs(inno.host_tilt(pink, sr) + 3) < 0.3
 
@@ -330,7 +328,7 @@ def _stub_sources(tmp_path: Path) -> dict[str, Path]:
     sources = {}
     for name in inno.SOURCE_FILE_NAMES:
         path = tmp_path / name
-        path.write_bytes(f"fixture-{name}".encode("utf-8"))
+        path.write_bytes(f"fixture-{name}".encode())
         sources[name] = path
     return sources
 
@@ -377,7 +375,9 @@ def test_build_emits_components_bundle_and_checksums(
         "inno_tuner",
         "inno_tuner_config",
     }
-    assert all(item["format"] in {"onnx", "numpy-npz", "json"} for item in bundle["components"])
+    assert all(
+        item["format"] in {"onnx", "numpy-npz", "json"} for item in bundle["components"]
+    )
     assert all(len(item["sha256"]) == 64 for item in bundle["components"])
     assert bundle["source_artifacts"] == inno.pinned_sources(spec)
     assert set(bundle["source_files"]) == set(inno.SOURCE_FILE_NAMES)

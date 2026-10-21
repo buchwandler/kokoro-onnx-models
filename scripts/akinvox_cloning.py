@@ -833,7 +833,6 @@ def materialize_lora(
     }
 
 
-
 def materialize_spectral_norm(modules: Sequence[Any]) -> dict[str, Any]:
     """Bake frozen spectral-normalization weights for ONNX export."""
     from torch.nn.utils import parametrize
@@ -859,15 +858,16 @@ def materialize_spectral_norm(modules: Sequence[Any]) -> dict[str, Any]:
                     ),
                     f"Unexpected AkinVox parametrization on {type(module).__name__}.{name}",
                 )
-                parametrize.remove_parametrizations(module, name, leave_parametrized=True)
+                parametrize.remove_parametrizations(
+                    module, name, leave_parametrized=True
+                )
                 materialized += 1
 
     remaining = [
         module
         for root in modules
         for module in root.modules()
-        if getattr(module, "parametrizations", None)
-        and len(module.parametrizations)
+        if getattr(module, "parametrizations", None) and len(module.parametrizations)
     ]
     _require(not remaining, "AkinVox parametrizations remain before ONNX export")
     return {
@@ -875,6 +875,7 @@ def materialize_spectral_norm(modules: Sequence[Any]) -> dict[str, Any]:
         "remaining_parametrizations": len(remaining),
         "weights_frozen": True,
     }
+
 
 def extract_source_params(decoder: Any, out_path: Path) -> dict[str, Any]:
     """Export the non-neural harmonic source parameters for the ONNX runtime."""
@@ -950,22 +951,17 @@ def _onnx_multihead_attention(
 
     heads = attention.num_heads
     head_width = attention.embed_dim // heads
-    query_weight, key_weight, value_weight = attention.in_proj_weight.chunk(
-        3, dim=0
-    )
+    query_weight, key_weight, value_weight = attention.in_proj_weight.chunk(3, dim=0)
     query_bias, key_bias, value_bias = attention.in_proj_bias.chunk(3, dim=0)
 
     def split_heads(projected: Any) -> Any:
         return projected.unflatten(-1, (heads, head_width)).transpose(1, 2)
 
-    projected_query = split_heads(
-        functional.linear(query, query_weight, query_bias)
-    )
+    projected_query = split_heads(functional.linear(query, query_weight, query_bias))
     projected_key = split_heads(functional.linear(key, key_weight, key_bias))
     projected_value = split_heads(functional.linear(value, value_weight, value_bias))
     scores = (
-        torch.matmul(projected_query, projected_key.transpose(-2, -1))
-        / head_width**0.5
+        torch.matmul(projected_query, projected_key.transpose(-2, -1)) / head_width**0.5
     )
     scores = scores.masked_fill(
         key_padding_mask[:, None, None, :], torch.finfo(scores.dtype).min
@@ -992,7 +988,9 @@ def _onnx_phone_attention(
 def _onnx_transformer_encoder(encoder: Any, value: Any, mask: Any) -> Any:
     for layer in encoder.layers:
         if not layer.norm_first:
-            raise AkinvoxBuildError("AkinVox reference sequence must use pre-norm layers")
+            raise AkinvoxBuildError(
+                "AkinVox reference sequence must use pre-norm layers"
+            )
         attention_input = layer.norm1(value)
         attended = _onnx_multihead_attention(
             layer.self_attn,
@@ -1125,9 +1123,9 @@ def wrapper_types() -> Any:
             text = transcript.embedding(reference_ids)
             text = transcript.text_norm(
                 text
-                + _positions(
-                    text.shape[1], text.shape[2], text.device, text.dtype
-                )[None]
+                + _positions(text.shape[1], text.shape[2], text.device, text.dtype)[
+                    None
+                ]
             )
             delta = _onnx_multihead_attention(
                 transcript.attention,
@@ -1136,9 +1134,7 @@ def wrapper_types() -> Any:
                 text,
                 phone_mask,
             )
-            value = acoustic + transcript.output(delta).masked_fill(
-                mask[..., None], 0
-            )
+            value = acoustic + transcript.output(delta).masked_fill(mask[..., None], 0)
             value = _onnx_transformer_encoder(
                 shared.sequence,
                 value
@@ -1149,9 +1145,7 @@ def wrapper_types() -> Any:
             denominator = lengths[:, None].to(value.dtype)
             mean = value.sum(1) / denominator
             variance = (
-                (value - mean[:, None]).square()
-                .masked_fill(mask[..., None], 0)
-                .sum(1)
+                (value - mean[:, None]).square().masked_fill(mask[..., None], 0).sum(1)
             )
             stats = torch.cat(
                 (mean, (variance / denominator).clamp_min(1.0e-8).sqrt()), -1
@@ -1576,11 +1570,7 @@ def _native_encode_reference(
     value = value.masked_fill(mask[..., None], 0)
     denominator = halved[:, None].to(value.dtype)
     mean = value.sum(1) / denominator
-    variance = (
-        (value - mean[:, None]).square()
-        .masked_fill(mask[..., None], 0)
-        .sum(1)
-    )
+    variance = (value - mean[:, None]).square().masked_fill(mask[..., None], 0).sum(1)
     stats = torch.cat((mean, (variance / denominator).clamp_min(1.0e-8).sqrt()), -1)
     return (value, mask, stats)
 

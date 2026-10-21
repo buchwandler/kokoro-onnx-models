@@ -166,8 +166,7 @@ def pinned_sources(spec: Mapping[str, Any]) -> dict[str, Any]:
             "revision": str(spec["source_revision"]),
             "release_tag": str(spec["source_tag"]),
             "files": {
-                name: dict(details)
-                for name, details in spec["source_files"].items()
+                name: dict(details) for name, details in spec["source_files"].items()
             },
         },
         "source_code": {
@@ -307,6 +306,7 @@ def resolve_source_code(spec: Mapping[str, Any], cache_dir: Path) -> Path:
     )
     return checkout
 
+
 # --------------------------------------------------------------------------
 # Weight loading
 # --------------------------------------------------------------------------
@@ -334,7 +334,12 @@ def read_safetensors(path: Path) -> tuple[dict[str, np.ndarray], dict[str, str]]
         dtype = _SAFETENSORS_DTYPES.get(str(entry["dtype"]))
         _require(dtype is not None, f"Unsupported safetensors dtype for {name}")
         begin, end = (int(offset) for offset in entry["data_offsets"])
-        values = np.frombuffer(data, dtype=dtype, count=(end - begin) // np.dtype(dtype).itemsize, offset=begin)
+        values = np.frombuffer(
+            data,
+            dtype=dtype,
+            count=(end - begin) // np.dtype(dtype).itemsize,
+            offset=begin,
+        )
         tensors[name] = values.reshape([int(dim) for dim in entry["shape"]]).copy()
     return tensors, dict(meta)
 
@@ -352,13 +357,19 @@ def load_tuner_state(path: Path) -> TunerState:
         if name.startswith("enc.") and not name.endswith("num_batches_tracked")
     }
     _require(bool(enc), f"{path.name} has no enc.* speaker-encoder keys")
-    enc = {name: np.ascontiguousarray(value, dtype=np.float32) for name, value in enc.items()}
+    enc = {
+        name: np.ascontiguousarray(value, dtype=np.float32)
+        for name, value in enc.items()
+    }
     style = {
         name[len("heads.style.") :]: np.ascontiguousarray(value, dtype=np.float32)
         for name, value in tensors.items()
         if name.startswith("heads.style.")
     }
-    _require(set(style) == {"0.weight", "0.bias", "2.weight", "2.bias"}, "Style head keys are incomplete")
+    _require(
+        set(style) == {"0.weight", "0.bias", "2.weight", "2.bias"},
+        "Style head keys are incomplete",
+    )
 
     tilt_dir = _float("heads.tilt.weight").reshape(-1)
     blend_rows = _float("blend.rows")
@@ -369,16 +380,23 @@ def load_tuner_state(path: Path) -> TunerState:
     head_sd = _float("head.sd").reshape(-1)
 
     packs = blend_rows.shape[0]
-    _require(blend_rows.shape == (packs, ROWS, HALF), "blend.rows must be [V, 510, 128]")
+    _require(
+        blend_rows.shape == (packs, ROWS, HALF), "blend.rows must be [V, 510, 128]"
+    )
     _require(blend_stats.shape == (packs, 3), "blend.stats must be [V, 3]")
     _require(blend_grades.shape == (packs,), "blend.grades must be [V]")
     _require(tilt_dir.shape == (STYLE,), "heads.tilt.weight must be [256, 1]")
     _require(head_weight.shape == (3, HALF), "head.W must be [3, 128]")
-    _require(head_mu.shape == (2,) and head_sd.shape == (2,), "head.mu/head.sd must be [2]")
+    _require(
+        head_mu.shape == (2,) and head_sd.shape == (2,), "head.mu/head.sd must be [2]"
+    )
 
     names = tuple(str(meta["blend_names"]).split(","))
     _require(len(names) == packs, "blend_names does not match blend.rows")
-    scale = np.array([float(value) for value in str(meta["blend_scale"]).split(",")], dtype=np.float64)
+    scale = np.array(
+        [float(value) for value in str(meta["blend_scale"]).split(",")],
+        dtype=np.float64,
+    )
     _require(scale.shape == (3,), "blend_scale must hold three values")
     for name in ("version", "blend_gate", "grade_pen", "tilt_mean", "tilt_sd"):
         _require(name in meta, f"{path.name} metadata is missing {name!r}")
@@ -428,13 +446,16 @@ def host_resample(w: np.ndarray, sr: int, target: int) -> np.ndarray:
 
     divisor = math.gcd(sr, target)
     return np.asarray(
-        resample_poly(np.asarray(w, dtype=np.float64), target // divisor, sr // divisor),
+        resample_poly(
+            np.asarray(w, dtype=np.float64), target // divisor, sr // divisor
+        ),
         dtype=np.float32,
     )
 
 
 def mel_filterbank() -> np.ndarray:
     """[80, 257] Kaldi triangular mel filters over a 512-point FFT at 16 kHz."""
+
     def mel(f: Any) -> Any:
         return 1127.0 * np.log1p(np.asarray(f, dtype=np.float64) / 700.0)
 
@@ -451,7 +472,7 @@ def host_fbank(wav: np.ndarray) -> np.ndarray:
     """Kaldi fbank on [-1, 1] 16 kHz audio -> [F, 80] with per-utterance CMN."""
     frames = np.lib.stride_tricks.sliding_window_view(
         np.asarray(wav, dtype=np.float32) * 32768.0, FBANK_FRAME
-    )[:: FBANK_HOP].copy()
+    )[::FBANK_HOP].copy()
     frames -= frames.mean(-1, keepdims=True)
     previous = np.concatenate([frames[:, :1], frames[:, :-1]], axis=1)
     frames -= 0.97 * previous
@@ -490,9 +511,9 @@ def _track_f0(w: np.ndarray, lo: float, hi: float, win: int = 2 * HOP):
     """Normalized cross-correlation pitch tracker at SR_ENC, one estimate per HOP."""
     lags = list(range(int(SR_ENC / hi), int(SR_ENC / lo) + 1))
     length = win + lags[-1]
-    frames = np.lib.stride_tricks.sliding_window_view(
-        np.pad(w, (0, length)), length
-    )[::HOP]
+    frames = np.lib.stride_tricks.sliding_window_view(np.pad(w, (0, length)), length)[
+        ::HOP
+    ]
     x = frames[:, :win]
     xx = (x**2).sum(1)
     correlations = []
@@ -502,9 +523,9 @@ def _track_f0(w: np.ndarray, lo: float, hi: float, win: int = 2 * HOP):
             (x * y).sum(1) / np.maximum(np.sqrt(xx * (y**2).sum(1)), 1e-8)
         )
     correlations = np.stack(correlations, 1)
-    best_lag = (
-        lags[0] + _fundamental(correlations, lags[0], LAG_TOL)
-    )[: len(w) // HOP].astype(np.float64)
+    best_lag = (lags[0] + _fundamental(correlations, lags[0], LAG_TOL))[
+        : len(w) // HOP
+    ].astype(np.float64)
     pad = MEDIAN_FRAMES // 2
     best_lag = np.pad(best_lag, (pad, MEDIAN_FRAMES - 1 - pad), mode="edge")
     windows = np.lib.stride_tricks.sliding_window_view(best_lag, MEDIAN_FRAMES)
@@ -621,7 +642,9 @@ def host_head_stats(
         voiced = f0[(f0 > 0) & (energy > 0.1 * energy.max())]
         if len(voiced):
             semitones = np.asarray(_st(voiced))
-            samples.append((float(semitones.mean()), float(semitones.std(ddof=0)), len(x)))
+            samples.append(
+                (float(semitones.mean()), float(semitones.std(ddof=0)), len(x))
+            )
     if not samples:
         return 0.0, 0.0
     total = sum(length for _, _, length in samples)
@@ -671,7 +694,9 @@ def reference_features(
 ) -> dict[str, np.ndarray]:
     """Reference audio -> the four ONNX graph inputs (host side only)."""
     dur = len(wav) / sr
-    _require(dur >= 3, f"reference is {dur:.1f} s; need at least 3 s to measure prosody")
+    _require(
+        dur >= 3, f"reference is {dur:.1f} s; need at least 3 s to measure prosody"
+    )
     wav = wav[: REF_MAX_S * sr]
     encoder_wav = host_resample(wav, sr, SR_ENC)
     fmax = host_ceiling(wav, sr, fmax)
@@ -685,7 +710,9 @@ def reference_features(
     }
 
 
-def assemble_voicepack(timbre_half: np.ndarray, predictor_rows: np.ndarray) -> np.ndarray:
+def assemble_voicepack(
+    timbre_half: np.ndarray, predictor_rows: np.ndarray
+) -> np.ndarray:
     """Concatenate the timbre and predictor halves into a [510, 1, 256] pack."""
     timbre_half = np.asarray(timbre_half, dtype=np.float32).reshape(HALF)
     predictor_rows = np.asarray(predictor_rows, dtype=np.float32)
@@ -835,7 +862,10 @@ def synthetic_reference_clips() -> list[tuple[str, np.ndarray]]:
     envelope = 0.3 + 0.7 * (0.5 + 0.5 * np.cos(2 * np.pi * 2 * noise_t))
     return [
         ("synthetic_harmonic_12s", harmonic.astype(np.float32)),
-        ("synthetic_modulated_noise_8s", (envelope * rng.standard_normal(len(noise_t))).astype(np.float32)),
+        (
+            "synthetic_modulated_noise_8s",
+            (envelope * rng.standard_normal(len(noise_t))).astype(np.float32),
+        ),
     ]
 
 
@@ -904,20 +934,29 @@ def build_voicepack_module(state: TunerState) -> Any:
                 nn.Linear(512, 512), nn.GELU(), nn.Linear(512, STYLE)
             )
             self.register_buffer("tilt_dir", torch.from_numpy(state.tilt_dir.copy()))
-            self.register_buffer("blend_rows", torch.from_numpy(state.blend_rows.copy()))
-            self.register_buffer("head_weight", torch.from_numpy(state.head_weight.copy()))
+            self.register_buffer(
+                "blend_rows", torch.from_numpy(state.blend_rows.copy())
+            )
+            self.register_buffer(
+                "head_weight", torch.from_numpy(state.head_weight.copy())
+            )
             self.register_buffer("head_mu", torch.from_numpy(state.head_mu.copy()))
             self.register_buffer("head_sd", torch.from_numpy(state.head_sd.copy()))
             self.register_buffer(
                 "tilt_norm", torch.tensor([state.tilt_mean, state.tilt_sd])
             )
 
-        def forward(self, fbank: Any, tilt: Any, head_stats: Any, blend_weights: Any) -> Any:
+        def forward(
+            self, fbank: Any, tilt: Any, head_stats: Any, blend_weights: Any
+        ) -> Any:
             embedding = functional.normalize(self.proj(self.encoder(fbank)), dim=-1)
             z_tilt = (tilt - self.tilt_norm[0]) / self.tilt_norm[1]
             style = self.style(embedding) + self.tilt_dir * z_tilt[:, None]
             z_head = (head_stats - self.head_mu) / self.head_sd
-            delta = torch.cat([z_head, torch.ones_like(z_head[:, :1])], 1) @ self.head_weight
+            delta = (
+                torch.cat([z_head, torch.ones_like(z_head[:, :1])], 1)
+                @ self.head_weight
+            )
             predictor = torch.einsum("bv,vhp->bhp", blend_weights, self.blend_rows)
             predictor = predictor + delta[:, None, :]
             timbre = style[:, None, :HALF].expand(-1, ROWS, -1)
@@ -940,8 +979,7 @@ def build_voicepack_module(state: TunerState) -> Any:
     )
     missing, unexpected = module.encoder.load_state_dict(encoder_weights, strict=False)
     _require(
-        not unexpected
-        and all(key.endswith("num_batches_tracked") for key in missing),
+        not unexpected and all(key.endswith("num_batches_tracked") for key in missing),
         f"SpeakerEncoder reconstruction mismatch: missing {sorted(missing)}, "
         f"unexpected {sorted(unexpected)}",
     )
@@ -991,9 +1029,7 @@ def export_bundle(
         fixtures[f"{name}.voicepack"] = expected
 
     graph_path = target / GRAPH_FILENAME
-    example = tuple(
-        torch.from_numpy(inputs[0][field]) for field in GRAPH_INPUTS
-    )
+    example = tuple(torch.from_numpy(inputs[0][field]) for field in GRAPH_INPUTS)
     with torch.no_grad():
         torch.onnx.export(
             module,
@@ -1084,7 +1120,10 @@ def build_inno_tuner(
         for path in out_dir.iterdir()
         if path.suffix in {".pt", ".pth", ".ckpt", ".safetensors", ".bin"}
     )
-    _require(not leaked, "PyTorch artifacts leaked into the tuner build: " + ", ".join(leaked))
+    _require(
+        not leaked,
+        "PyTorch artifacts leaked into the tuner build: " + ", ".join(leaked),
+    )
 
     components = []
     for asset in spec["assets"]:

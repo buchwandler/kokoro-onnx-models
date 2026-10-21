@@ -1519,14 +1519,14 @@
             "preprocessor_config.json": "99272fe8ccfab114b68b478681ea47ee3a1ce62bb788cb92dd6e4f69fb1f1da2",
             "README.md": "97f5513cde351b3adb4e182b60ec23154dadba7ca83e667ceace237177855b8e"
           },
-            "license_source": {
-              "repository": "microsoft/UniSpeech",
-              "revision": "6112826ac13a4327f4c9a7afa2a505e35b763514",
-              "path": "LICENSE",
-              "sha256": "74295d561f60f770a4aa7525b71c0d119ec70422e9f5c601ee3c77e1b7822c91",
-              "license": "CC BY-SA 3.0",
-              "local_file": "licenses/akinvox/WAVLM_CC-BY-SA-3.0.txt"
-            }
+          "license_source": {
+            "repository": "microsoft/UniSpeech",
+            "revision": "6112826ac13a4327f4c9a7afa2a505e35b763514",
+            "path": "LICENSE",
+            "sha256": "74295d561f60f770a4aa7525b71c0d119ec70422e9f5c601ee3c77e1b7822c91",
+            "license": "CC BY-SA 3.0",
+            "local_file": "licenses/akinvox/WAVLM_CC-BY-SA-3.0.txt"
+          }
         },
         "source_code": {
           "repository": "akinvox/kokoro-cloning",

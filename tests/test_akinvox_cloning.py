@@ -5,6 +5,7 @@ import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import numpy as np
 import pytest
@@ -27,6 +28,10 @@ prepare_release = _load("prepare_release", "scripts/prepare_release.py")
 build_kokoro = _load("build_kokoro", "scripts/build_kokoro.py")
 compare_akinvox = _load(
     "compare_akinvox_cloning_onnx", "local_test/compare_akinvox_cloning_onnx.py"
+)
+
+smoke_akinvox = _load(
+    "smoke_en_akinvox_cloning", "local_test/smoke_en_akinvox_cloning.py"
 )
 verify_candidate = _load("verify_candidate", "scripts/verify_candidate.py")
 
@@ -75,7 +80,6 @@ def test_validate_source_pins_rejects_moving_or_unpinned_sources() -> None:
     with pytest.raises(akinvox.AkinvoxBuildError, match="commit SHA"):
         akinvox.validate_source_pins(mutable)
 
-
     moving_code = json.loads(json.dumps(PROFILE))
     moving_code["model"]["pins"]["source_code"]["commit"] = "main"
     with pytest.raises(akinvox.AkinvoxBuildError, match="source_code commit"):
@@ -90,7 +94,6 @@ def test_validate_source_pins_rejects_moving_or_unpinned_sources() -> None:
     del unchecked["model"]["pins"]["akinvox"]["files"]["adapter.pt"]["sha256"]
     with pytest.raises(akinvox.AkinvoxBuildError, match="lowercase SHA-256"):
         akinvox.validate_source_pins(unchecked)
-
 
 
 def test_copy_license_assets_preserves_pinned_notices(tmp_path: Path) -> None:
@@ -136,14 +139,17 @@ def test_copy_license_assets_preserves_pinned_notices(tmp_path: Path) -> None:
     )
 
 
-def test_native_wavlm_uses_the_passed_identity_model(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_native_wavlm_uses_the_passed_identity_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     class FakeTorch:
         from_numpy = staticmethod(lambda values: values)
         nn = SimpleNamespace(
             functional=SimpleNamespace(
                 normalize=staticmethod(
-                    lambda values, dim, eps=1.0e-12: values
-                    / np.linalg.norm(values, axis=dim, keepdims=True)
+                    lambda values, dim, eps=1.0e-12: (
+                        values / np.linalg.norm(values, axis=dim, keepdims=True)
+                    )
                 )
             )
         )
@@ -170,7 +176,9 @@ def test_native_wavlm_uses_the_passed_identity_model(monkeypatch: pytest.MonkeyP
     np.testing.assert_allclose(result, [[0.6, 0.8]])
 
 
-def test_exported_wavlm_wrapper_preserves_raw_audio(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_exported_wavlm_wrapper_preserves_raw_audio(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     inputs: list[np.ndarray] = []
 
     class FakeModule:
@@ -207,11 +215,14 @@ def test_exported_wavlm_wrapper_preserves_raw_audio(monkeypatch: pytest.MonkeyPa
 
 
 def test_wavlm_preprocessing_requires_raw_16khz_audio() -> None:
-    akinvox.validate_wavlm_preprocessing({"sampling_rate": 16000, "do_normalize": False})
+    akinvox.validate_wavlm_preprocessing(
+        {"sampling_rate": 16000, "do_normalize": False}
+    )
     with pytest.raises(akinvox.AkinvoxBuildError, match="preserve raw waveform"):
         akinvox.validate_wavlm_preprocessing(
             {"sampling_rate": 16000, "do_normalize": True}
         )
+
 
 def test_base_checkpoint_keys_strip_module_and_translate_weight_norm() -> None:
     raw_state = {
@@ -227,9 +238,9 @@ def test_base_checkpoint_keys_strip_module_and_translate_weight_norm() -> None:
         "decoder.parametrizations.weight.original0",
         "decoder.parametrizations.weight.original1",
     }
-    np.testing.assert_array_equal(translated["encoder.weight"], raw_state["module.encoder.weight"])
-
-
+    np.testing.assert_array_equal(
+        translated["encoder.weight"], raw_state["module.encoder.weight"]
+    )
 
 
 def test_materialize_spectral_norm_preserves_frozen_weights() -> None:
@@ -249,6 +260,7 @@ def test_materialize_spectral_norm_preserves_frozen_weights() -> None:
         "weights_frozen": True,
     }
 
+
 def test_onnx_duration_encoder_uses_time_axis_for_style_rows() -> None:
     torch = pytest.importorskip("torch")
     value = torch.zeros(1, 512, 32)
@@ -258,6 +270,7 @@ def test_onnx_duration_encoder_uses_time_axis_for_style_rows() -> None:
 
     assert encoded.shape == (1, 32, 640)
 
+
 def test_onnx_instance_norm_matches_torch_instance_norm() -> None:
     torch = pytest.importorskip("torch")
     values = torch.randn(2, 4, 32)
@@ -266,6 +279,7 @@ def test_onnx_instance_norm_matches_torch_instance_norm() -> None:
     actual = akinvox._onnx_instance_norm(values, eps=1.0e-5)
 
     torch.testing.assert_close(actual, expected, rtol=1.0e-5, atol=1.0e-5)
+
 
 def test_native_mels_pass_numpy_to_upstream_preprocessing(
     monkeypatch: pytest.MonkeyPatch,
@@ -290,6 +304,7 @@ def test_native_mels_pass_numpy_to_upstream_preprocessing(
     assert mel.shape == (80, 100)
     assert encoder_mel.shape == (1, 1, 80, 100)
 
+
 def test_onnx_half_downsample_matches_replicated_odd_frame_padding() -> None:
     torch = pytest.importorskip("torch")
     values = torch.randn(1, 3, 80, 109)
@@ -300,22 +315,20 @@ def test_onnx_half_downsample_matches_replicated_odd_frame_padding() -> None:
 
     torch.testing.assert_close(actual, expected, rtol=0.0, atol=1.0e-6)
 
+
 def test_onnx_attention_supports_dynamic_query_and_key_lengths() -> None:
     torch = pytest.importorskip("torch")
     torch.manual_seed(17)
-    attention = torch.nn.MultiheadAttention(
-        16, 4, dropout=0.0, batch_first=True
-    ).eval()
+    attention = torch.nn.MultiheadAttention(16, 4, dropout=0.0, batch_first=True).eval()
     query = torch.randn(1, 7, 16)
     key = torch.randn(1, 9, 16)
     mask = torch.tensor([[False] * 7 + [True] * 2])
 
-    expected, _ = attention(
-        query, key, key, key_padding_mask=mask, need_weights=False
-    )
+    expected, _ = attention(query, key, key, key_padding_mask=mask, need_weights=False)
     actual = akinvox._onnx_multihead_attention(attention, query, key, key, mask)
 
     torch.testing.assert_close(actual, expected, rtol=1.0e-5, atol=1.0e-6)
+
 
 def test_onnx_transformer_encoder_matches_torch_with_padding_mask() -> None:
     torch = pytest.importorskip("torch")
@@ -329,9 +342,7 @@ def test_onnx_transformer_encoder_matches_torch_with_padding_mask() -> None:
         batch_first=True,
         norm_first=True,
     )
-    encoder = torch.nn.TransformerEncoder(
-        layer, 2, enable_nested_tensor=False
-    ).eval()
+    encoder = torch.nn.TransformerEncoder(layer, 2, enable_nested_tensor=False).eval()
     values = torch.randn(1, 7, 16)
     mask = torch.tensor([[False] * 5 + [True] * 2])
 
@@ -339,6 +350,7 @@ def test_onnx_transformer_encoder_matches_torch_with_padding_mask() -> None:
     actual = akinvox._onnx_transformer_encoder(encoder, values, mask)
 
     torch.testing.assert_close(actual, expected, rtol=1.0e-5, atol=1.0e-6)
+
 
 def test_native_enrollment_uses_separate_mel_and_reference_lengths(
     monkeypatch: pytest.MonkeyPatch,
@@ -383,6 +395,7 @@ def test_native_enrollment_uses_separate_mel_and_reference_lengths(
         "reference_ids": [26],
         "row_indices": [25],
     }
+
 
 def test_component_contract_declares_all_six_graphs() -> None:
     contract = akinvox.component_contract()
@@ -840,9 +853,7 @@ def test_profile_model_assets_match_published_filenames() -> None:
         asset for asset in auxiliary if asset["role"] in {"license", "attribution"}
     ]
     assert {asset["filename"] for asset in notice_assets} == set(notices["assets"])
-    assert (
-        "No AkinVox license is applied to other components" in notices["statement"]
-    )
+    assert "No AkinVox license is applied to other components" in notices["statement"]
     assert "WavLM" in notices["statement"]
 
 
@@ -852,9 +863,12 @@ def test_release_catalog_declares_every_component_and_support_asset() -> None:
     assert release["model_version"] == "1.0.1"
     assert release["release_version"] == 1
     assert release["publish"] is True
-    assert "Apache-2.0 for AkinVox code and weights, including commercial use" in release["license"]
+    assert (
+        "Apache-2.0 for AkinVox code and weights, including commercial use"
+        in release["license"]
+    )
     assert release["license_notices"] == PROFILE["release"]["license_notices"]
-    assert release["activate_runtime_registry"] is False
+    assert release["activate_runtime_registry"] is True
     assert release["runtime"]["voice_mode"] == "reference"
     assert "voices" not in release["runtime"]
     assert "default_voice" not in release["runtime"]
@@ -887,11 +901,244 @@ def test_registry_entry_uses_reference_runtime_without_fake_voice() -> None:
     assert model["runtime"]["speed_supported"] is False
     assert "voices" not in model["runtime"]
     assert "default_voice" not in model["runtime"]
-    assert model["runtime_available"] is False
-    assert model["distributions"] == []
     assert model["license"]["redistribution"].startswith("publication approved")
     assert set(model["onnx_contract"]["components"]) == set(akinvox.COMPONENTS)
     contracts.validate_reference_constraints(model["runtime"])
+
+
+def _assert_akinvox_registry_state(
+    *, runtime_available: bool, distributions: list[dict[str, object]]
+) -> None:
+    ready_distributions = [
+        distribution
+        for distribution in distributions
+        if distribution.get("runtime_ready") is True
+    ]
+    if ready_distributions:
+        assert runtime_available is True
+        assert all(
+            distribution["release_key"] == "en-akinvox-cloning-v1"
+            for distribution in ready_distributions
+        )
+    else:
+        assert runtime_available is False
+        assert distributions == []
+
+
+def test_checked_in_registry_matches_its_release_lifecycle() -> None:
+    release = RELEASES["en-akinvox-cloning-v1"]
+    model = MODELS["en-akinvox-cloning-v1"]
+
+    assert release["activate_runtime_registry"] is True
+    _assert_akinvox_registry_state(
+        runtime_available=model["runtime_available"],
+        distributions=model["distributions"],
+    )
+
+
+@pytest.mark.parametrize(
+    ("runtime_available", "distributions"),
+    [
+        (False, []),
+        (
+            True,
+            [{"runtime_ready": True, "release_key": "en-akinvox-cloning-v1"}],
+        ),
+    ],
+    ids=["staged", "published-and-synchronized"],
+)
+def test_release_activation_flag_allows_staged_and_published_registry_states(
+    runtime_available: bool, distributions: list[dict[str, object]]
+) -> None:
+    release = RELEASES["en-akinvox-cloning-v1"]
+
+    assert release["activate_runtime_registry"] is True
+    _assert_akinvox_registry_state(
+        runtime_available=runtime_available,
+        distributions=distributions,
+    )
+
+
+def test_smoke_candidate_resolution_matches_build_and_release_filenames(
+    tmp_path: Path,
+) -> None:
+    assert smoke_akinvox.RELEASE_FILENAMES == akinvox.component_filenames()
+
+    release_dir = tmp_path / "release"
+    release_dir.mkdir()
+    for filename in smoke_akinvox.RELEASE_FILENAMES.values():
+        (release_dir / filename).write_bytes(b"candidate")
+    expected_release_paths = {
+        name: str(release_dir / filename)
+        for name, filename in smoke_akinvox.RELEASE_FILENAMES.items()
+    }
+    assert (
+        smoke_akinvox._candidate_artifacts(release_dir, strict_release_format=True)
+        == expected_release_paths
+    )
+
+    missing_path = release_dir / smoke_akinvox.RELEASE_FILENAMES["decoder"]
+    missing_path.unlink()
+    with pytest.raises(SystemExit, match="Missing candidate artifact"):
+        smoke_akinvox._candidate_artifacts(release_dir, strict_release_format=True)
+
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    for filename in akinvox.build_filenames().values():
+        (build_dir / filename).write_bytes(b"candidate")
+    assert smoke_akinvox._candidate_artifacts(
+        build_dir, strict_release_format=False
+    ) == {
+        name: str(build_dir / filename)
+        for name, filename in akinvox.build_filenames().items()
+    }
+
+
+def test_smoke_uses_pykokoro_public_api_and_writes_contract_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeGenerationConfig:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    class FakeSynthesisConfig:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+
+    class FakeReferenceVoice:
+        def __init__(self, *, restored: bool = False):
+            self.model_id = smoke_akinvox.PROFILE_KEY
+            self.restored = restored
+
+        def save(self, path: Path) -> None:
+            path.write_bytes(b"test reference state")
+
+        @classmethod
+        def load(cls, path: Path) -> FakeReferenceVoice:
+            assert path.read_bytes() == b"test reference state"
+            return cls(restored=True)
+
+    class FakeSynthesizer:
+        def __init__(self, config):
+            captured["config"] = config
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback) -> None:
+            captured["closed"] = True
+
+        def enroll_voice(self, audio, reference_text, **kwargs):
+            captured["reference_audio"] = audio.copy()
+            captured["reference_text"] = reference_text
+            captured["enrollment_kwargs"] = kwargs
+            return FakeReferenceVoice()
+
+        def synthesize_text(self, text, *, language, voice):
+            calls = captured.setdefault("synthesis_calls", [])
+            calls.append((text, language, voice))
+            sample_count = 128 if text == smoke_akinvox.TARGET_TEXTS["short"] else 1024
+            return SimpleNamespace(
+                audio=np.full(sample_count, 0.1, dtype=np.float32),
+                sample_rate=smoke_akinvox.SAMPLE_RATE,
+            )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "pykokoro",
+        SimpleNamespace(
+            GenerationConfig=FakeGenerationConfig,
+            KokoroSynthesizer=FakeSynthesizer,
+            ReferenceVoice=FakeReferenceVoice,
+            SynthesisConfig=FakeSynthesisConfig,
+        ),
+    )
+
+    asset_dir = tmp_path / "candidate"
+    asset_dir.mkdir()
+    for filename in smoke_akinvox.RELEASE_FILENAMES.values():
+        (asset_dir / filename).write_bytes(b"candidate")
+    output_dir = tmp_path / "smoke-output"
+
+    assert (
+        smoke_akinvox.run(
+            [
+                "--asset-dir",
+                str(asset_dir),
+                "--strict-release-format",
+                "--reference-seconds",
+                "4",
+                "--seed",
+                "42",
+                "--output",
+                str(output_dir),
+            ]
+        )
+        == 0
+    )
+
+    config = captured["config"]
+    assert config.kwargs["model_variant"] == smoke_akinvox.PROFILE_KEY
+    assert config.kwargs["provider"] == "cpu"
+    assert config.kwargs["generation"].kwargs == {"lang": "en-us", "speed": 1.0}
+    assert config.kwargs["model_artifacts"] == {
+        name: str(asset_dir / filename)
+        for name, filename in smoke_akinvox.RELEASE_FILENAMES.items()
+    }
+    assert captured["reference_audio"].dtype == np.float32
+    assert captured["reference_audio"].size == 4 * smoke_akinvox.SAMPLE_RATE
+    np.testing.assert_array_equal(
+        captured["reference_audio"], smoke_akinvox._synthetic_reference(4.0, 42)
+    )
+    assert captured["enrollment_kwargs"] == {
+        "engine": "akinvox",
+        "sample_rate": smoke_akinvox.SAMPLE_RATE,
+        "language": "en-us",
+        "name": "akinvox-smoke",
+    }
+    synthesis_calls = captured["synthesis_calls"]
+    assert [call[0] for call in synthesis_calls] == [
+        smoke_akinvox.TARGET_TEXTS["short"],
+        smoke_akinvox.TARGET_TEXTS["long"],
+        smoke_akinvox.TARGET_TEXTS["short"],
+    ]
+    assert [call[1] for call in synthesis_calls] == ["en-us"] * 3
+    assert [call[2].restored for call in synthesis_calls] == [False, False, True]
+    assert captured["closed"] is True
+
+    report_path = output_dir / "report.json"
+    report_text = report_path.read_text(encoding="utf-8")
+    report = json.loads(report_text)
+    assert report["status"] == "pass"
+    assert report["consumer_api"] == (
+        "pykokoro.KokoroSynthesizer.enroll_voice+synthesize_text"
+    )
+    assert report["client_readiness"] == "proven"
+    assert report["reference_voice_model_id"] == smoke_akinvox.PROFILE_KEY
+    assert report["sample_rates"] == {
+        "short": 24_000,
+        "long": 24_000,
+        "reloaded_short": 24_000,
+    }
+    assert report["audio_samples"] == {
+        "short": 128,
+        "long": 1024,
+        "reloaded_short": 128,
+    }
+    assert report["audio_dtypes"] == {
+        "short": "float32",
+        "long": "float32",
+        "reloaded_short": "float32",
+    }
+    assert report["seed"] == 42
+    assert smoke_akinvox.REFERENCE_TEXT not in report_text
+    assert all(text not in report_text for text in smoke_akinvox.TARGET_TEXTS.values())
+    smoke_source = (ROOT / "local_test" / "smoke_en_akinvox_cloning.py").read_text(
+        encoding="utf-8"
+    )
+    assert "OnnxVoice" not in smoke_source
 
 
 @pytest.mark.parametrize("keep_build", [False, True])
@@ -900,7 +1147,9 @@ def test_comparison_cli_records_seed_and_respects_keep_build(
 ) -> None:
     profiles_path = tmp_path / "profiles.json"
     profiles_path.write_text(
-        json.dumps({compare_akinvox.PROFILE_KEY: {"export_validation": {"export_seed": 1}}}),
+        json.dumps(
+            {compare_akinvox.PROFILE_KEY: {"export_validation": {"export_seed": 1}}}
+        ),
         encoding="utf-8",
     )
     captured: dict[str, int] = {}
@@ -939,11 +1188,12 @@ def test_comparison_cli_records_seed_and_respects_keep_build(
 
     assert compare_akinvox.run(arguments) == 0
 
-    summary = json.loads((output_root / compare_akinvox.PROFILE_KEY / "report.json").read_text())
+    summary = json.loads(
+        (output_root / compare_akinvox.PROFILE_KEY / "report.json").read_text()
+    )
     assert captured["seed"] == 98765
     assert summary["seed"] == 98765
     assert (build_root / compare_akinvox.PROFILE_KEY).is_dir() is keep_build
-
 
 
 def test_akinvox_workflow_requires_gate_reports() -> None:
@@ -952,15 +1202,21 @@ def test_akinvox_workflow_requires_gate_reports() -> None:
     )
 
     assert "uv run --python 3.12 --extra build --extra test" in workflow
+
+    consumer_gate = workflow.split(
+        "- name: AkinVox cloning pykokoro + onnxvoice consumer gate", 1
+    )[1].split("- name:", 1)[0]
+    assert "local_test/smoke_en_akinvox_cloning.py" in consumer_gate
+    assert '--asset-dir "dist/${{ needs.prepare.outputs.tag }}"' in consumer_gate
+    assert "--strict-release-format" in consumer_gate
     assert (
         'uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"'
         in workflow
     )
+    assert 'test -f ".local-test/compare/en-akinvox-cloning-v1/report.json"' in workflow
     assert (
-        'test -f ".local-test/compare/en-akinvox-cloning-v1/report.json"' in workflow
-    )
-    assert (
-        'test -f ".local-test/compare/en-akinvox-cloning-v1/parity-report.json"' in workflow
+        'test -f ".local-test/compare/en-akinvox-cloning-v1/parity-report.json"'
+        in workflow
     )
     assert 'test -f ".local-test/smoke/en-akinvox-cloning-v1/report.json"' in workflow
     assert workflow.count(".local-test/compare/en-akinvox-cloning-v1") >= 3

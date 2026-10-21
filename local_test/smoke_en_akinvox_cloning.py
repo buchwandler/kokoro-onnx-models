@@ -1,27 +1,23 @@
-#!/usr/bin/env python3
-"""Staged PyKokoro frontend and OnnxVoice gate for AkinVox cloning.
+"""Prove AkinVox reference enrollment and synthesis through PyKokoro's public API.
 
-PyKokoro's prepared G2P frontend supplies real phone IDs, then OnnxVoice enrolls a
-synthetic reference and synthesizes two target texts. This exercises the low-level
-consumer path. PyKokoro's high-level synthesizer does not yet expose reference cloning,
-so this gate does not claim full user-facing runtime readiness.
+The deterministic synthetic reference checks API wiring and runtime contracts only;
+it is not evidence of subjective voice quality.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import sys
+import tempfile
 from pathlib import Path
+from typing import TypedDict
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 PROFILE_KEY = "en-akinvox-cloning-v1"
 DEFAULT_OUTPUT = ROOT / ".local-test" / "smoke" / PROFILE_KEY
+SAMPLE_RATE = 24_000
 
 COMPONENT_KEYS = (
     "reference_wavlm",
@@ -32,6 +28,16 @@ COMPONENT_KEYS = (
     "decoder",
 )
 
+RELEASE_FILENAMES = {
+    "reference_wavlm": "kokoro-akinvox-cloning-reference-wavlm-v1.0.1.onnx",
+    "reference_encoders": "kokoro-akinvox-cloning-reference-encoders-v1.0.1.onnx",
+    "reference_mapper": "kokoro-akinvox-cloning-reference-mapper-v1.0.1.onnx",
+    "prosody": "kokoro-akinvox-cloning-prosody-v1.0.1.onnx",
+    "curves": "kokoro-akinvox-cloning-curves-v1.0.1.onnx",
+    "decoder": "kokoro-akinvox-cloning-decoder-v1.0.1.onnx",
+    "source_params": "kokoro-akinvox-cloning-source-params-v1.0.1.npz",
+    "config": "kokoro-akinvox-cloning-config-v1.0.1.json",
+}
 
 REFERENCE_TEXT = "I am speaking in a calm and steady voice."
 TARGET_TEXTS = {
@@ -43,51 +49,67 @@ TARGET_TEXTS = {
 }
 
 
-def _load_runtime(asset_dir: Path, runtime_metadata: dict):
-    from onnxvoice import OnnxVoice
-
-    artifacts = {}
-    for component in COMPONENT_KEYS:
-        artifacts[f"model:{component}"] = str(asset_dir / f"{component}.onnx")
-    artifacts["metadata:source_params"] = str(asset_dir / "source-params.npz")
-    artifacts["config"] = str(asset_dir / "config.json")
-    return OnnxVoice.open_local(
-        system="kokoro",
-        artifacts=artifacts,
-        runtime=runtime_metadata,
-        sample_rate=24000,
-        provider="cpu",
-    )
-
-
 def _synthetic_reference(seconds: float, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
-    count = round(seconds * 24000)
-    time = np.arange(count, dtype=np.float64) / 24000
+    count = round(seconds * SAMPLE_RATE)
+    time = np.arange(count, dtype=np.float64) / SAMPLE_RATE
     envelope = 0.25 + 0.2 * np.sin(2.0 * np.pi * 1.7 * time)
     wave = envelope * np.sin(2.0 * np.pi * 155.0 * time)
     wave += 0.02 * rng.standard_normal(count)
     return np.asarray(wave, dtype=np.float32)
 
 
-def _resample_24k_to_16k(wave: np.ndarray) -> np.ndarray:
-    count = round(len(wave) * 16000 / 24000)
-    return np.interp(
-        np.linspace(0, len(wave) - 1, count), np.arange(len(wave)), wave
-    ).astype(np.float32)
+def _candidate_artifacts(
+    asset_dir: Path, *, strict_release_format: bool
+) -> dict[str, str]:
+    if strict_release_format:
+        filenames = RELEASE_FILENAMES
+    else:
+        filenames = {
+            **{component: f"{component}.onnx" for component in COMPONENT_KEYS},
+            "source_params": "source-params.npz",
+            "config": "config.json",
+        }
+
+    paths = {name: asset_dir / filename for name, filename in filenames.items()}
+    missing = [str(path) for path in paths.values() if not path.is_file()]
+    if missing:
+        raise SystemExit("Missing candidate artifact(s): " + ", ".join(missing))
+
+    return {name: str(path) for name, path in paths.items()}
 
 
+class AudioSummary(TypedDict):
+    sample_rate: int
+    audio_samples: int
+    dtype: str
 
-def _phonemize(frontend, config, request_id: str, text: str) -> list[int]:
-    from pykokoro import SynthesisSegment
 
-    prepared = frontend.phonemize(
-        SynthesisSegment(id=request_id, text=text, language="en-us"), config
-    )
-    tokens = list(prepared.token_ids)
-    if not tokens:
-        raise SystemExit(f"{request_id}: PyKokoro returned no token IDs")
-    return tokens
+def _audio_summary(result, name: str) -> AudioSummary:
+    if int(result.sample_rate) != SAMPLE_RATE:
+        raise SystemExit(
+            f"{name}: expected {SAMPLE_RATE} Hz audio, got {result.sample_rate}"
+        )
+
+    audio = np.asarray(result.audio)
+    if audio.size == 0:
+        raise SystemExit(f"{name}: PyKokoro returned empty audio")
+    if not np.issubdtype(audio.dtype, np.floating) or not np.all(np.isfinite(audio)):
+        raise SystemExit(
+            f"{name}: audio must contain only finite floating-point samples"
+        )
+
+    with np.errstate(over="ignore", invalid="ignore"):
+        audio_fp32 = audio.astype(np.float32, copy=False)
+    if not np.all(np.isfinite(audio_fp32)):
+        raise SystemExit(f"{name}: audio cannot be represented as finite FP32 samples")
+
+    return {
+        "sample_rate": int(result.sample_rate),
+        "audio_samples": int(audio_fp32.size),
+        "dtype": str(audio_fp32.dtype),
+    }
+
 
 def run(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -98,119 +120,103 @@ def run(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--strict-release-format",
         action="store_true",
-        help="Require the released component filenames and reference-only metadata",
+        help="Require all candidate assets to use their published release filenames",
     )
     args = parser.parse_args(argv)
 
-    asset_dir = args.asset_dir
-    published = {
-        "reference_wavlm": "kokoro-akinvox-cloning-reference-wavlm-v1.0.1.onnx",
-        "reference_encoders": "kokoro-akinvox-cloning-reference-encoders-v1.0.1.onnx",
-        "reference_mapper": "kokoro-akinvox-cloning-reference-mapper-v1.0.1.onnx",
-        "prosody": "kokoro-akinvox-cloning-prosody-v1.0.1.onnx",
-        "curves": "kokoro-akinvox-cloning-curves-v1.0.1.onnx",
-        "decoder": "kokoro-akinvox-cloning-decoder-v1.0.1.onnx",
-    }
-    if args.strict_release_format:
-        links = {}
-        for component, name in published.items():
-            source = asset_dir / name
-            if not source.is_file():
-                raise SystemExit(f"Missing released component: {source}")
-            links[f"model:{component}"] = str(source)
-        links["metadata:source_params"] = str(
-            asset_dir / "kokoro-akinvox-cloning-source-params-v1.0.1.npz"
-        )
-        links["config"] = str(asset_dir / "kokoro-akinvox-cloning-config-v1.0.1.json")
-    else:
-        links = None
+    reference_seconds = float(args.reference_seconds)
+    if not 3.0 <= reference_seconds <= 30.0:
+        raise SystemExit("--reference-seconds must be between 3 and 30")
 
-
-    from pykokoro import GenerationConfig, SynthesisConfig, TokenizerConfig
-    from pykokoro.prepared_g2p import PreparedG2PAdapter
-
-    frontend = PreparedG2PAdapter()
-    frontend_config = SynthesisConfig(
-        model_variant="v1.0",
-        generation=GenerationConfig(lang="en-us"),
-        tokenizer_config=TokenizerConfig(use_spacy=False),
+    artifacts = _candidate_artifacts(
+        args.asset_dir,
+        strict_release_format=args.strict_release_format,
     )
-    reference_tokens = _phonemize(frontend, frontend_config, "reference", REFERENCE_TEXT)
-    targets = {
-        name: _phonemize(frontend, frontend_config, name, text)
-        for name, text in TARGET_TEXTS.items()
-    }
-    runtime_metadata = {
-        "layout": "cloning-onnx-v1",
-        "voice_mode": "reference",
-        "max_tokens": 510,
-        "speed_supported": False,
-        "style_dimensions": {"acoustic": 128, "duration": 128},
-        "reference": {
-            "format": "akinvox-cloning-reference-v1",
-            "sample_rate": 24000,
-            "identity_sample_rate": 16000,
-            "min_seconds": 3.0,
-            "max_seconds": 30.0,
-            "memory_width": 192,
-            "style_width": 256,
-        },
-    }
-    if links is None:
-        runtime = _load_runtime(asset_dir, runtime_metadata)
-    else:
-        from onnxvoice import OnnxVoice
 
-        runtime = OnnxVoice.open_local(
-            system="kokoro",
-            artifacts=links,
-            runtime=runtime_metadata,
-            sample_rate=24000,
-            provider="cpu",
-        )
-
-    wave24 = _synthetic_reference(args.reference_seconds, args.seed)
-    wave16 = _resample_24k_to_16k(wave24)
-    reference = runtime.prepare_reference(
-        reference_tokens, audio_24k=wave24, audio_16k=wave16
+    from pykokoro import (
+        GenerationConfig,
+        KokoroSynthesizer,
+        ReferenceVoice,
+        SynthesisConfig,
     )
-    results = {}
+
+    config = SynthesisConfig(
+        model_variant=PROFILE_KEY,
+        generation=GenerationConfig(lang="en-us", speed=1.0),
+        model_artifacts=artifacts,
+        provider="cpu",
+    )
+    reference_audio = _synthetic_reference(reference_seconds, args.seed)
     args.output.mkdir(parents=True, exist_ok=True)
-    for name, tokens in targets.items():
-        outcome = runtime.infer(tokens, reference=reference, speed=1.0, seed=args.seed)
-        if not np.all(np.isfinite(outcome.audio)):
-            raise SystemExit(f"{name}: non-finite audio")
-        results[name] = {
-            "tokens": len(tokens),
-            "durations": int(np.sum(outcome.timings)),
-            "audio_samples": int(np.asarray(outcome.audio).size),
-            "sample_rate": int(outcome.sample_rate),
-        }
-        print(f"{name}: {results[name]}")
 
-    if results["short"]["audio_samples"] >= results["long"]["audio_samples"]:
-        raise SystemExit("long target did not produce more audio than the short target")
+    with KokoroSynthesizer(config) as synthesizer:
+        reference_voice = synthesizer.enroll_voice(
+            reference_audio,
+            REFERENCE_TEXT,
+            engine="akinvox",
+            sample_rate=SAMPLE_RATE,
+            language="en-us",
+            name="akinvox-smoke",
+        )
+        if not isinstance(reference_voice, ReferenceVoice):
+            raise SystemExit("AkinVox enrollment did not return a ReferenceVoice")
+        if reference_voice.model_id != PROFILE_KEY:
+            raise SystemExit(
+                f"ReferenceVoice belongs to {reference_voice.model_id!r}, expected {PROFILE_KEY!r}"
+            )
+
+        results = {
+            name: _audio_summary(
+                synthesizer.synthesize_text(
+                    text, language="en-us", voice=reference_voice
+                ),
+                name,
+            )
+            for name, text in TARGET_TEXTS.items()
+        }
+        if results["long"]["audio_samples"] <= results["short"]["audio_samples"]:
+            raise SystemExit(
+                "long target did not produce more audio than the short target"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="akinvox-reference-state-") as temp_dir:
+            state_path = Path(temp_dir) / "reference-voice.npz"
+            reference_voice.save(state_path)
+            restored_voice = ReferenceVoice.load(state_path)
+            if restored_voice.model_id != PROFILE_KEY:
+                raise SystemExit("reloaded ReferenceVoice belongs to the wrong model")
+            results["reloaded_short"] = _audio_summary(
+                synthesizer.synthesize_text(
+                    TARGET_TEXTS["short"], language="en-us", voice=restored_voice
+                ),
+                "reloaded_short",
+            )
 
     report = {
         "profile": PROFILE_KEY,
         "voice_mode": "reference",
-        "consumer_api": "onnxvoice.prepare_reference+infer",
-        "client_readiness": "not_proven",
-        "frontend": "pykokoro.PreparedG2PAdapter",
-        "frontend_model": "v1.0",
-        "language": "en-us",
-        "reference_text": REFERENCE_TEXT,
-        "target_texts": TARGET_TEXTS,
-        "reference_seconds": args.reference_seconds,
+        "consumer_api": "pykokoro.KokoroSynthesizer.enroll_voice+synthesize_text",
+        "client_readiness": "proven",
+        "reference_voice_model_id": PROFILE_KEY,
+        "reference_sample_rate": SAMPLE_RATE,
+        "sample_rates": {name: item["sample_rate"] for name, item in results.items()},
+        "audio_samples": {
+            name: item["audio_samples"] for name, item in results.items()
+        },
+        "audio_dtypes": {name: item["dtype"] for name, item in results.items()},
+        "reference_seconds": reference_seconds,
         "seed": args.seed,
         "status": "pass",
-        "synthesis": results,
     }
-    (args.output / "report.json").write_text(
-        json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    report_path = args.output / "report.json"
+    report_path.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
     )
-    print(args.output / "report.json")
-    runtime.close()
+    print(f"short: {results['short']}")
+    print(f"long: {results['long']}")
+    print(f"reloaded_short: {results['reloaded_short']}")
+    print(report_path)
     return 0
 
 
