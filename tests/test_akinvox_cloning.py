@@ -1082,7 +1082,11 @@ def test_smoke_uses_pykokoro_public_api_and_writes_contract_report(
     config = captured["config"]
     assert config.kwargs["model_variant"] == smoke_akinvox.PROFILE_KEY
     assert config.kwargs["provider"] == "cpu"
-    assert config.kwargs["generation"].kwargs == {"lang": "en-us", "speed": 1.0}
+    assert config.kwargs["generation"].kwargs == {
+        "lang": "en-us",
+        "speed": 1.0,
+        "random_seed": 42,
+    }
     assert config.kwargs["model_artifacts"] == {
         name: str(asset_dir / filename)
         for name, filename in smoke_akinvox.RELEASE_FILENAMES.items()

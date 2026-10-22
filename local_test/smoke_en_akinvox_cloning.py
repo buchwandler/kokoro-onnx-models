@@ -142,7 +142,7 @@ def run(argv: list[str] | None = None) -> int:
 
     config = SynthesisConfig(
         model_variant=PROFILE_KEY,
-        generation=GenerationConfig(lang="en-us", speed=1.0),
+        generation=GenerationConfig(lang="en-us", speed=1.0, random_seed=args.seed),
         model_artifacts=artifacts,
         provider="cpu",
     )
