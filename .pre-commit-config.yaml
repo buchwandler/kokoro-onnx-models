@@ -15,7 +15,7 @@ exclude: |
   # Ignore build and dist directories in addons
   /build/|/dist/|/dev/|/notebooks/
   # You don't usually want a bot to modify your legal texts
-  (LICENSE.*|COPYING.*)
+  (LICENSE.*|COPYING.*)|^licenses/
 default_language_version:
   python: python3
 repos:
