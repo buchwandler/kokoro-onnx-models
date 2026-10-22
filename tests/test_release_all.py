@@ -194,8 +194,32 @@ def test_existing_release_comparison_is_idempotent() -> None:
     assert compare_existing_release(candidate, None) == "publish"
 
 
-def test_existing_release_difference_fails() -> None:
+def test_existing_release_comparison_ignores_builder_commit_when_assets_match() -> None:
+    candidate = _manifest()
+    candidate["builder"] = {"repository": "repo", "commit": "new-commit"}
+    existing = {
+        **candidate,
+        "generated_at": "2026-02-01T00:00:00+00:00",
+        "builder": {"repository": "repo", "commit": "old-commit"},
+    }
+
+    assert compare_existing_release(candidate, existing) == "skip"
+
+
+def test_existing_release_comparison_rejects_other_builder_metadata_changes() -> None:
+    candidate = _manifest()
+    candidate["builder"] = {"repository": "repo", "commit": "new-commit"}
+    existing = {
+        **candidate,
+        "builder": {"repository": "different-repo", "commit": "old-commit"},
+    }
+
     with pytest.raises(ReleaseConflictError, match="differs"):
+        compare_existing_release(candidate, existing)
+
+
+def test_existing_release_difference_fails() -> None:
+    with pytest.raises(ReleaseConflictError, match="asset hashes differ"):
         compare_existing_release(_manifest(), _manifest("b" * 64))
 
 

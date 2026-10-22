@@ -45,6 +45,11 @@ def publishable_matrix(catalog: Mapping[str, Any]) -> dict[str, list[dict[str, A
 def _comparable_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     result = json.loads(json.dumps(manifest))
     result.pop("generated_at", None)
+    builder = result.get("builder")
+    # A new build commit is acceptable only if all other manifest fields and
+    # asset digests still match.
+    if isinstance(builder, dict):
+        builder.pop("commit", None)
     return result
 
 
@@ -61,11 +66,13 @@ def compare_existing_release(
     """Return ``publish`` or ``skip`` and reject a non-equivalent release."""
     if existing is None:
         return "publish"
-    if _comparable_manifest(candidate) != _comparable_manifest(existing):
-        raise ReleaseConflictError("existing release differs from candidate")
     if _asset_digests(candidate) != _asset_digests(existing):
         raise ReleaseConflictError(
             "existing release asset hashes differ from candidate"
+        )
+    if _comparable_manifest(candidate) != _comparable_manifest(existing):
+        raise ReleaseConflictError(
+            "existing release manifest metadata differs from candidate"
         )
     return "skip"
 
