@@ -3017,9 +3017,9 @@
     "en-akinvox-cloning-v1": {
       "kind": "build",
       "profile": "en-akinvox-cloning-v1",
-      "tag": "model-files-en-akinvox-cloning-v1",
+      "tag": "model-files-en-akinvox-cloning-v1-r2",
       "model_version": "1.0.1",
-      "release_version": 1,
+      "release_version": 2,
       "source_repository": "AKinvox/kokoro-cloning-v1",
       "source_revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
       "publish": true,

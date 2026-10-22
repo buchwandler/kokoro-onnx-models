@@ -861,7 +861,8 @@ def test_release_catalog_declares_every_component_and_support_asset() -> None:
     release = RELEASES["en-akinvox-cloning-v1"]
 
     assert release["model_version"] == "1.0.1"
-    assert release["release_version"] == 1
+    assert release["tag"] == "model-files-en-akinvox-cloning-v1-r2"
+    assert release["release_version"] == 2
     assert release["publish"] is True
     assert (
         "Apache-2.0 for AkinVox code and weights, including commercial use"
