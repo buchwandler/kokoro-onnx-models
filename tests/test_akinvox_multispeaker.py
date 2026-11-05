@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 from pathlib import Path
 
@@ -37,6 +38,45 @@ GERMAN_VOICES = [
     "AV_hokuspokus",
     "AV_julia",
 ]
+
+
+def test_pinned_download_isolates_identical_filenames_by_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    contents = {
+        "source/catalog": b'{"format":"catalog"}',
+        "base/repository": b'{"format":"base config"}',
+    }
+
+    def fake_hf_download(
+        repo_id: str, filename: str, revision: str, cache_dir: Path
+    ) -> Path:
+        path = cache_dir / filename
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(contents[repo_id])
+        return path
+
+    monkeypatch.setattr(akinvox_multispeaker, "hf_download", fake_hf_download)
+    catalog = akinvox_multispeaker._pinned_download(
+        "source/catalog",
+        "config.json",
+        "revision",
+        tmp_path,
+        hashlib.sha256(contents["source/catalog"]).hexdigest(),
+        "source catalog",
+    )
+    base_config = akinvox_multispeaker._pinned_download(
+        "base/repository",
+        "config.json",
+        "revision",
+        tmp_path,
+        hashlib.sha256(contents["base/repository"]).hexdigest(),
+        "base config",
+    )
+
+    assert catalog != base_config
+    assert catalog.read_bytes() == contents["source/catalog"]
+    assert base_config.read_bytes() == contents["base/repository"]
 
 
 def test_profile_and_release_pin_the_multispeaker_target() -> None:

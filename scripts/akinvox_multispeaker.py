@@ -117,7 +117,7 @@ def _pinned_download(
     label: str,
 ) -> Path:
     expected = _digest(expected_sha256, f"{label} SHA-256 pin")
-    local = hf_download(repo_id, filename, revision, cache_dir)
+    local = hf_download(repo_id, filename, revision, cache_dir / repo_id)
     verify_source_hash(local, expected, label=label)
     return local
 
