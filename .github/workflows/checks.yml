@@ -13,7 +13,19 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
       - run: uv run --extra test pytest -q
-      - run: python -m py_compile scripts/build_kokoro.py scripts/akinvox_cloning.py scripts/runtime_contracts.py scripts/onnx_notch.py scripts/onnx_istft.py scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py scripts/check_registry_immutability.py scripts/update_registry_from_release.py scripts/verify_model_registry.py scripts/verify_published_releases.py scripts/sync_registry_from_release.py scripts/release_all.py local_test/compare_akinvox_cloning_onnx.py local_test/compare_inno_onnx.py scripts/export_inno_tuner.py local_test/smoke_en_akinvox_cloning.py
+      - run: |
+          python -m py_compile \
+            scripts/build_kokoro.py scripts/akinvox_multispeaker.py scripts/akinvox_cloning.py \
+            scripts/runtime_contracts.py scripts/onnx_notch.py scripts/onnx_istft.py \
+            scripts/prepare_release.py scripts/mirror_release.py scripts/verify_candidate.py \
+            scripts/check_registry_immutability.py scripts/update_registry_from_release.py \
+            scripts/verify_model_registry.py scripts/verify_published_releases.py \
+            scripts/sync_registry_from_release.py scripts/release_all.py \
+            local_test/compare_akinvox_multispeaker_onnx.py \
+            local_test/smoke_akinvox_multispeaker.py \
+            local_test/compare_akinvox_cloning_onnx.py local_test/compare_inno_onnx.py \
+            scripts/export_inno_tuner.py \
+            local_test/smoke_en_akinvox_cloning.py
       - run: python -m json.tool scripts/kokoro_profiles.json >/dev/null
       - run: python -m json.tool catalog/releases.json >/dev/null
       - run: python -m json.tool catalog/models.json >/dev/null
@@ -36,7 +48,12 @@ jobs:
               assert isinstance(release["release_version"], int)
               assert release["release_version"] >= 1
               assert release.get("profile", key)
-              for asset in release["assets"]:
+              assets = list(release.get("assets", []))
+              if not assets:
+                  assets = [{"role": "model", **asset} for asset in release.get("model_assets", [])]
+                  assets += [{"role": "voices", **asset} for asset in release.get("voice_assets", [])]
+                  assets += list(release.get("auxiliary_assets", []))
+              for asset in assets:
                   assert asset["role"] and asset["format"]
                   if asset["role"] == "model":
                       assert asset.get("quality")

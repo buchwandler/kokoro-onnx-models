@@ -16,9 +16,13 @@ RELEASES = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
 
 try:
-    from scripts.runtime_contracts import validate_reference_constraints
+    from scripts.runtime_contracts import (
+        validate_language_router_constraints,
+        validate_reference_constraints,
+    )
 except ModuleNotFoundError:
     from runtime_contracts import (
+        validate_language_router_constraints,
         validate_reference_constraints,  # type: ignore[no-redef]
     )
 
@@ -175,9 +179,13 @@ def _runtime_metadata(
 ) -> dict[str, Any]:
     frontend = profile.get("frontend") or {}
     release_runtime = release.get("runtime") or {}
+    language_codes = [
+        str(value)
+        for value in profile.get("language_codes") or [profile.get("language", "und")]
+    ]
     if str(release_runtime.get("voice_mode", "static")) == "reference":
         reference_runtime = {
-            "language_codes": [str(profile.get("language", "und"))],
+            "language_codes": language_codes,
             "sample_rate": int(profile.get("sample_rate", 24000)),
             "frontend": str(
                 profile.get("frontend_id")
@@ -222,8 +230,8 @@ def _runtime_metadata(
         "max_tokens",
         int(release_runtime.get("max_tokens", release.get("max_tokens", 510))),
     )
-    return {
-        "language_codes": [str(profile.get("language", "und"))],
+    runtime = {
+        "language_codes": language_codes,
         "sample_rate": int(profile.get("sample_rate", 24000)),
         "frontend": str(
             profile.get("frontend_id") or frontend.get("name") or "pykokoro-native-v1"
@@ -234,6 +242,7 @@ def _runtime_metadata(
         "max_tokens": int(contract["max_tokens"]),
         "default_voice": default_voice,
         "voices": voices,
+        "voice_mode": str(release_runtime.get("voice_mode", "static")),
         "layout": str(
             release_runtime.get(
                 "layout", release.get("runtime_layout", "single-onnx-v1")
@@ -242,6 +251,15 @@ def _runtime_metadata(
         "postprocess": profile.get("postprocess", {}),
         "runtime_hints": profile.get("runtime_hints", {}),
     }
+    for field in ("language_models", "voice_metadata"):
+        if field in release_runtime:
+            runtime[field] = release_runtime[field]
+    if runtime["layout"] == "language-router-onnx-v1":
+        try:
+            validate_language_router_constraints(runtime)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+    return runtime
 
 
 def main() -> int:
@@ -372,7 +390,9 @@ def main() -> int:
             "revision": str(profile.get("revision", "main")),
         },
         "license": str(profile["license"]),
-        "license_notices": dict(release.get("license_notices") or {}),
+        "license_notices": dict(
+            release_spec.get("license_notices") or release.get("license_notices") or {}
+        ),
         "publication": {"enabled": bool(release_spec.get("publish", True))},
         "runtime": _runtime_metadata(profile, out / "bundle.json", release),
         "onnx_contract": contract,

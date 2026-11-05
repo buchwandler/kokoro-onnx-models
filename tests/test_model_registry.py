@@ -20,6 +20,14 @@ def test_committed_registry_is_valid() -> None:
     assert len(registry["models"]) == 20
 
 
+def test_staged_release_does_not_require_runtime_registry_entry() -> None:
+    registry = verify_registry()
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
+
+    assert "akinvox-multispeaker-v1" not in registry["models"]
+    assert releases["akinvox-multispeaker-v1"]["activate_runtime_registry"] is False
+
+
 def test_github_distributions_match_release_catalog() -> None:
     registry = load_registry()
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]

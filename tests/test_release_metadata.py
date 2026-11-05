@@ -634,11 +634,16 @@ def test_reference_release_packages_components_without_voices(
             "tag": "model-files-cloning",
             "model_version": "1.0",
             "release_version": 1,
+            "license_notices": {
+                "statement": "This notice applies to the packaged adapter and model artifacts.",
+                "assets": [],
+            },
         }
     }
     out = _run_prepare(tmp_path, monkeypatch, profiles, releases, "cloning")
 
     manifest = json.loads((out / "release-manifest.json").read_text())
+    assert manifest["license_notices"] == releases["cloning"]["license_notices"]
     runtime = manifest["runtime"]
     assert runtime["voice_mode"] == "reference"
     assert "voices" not in runtime

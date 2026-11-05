@@ -34,6 +34,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_language_router_constraints,
         validate_voice_enroller_artifacts,
     )
 except ModuleNotFoundError:
@@ -42,6 +43,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_language_router_constraints,
         validate_voice_enroller_artifacts,
     )
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
@@ -805,6 +807,11 @@ def verify_candidate(
         except ValueError as exc:
             raise CandidateError(str(exc)) from exc
 
+    if runtime.get("layout") == "language-router-onnx-v1":
+        try:
+            validate_language_router_constraints(runtime)
+        except ValueError as exc:
+            raise CandidateError(str(exc)) from exc
     try:
         validate_voice_enroller_artifacts(
             runtime,

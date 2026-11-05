@@ -159,6 +159,7 @@ def test_expected_profiles_exist() -> None:
         "pl-mateusz",
         "en-oddadmix-7m-distill",
         "en-akinvox-cloning-v1",
+        "akinvox-multispeaker-v1",
     }
     releases = json.loads((ROOT / "catalog" / "releases.json").read_text())
     assert releases["releases"]["he-hebrew-nc"]["publish"] is False

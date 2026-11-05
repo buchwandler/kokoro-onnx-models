@@ -827,14 +827,24 @@ def run_onnx_case(
     session: Any, native_case: Mapping[str, Any]
 ) -> tuple[np.ndarray, np.ndarray]:
     """Run ONNX Runtime with the tensors captured for a native case."""
-    audio, duration = session.run(
-        ["audio", "duration"],
-        {
-            "tokens": native_case["tokens"].numpy(),
-            "style": native_case["style"].numpy(),
-            "speed": native_case["speed"].numpy(),
-        },
+    aliases = {
+        "tokens": ("tokens", "input_ids"),
+        "style": ("style", "ref_s"),
+        "speed": ("speed",),
+    }
+    input_names = (
+        {value.name for value in session.get_inputs()}
+        if hasattr(session, "get_inputs")
+        else set()
     )
+    inputs: dict[str, np.ndarray] = {}
+    for semantic, names in aliases.items():
+        matches = [name for name in names if name in input_names]
+        if input_names and len(matches) != 1:
+            raise BuildError(f"ONNX graph must expose one {semantic} input alias")
+        input_name = matches[0] if matches else semantic
+        inputs[input_name] = native_case[semantic].numpy()
+    audio, duration = session.run(["audio", "duration"], inputs)
     return np.asarray(audio), np.asarray(duration)
 
 
@@ -1515,6 +1525,22 @@ def build_profile(
             cache_dir=out_root / ".cache" / profile_key,
             run_checker=run_checker,
         )
+    if (profile.get("model") or {}).get("kind") == "akinvox-multispeaker":
+        try:
+            from scripts.akinvox_multispeaker import build_akinvox_multispeaker_profile
+        except ModuleNotFoundError:
+            from akinvox_multispeaker import build_akinvox_multispeaker_profile  # type: ignore[no-redef]
+        try:
+            return build_akinvox_multispeaker_profile(
+                profile_key,
+                profile,
+                out_root,
+                opset=opset,
+                cache_dir=out_root / ".cache" / profile_key,
+                run_checker=run_checker,
+            )
+        except RuntimeError as exc:
+            raise BuildError(str(exc)) from exc
     out_dir = out_root / profile_key
     cache_dir = out_dir / ".hf"
     out_dir.mkdir(parents=True, exist_ok=True)

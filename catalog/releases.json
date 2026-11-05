@@ -3246,6 +3246,240 @@
           "format": "markdown"
         }
       ]
+    },
+    "akinvox-multispeaker-v1": {
+      "kind": "build",
+      "profile": "akinvox-multispeaker-v1",
+      "tag": "model-files-akinvox-multispeaker-v2026.10.07",
+      "model_version": "2026.10.07",
+      "release_version": 1,
+      "source_repository": "AKinvox/kokoro-multispeaker",
+      "source_revision": "2b3fa45b39256382872823562da36d371a808e5a",
+      "publish": true,
+      "activate_runtime_registry": false,
+      "license": "Apache-2.0 for AkinVox adapter/exported weights; preserve bundled NOTICE and third-party attribution terms",
+      "license_notices": {
+        "statement": "AkinVox adapter and exported weights are Apache-2.0. Preserve the upstream LICENSE, NOTICE, THIRD_PARTY.md, and StyleTTS2 license. The third-party notice includes source attribution for AV_mucky under CC BY 4.0. No training audio is redistributed.",
+        "assets": ["LICENSE", "NOTICE", "THIRD_PARTY.md", "StyleTTS2-MIT.txt"]
+      },
+      "language_codes": ["en", "de"],
+      "frontend": "akinvox-multispeaker-v1",
+      "runtime": {
+        "layout": "language-router-onnx-v1",
+        "voice_mode": "static",
+        "language_models": { "en": "model_en", "de": "model_de" },
+        "language_codes": ["en", "de"],
+        "max_tokens": 510,
+        "default_voice": "AV_ariala",
+        "voices": [
+          "AV_ariala",
+          "AV_brody",
+          "AV_david",
+          "AV_elliott",
+          "AV_ralph",
+          "AV_cori",
+          "AV_phil",
+          "AV_helen",
+          "AV_thorsten",
+          "AV_bernd",
+          "AV_eva_k",
+          "AV_karlsson",
+          "AV_kerstin",
+          "AV_mucky",
+          "AV_hokuspokus",
+          "AV_julia"
+        ],
+        "voice_metadata": {
+          "AV_ariala": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_brody": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_david": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_elliott": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_ralph": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_cori": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_phil": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_helen": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_thorsten": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_bernd": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_eva_k": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_karlsson": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_kerstin": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_mucky": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_hokuspokus": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_julia": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          }
+        }
+      },
+      "onnx_contract": {
+        "inputs": { "tokens": "int64", "style": "float32", "speed": "float32" },
+        "outputs": { "audio": "float32", "duration": "int64" },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "components": {
+          "model_en": {
+            "inputs": {
+              "tokens": "int64",
+              "style": "float32",
+              "speed": "float32"
+            },
+            "outputs": { "audio": "float32", "duration": "int64" }
+          },
+          "model_de": {
+            "inputs": {
+              "tokens": "int64",
+              "style": "float32",
+              "speed": "float32"
+            },
+            "outputs": { "audio": "float32", "duration": "int64" }
+          }
+        }
+      },
+      "model_assets": [
+        {
+          "source": "model_en.onnx",
+          "filename": "kokoro-akinvox-multispeaker-en-v2026.10.07.onnx",
+          "component": "model_en",
+          "quality": "fp32",
+          "format": "onnx"
+        },
+        {
+          "source": "model_de.onnx",
+          "filename": "kokoro-akinvox-multispeaker-de-v2026.10.07.onnx",
+          "component": "model_de",
+          "quality": "fp32",
+          "format": "onnx"
+        }
+      ],
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "filename": "voices-akinvox-multispeaker-v2026.10.07.npz",
+          "format": "numpy-npz"
+        }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "config.json",
+          "filename": "config-akinvox-multispeaker-v2026.10.07.json",
+          "role": "config",
+          "format": "json"
+        },
+        {
+          "source": "source-catalog.json",
+          "filename": "source-catalog-akinvox-multispeaker-v2026.10.07.json",
+          "role": "metadata",
+          "format": "json"
+        },
+        {
+          "source": "LICENSE",
+          "filename": "LICENSE",
+          "role": "license",
+          "format": "text"
+        },
+        {
+          "source": "NOTICE",
+          "filename": "NOTICE",
+          "role": "attribution",
+          "format": "text"
+        },
+        {
+          "source": "THIRD_PARTY.md",
+          "filename": "THIRD_PARTY.md",
+          "role": "attribution",
+          "format": "markdown"
+        },
+        {
+          "source": "StyleTTS2-MIT.txt",
+          "filename": "StyleTTS2-MIT.txt",
+          "role": "license",
+          "component": "styletts2",
+          "format": "text"
+        }
+      ]
     }
   }
 }

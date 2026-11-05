@@ -1,4 +1,443 @@
 {
+  "akinvox-multispeaker-v1": {
+    "display_name": "AkinVox Kokoro Multispeaker (English + German)",
+    "repo_id": "AKinvox/kokoro-multispeaker",
+    "revision": "2b3fa45b39256382872823562da36d371a808e5a",
+    "source_type": "huggingface",
+    "license": "Apache-2.0 for AkinVox adapter/exported weights; preserve bundled NOTICE and third-party attribution terms",
+    "language": "en",
+    "language_codes": ["en", "de"],
+    "sample_rate": 24000,
+    "frontend_id": "akinvox-multispeaker-v1",
+    "model_version": "2026.10.07",
+    "model": {
+      "kind": "akinvox-multispeaker",
+      "source_catalog": {
+        "path": "config.json",
+        "sha256": "0645bf599c6b55e5354191de58d8f4e48f9b9c41b13cd13e22b7d43a2b1c7a08"
+      },
+      "checksum_manifest": {
+        "path": "SHA256SUMS",
+        "sha256": "a40f5ea650a4d9dc5277eea96d96b67d6f777c8d77de593322a8a9934b452ee9"
+      },
+      "base": {
+        "repo_id": "hexgrad/Kokoro-82M",
+        "revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
+        "config_path": "config.json",
+        "config_sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+        "checkpoint_path": "kokoro-v1_0.pth",
+        "checkpoint_sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4"
+      },
+      "languages": {
+        "en": {
+          "config_path": "adapters/en/config.json",
+          "config_sha256": "99041b6620987af0d598cee917a25ff8825ee6b8d88cf317cb4b8cb922b27242",
+          "adapter_path": "adapters/en/adapter.pt",
+          "adapter_sha256": "66f0e359731a09215ac8238c733c3d54b69131d60e476134aaa8d5fadfdadba4",
+          "source_checkpoint_sha256": "1dec6a04c63e7753444e927e89e4d3800f9e1fea56736a22e3e289010858b88e",
+          "task": "en_multispeaker",
+          "update": 185000,
+          "speaker_names": [
+            "AV_ariala",
+            "AV_brody",
+            "AV_david",
+            "AV_elliott",
+            "AV_ralph",
+            "AV_cori",
+            "AV_phil",
+            "AV_helen"
+          ]
+        },
+        "de": {
+          "config_path": "adapters/de/config.json",
+          "config_sha256": "4a70fd6b9c8f7b12712dc93bee34e62529b471226349238a8ad23fd202c9e79b",
+          "adapter_path": "adapters/de/adapter.pt",
+          "adapter_sha256": "2c6ddf215bfabfcce16efb54fcdaaead4b4dbe4285054b27764c6cfe9b137834",
+          "source_checkpoint_sha256": "514885e8b554c9d0891057a9d5c85cfd1cd5597c5660805513a6aedf197a1eff",
+          "task": "de_multispeaker",
+          "update": 156254,
+          "speaker_names": [
+            "AV_thorsten",
+            "AV_bernd",
+            "AV_eva_k",
+            "AV_karlsson",
+            "AV_kerstin",
+            "AV_mucky",
+            "AV_hokuspokus",
+            "AV_julia"
+          ]
+        }
+      },
+      "legal_files": {
+        "LICENSE": {
+          "path": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "NOTICE": {
+          "path": "NOTICE",
+          "sha256": "59527eeb5f5893a041bb18e18d953b71ee4b86b142828ba327764e7358c283b0"
+        },
+        "THIRD_PARTY.md": {
+          "path": "THIRD_PARTY.md",
+          "sha256": "c5cf7ecdea69bcd55cd46a9fdf427cd30e0ecc658974166be1a48e5ede989adf"
+        },
+        "StyleTTS2-MIT.txt": {
+          "path": "licenses/StyleTTS2-MIT.txt",
+          "sha256": "7f023c12a1d6b25583506f6fc77f5287c7c71b65c0f886922f14153bcc07dfa9"
+        }
+      }
+    },
+    "voices": {
+      "kind": "fixed_pt",
+      "items": {
+        "AV_ariala": {
+          "path": "adapters/en/voices/AV_ariala.pt",
+          "sha256": "cfad2fa7c53df617029ba79e83923e8582c65c732f1a55507fd43a4b990a8ef2"
+        },
+        "AV_brody": {
+          "path": "adapters/en/voices/AV_brody.pt",
+          "sha256": "03416de52e1d2e90c9f5fe933465d70de732d0658c2dcdeecee471575f57a481"
+        },
+        "AV_david": {
+          "path": "adapters/en/voices/AV_david.pt",
+          "sha256": "7fd651b8d74161711fa1ade0f78384548d94872ac3dc291c161a660345638df5"
+        },
+        "AV_elliott": {
+          "path": "adapters/en/voices/AV_elliott.pt",
+          "sha256": "6fcf5f8578ea8ace461821aa01c9ae056220b5186f9b80d2f466d67449821388"
+        },
+        "AV_ralph": {
+          "path": "adapters/en/voices/AV_ralph.pt",
+          "sha256": "f4e1d9c28d6ae3ded03d06e6f0912bb262c00dd1c3bea48895012fbaa04cc59a"
+        },
+        "AV_cori": {
+          "path": "adapters/en/voices/AV_cori.pt",
+          "sha256": "b525e1b263d01a47ac38b76617fd74fd6282ca85c1d0b7abd345f5adc2e21bc2"
+        },
+        "AV_phil": {
+          "path": "adapters/en/voices/AV_phil.pt",
+          "sha256": "730becc3329a34c948efbc55c0f16382420ec968da6f811009fa7061a3c08804"
+        },
+        "AV_helen": {
+          "path": "adapters/en/voices/AV_helen.pt",
+          "sha256": "2333f1ed361d9d8300ece92d2f2adba7113fd71dcaec6d297a5c2271a94a696d"
+        },
+        "AV_thorsten": {
+          "path": "adapters/de/voices/AV_thorsten.pt",
+          "sha256": "16c66c9f01adce1f3e47120bd16bf449f0eec16394f1a1a397348a01faf502e0"
+        },
+        "AV_bernd": {
+          "path": "adapters/de/voices/AV_bernd.pt",
+          "sha256": "d7bda74430c6ab30f853fc9f4859141b30878b9076de59dab2a5eeb83b09b4e7"
+        },
+        "AV_eva_k": {
+          "path": "adapters/de/voices/AV_eva_k.pt",
+          "sha256": "550217f737bcada73bfcc0f907faea5970d6c3a9b5cfb7105bc6cb0c02df30c2"
+        },
+        "AV_karlsson": {
+          "path": "adapters/de/voices/AV_karlsson.pt",
+          "sha256": "fb35ba7e0cc538877617d2b53739ad501124bff1de47587a1ff4604fd25445ec"
+        },
+        "AV_kerstin": {
+          "path": "adapters/de/voices/AV_kerstin.pt",
+          "sha256": "91d728c2a2f68aeb79883d57874d12622f625557378ccf440f16be8bf1c19ba5"
+        },
+        "AV_mucky": {
+          "path": "adapters/de/voices/AV_mucky.pt",
+          "sha256": "e258db6ace5982b3b8701bd83374fff7a399b7cf3c1d106ef4dd74d9a3f86260"
+        },
+        "AV_hokuspokus": {
+          "path": "adapters/de/voices/AV_hokuspokus.pt",
+          "sha256": "0970c805023cb2c120121055983caa06d086325024b28029764e0fc0d9b48c1c"
+        },
+        "AV_julia": {
+          "path": "adapters/de/voices/AV_julia.pt",
+          "sha256": "1edd855756912ff1961162eec28c7e98b09df8e9a06ffa531ba12aba9f74a061"
+        }
+      }
+    },
+    "release": {
+      "release_version": 1,
+      "default_voice": "AV_ariala",
+      "runtime": {
+        "layout": "language-router-onnx-v1",
+        "voice_mode": "static",
+        "language_models": { "en": "model_en", "de": "model_de" },
+        "language_codes": ["en", "de"],
+        "max_tokens": 510,
+        "default_voice": "AV_ariala",
+        "voices": [
+          "AV_ariala",
+          "AV_brody",
+          "AV_david",
+          "AV_elliott",
+          "AV_ralph",
+          "AV_cori",
+          "AV_phil",
+          "AV_helen",
+          "AV_thorsten",
+          "AV_bernd",
+          "AV_eva_k",
+          "AV_karlsson",
+          "AV_kerstin",
+          "AV_mucky",
+          "AV_hokuspokus",
+          "AV_julia"
+        ],
+        "voice_metadata": {
+          "AV_ariala": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_brody": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_david": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_elliott": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_ralph": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_cori": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_phil": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_helen": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_thorsten": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_bernd": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_eva_k": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_karlsson": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_kerstin": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_mucky": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_hokuspokus": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_julia": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          }
+        }
+      },
+      "model_assets": [
+        {
+          "source": "model_en.onnx",
+          "component": "model_en",
+          "quality": "fp32",
+          "format": "onnx",
+          "filename": "kokoro-akinvox-multispeaker-en-v2026.10.07.onnx"
+        },
+        {
+          "source": "model_de.onnx",
+          "component": "model_de",
+          "quality": "fp32",
+          "format": "onnx",
+          "filename": "kokoro-akinvox-multispeaker-de-v2026.10.07.onnx"
+        }
+      ],
+      "voice_assets": [
+        {
+          "source": "voices.npz",
+          "format": "numpy-npz",
+          "filename": "voices-akinvox-multispeaker-v2026.10.07.npz"
+        }
+      ],
+      "auxiliary_assets": [
+        {
+          "source": "config.json",
+          "filename": "config-akinvox-multispeaker-v2026.10.07.json",
+          "role": "runtime-config",
+          "format": "json"
+        },
+        {
+          "source": "source-catalog.json",
+          "filename": "source-catalog-akinvox-multispeaker-v2026.10.07.json",
+          "role": "provenance",
+          "format": "json"
+        },
+        {
+          "source": "LICENSE",
+          "filename": "LICENSE",
+          "role": "license",
+          "format": "text"
+        },
+        {
+          "source": "NOTICE",
+          "filename": "NOTICE",
+          "role": "attribution",
+          "format": "text"
+        },
+        {
+          "source": "THIRD_PARTY.md",
+          "filename": "THIRD_PARTY.md",
+          "role": "attribution",
+          "format": "markdown"
+        },
+        {
+          "source": "StyleTTS2-MIT.txt",
+          "filename": "StyleTTS2-MIT.txt",
+          "role": "license",
+          "component": "styletts2",
+          "format": "text"
+        }
+      ]
+    },
+    "onnx_contract": {
+      "inputs": { "tokens": "int64", "style": "float32", "speed": "float32" },
+      "outputs": { "audio": "float32", "duration": "int64" },
+      "max_tokens": 510,
+      "timing": {
+        "kind": "token-duration-v1",
+        "output": "duration",
+        "unit": "frame",
+        "samples_per_frame": 600,
+        "includes_boundary_tokens": true
+      },
+      "components": {
+        "model_en": {
+          "inputs": {
+            "tokens": "int64",
+            "style": "float32",
+            "speed": "float32"
+          },
+          "outputs": { "audio": "float32", "duration": "int64" }
+        },
+        "model_de": {
+          "inputs": {
+            "tokens": "int64",
+            "style": "float32",
+            "speed": "float32"
+          },
+          "outputs": { "audio": "float32", "duration": "int64" }
+        }
+      }
+    },
+    "export_validation": {
+      "export_seed": 20261007,
+      "requires_random_source_ops": true,
+      "max_audio_abs": 1.1,
+      "max_native_patched_abs_error": 0.001,
+      "cases": [
+        {
+          "name": "english-short-hello",
+          "text": "Hello.",
+          "phonemes": "həlˈO.",
+          "tokens": [0, 50, 83, 54, 156, 31, 4, 0],
+          "speed": 1.0
+        },
+        {
+          "name": "english-short-sentence",
+          "text": "Hello. This is a small English speech model.",
+          "phonemes": "həlˈO. ðˌɪs ɪz ˈA smˈɔl ˈɪŋɡlɪʃ spˈiʧ mˈɑdᵊl.",
+          "tokens": [
+            0, 50, 83, 54, 156, 31, 4, 16, 81, 157, 102, 61, 16, 102, 68, 16,
+            156, 24, 16, 61, 55, 156, 76, 54, 16, 156, 102, 112, 92, 54, 102,
+            131, 16, 61, 58, 156, 51, 133, 16, 55, 156, 69, 46, 42, 54, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "english-short-speed-085",
+          "text": "Hello.",
+          "phonemes": "həlˈO.",
+          "tokens": [0, 50, 83, 54, 156, 31, 4, 0],
+          "speed": 0.85
+        },
+        {
+          "name": "german-short-hallo",
+          "text": "Hallo, hier spricht Thorsten.",
+          "phonemes": "hˈaloː, hˈiːɾ ʃpɾˈɪçt tˈoːɾstən.",
+          "tokens": [
+            0, 50, 156, 43, 54, 57, 158, 3, 16, 50, 156, 51, 158, 125, 16, 131,
+            58, 125, 156, 102, 78, 62, 16, 62, 156, 57, 158, 125, 61, 62, 83,
+            56, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "german-short-bruecke",
+          "text": "Die Brücke ist schön.",
+          "phonemes": "diː bɾykə ɪst ʃˈøːn.",
+          "tokens": [
+            0, 46, 51, 158, 16, 44, 125, 67, 53, 83, 16, 102, 61, 62, 16, 131,
+            156, 116, 158, 56, 4, 0
+          ],
+          "speed": 1.0
+        },
+        {
+          "name": "german-short-speed-085",
+          "text": "Hallo.",
+          "phonemes": "hˈaloː.",
+          "tokens": [0, 50, 156, 43, 54, 57, 158, 4, 0],
+          "speed": 0.85
+        }
+      ]
+    }
+  },
   "vi-contextbox": {
     "display_name": "Kokoro Vietnamese (ContextBoxAI)",
     "repo_id": "contextboxai/Kokoro-Vietnamese",

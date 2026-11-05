@@ -29,6 +29,7 @@ try:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_language_router_constraints,
         validate_voice_enroller_artifacts,
         validate_voice_enrollers,
     )
@@ -38,6 +39,7 @@ except ModuleNotFoundError:
         is_reference_mode,
         validate_component_set,
         validate_reference_constraints,
+        validate_language_router_constraints,
         validate_voice_enroller_artifacts,
         validate_voice_enrollers,
     )
@@ -372,6 +374,19 @@ def verify_registry(
             f"{model_id}: invalid language code",
         )
         runtime = model["runtime"]
+        if runtime.get("layout") == "language-router-onnx-v1":
+            try:
+                validate_language_router_constraints(runtime)
+                router_components = model["onnx_contract"].get("components") or {}
+                validate_component_set(
+                    runtime["layout"], router_components, router_components
+                )
+            except ValueError as exc:
+                raise RegistryError(str(exc)) from exc
+            _require(
+                model["language_codes"] == runtime["language_codes"],
+                f"{model_id}: top-level language_codes differ from router runtime",
+            )
         if not is_reference_mode(runtime):
             _require(
                 runtime["default_voice"] in runtime["voices"],
@@ -418,6 +433,11 @@ def verify_registry(
                 )
     for release_key, release in release_entries.items():
         if release.get("publish") is False:
+            continue
+        if (
+            release.get("activate_runtime_registry", True) is False
+            and release_key not in models
+        ):
             continue
         _require(
             release_key in models,

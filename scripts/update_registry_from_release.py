@@ -16,10 +16,15 @@ except ModuleNotFoundError:
     from voice_metadata import validate_voice_metadata
 
 try:
-    from scripts.runtime_contracts import is_reference_mode, validate_voice_enrollers
+    from scripts.runtime_contracts import (
+        is_reference_mode,
+        validate_language_router_constraints,
+        validate_voice_enrollers,
+    )
 except ModuleNotFoundError:
     from runtime_contracts import (  # type: ignore[no-redef]
         is_reference_mode,
+        validate_language_router_constraints,
         validate_voice_enrollers,
     )
 ROOT = Path(__file__).resolve().parents[1]
@@ -192,6 +197,8 @@ def _sync_runtime_identity(
         "speed_supported",
         "style_dimensions",
         "reference",
+        "language_codes",
+        "language_models",
         "voice_enrollers",
     ):
         if field in runtime:
@@ -221,6 +228,13 @@ def _sync_runtime_identity(
     else:
         catalog_runtime.pop("voice_metadata", None)
     model["runtime"] = catalog_runtime
+    if catalog_runtime.get("layout") == "language-router-onnx-v1":
+        try:
+            validate_language_router_constraints(catalog_runtime)
+        except ValueError as exc:
+            raise RegistryReleaseError(str(exc)) from exc
+        if model["language_codes"] != catalog_runtime["language_codes"]:
+            raise RegistryReleaseError("Router language codes differ from the manifest")
 
 
 def _new_model_from_release(
@@ -260,6 +274,21 @@ def _new_model_from_release(
             )
         catalog_runtime["default_voice"] = str(default_voice)
         catalog_runtime["voices"] = list(voices)
+    for field in ("voice_mode", "language_codes", "language_models", "voice_metadata"):
+        if field in runtime:
+            catalog_runtime[field] = runtime[field]
+    if "voice_metadata" in catalog_runtime:
+        try:
+            catalog_runtime["voice_metadata"] = validate_voice_metadata(
+                list(voices or []), catalog_runtime["voice_metadata"]
+            )
+        except ValueError as exc:
+            raise RegistryReleaseError(str(exc)) from exc
+    if catalog_runtime.get("layout") == "language-router-onnx-v1":
+        try:
+            validate_language_router_constraints(catalog_runtime)
+        except ValueError as exc:
+            raise RegistryReleaseError(str(exc)) from exc
     if "voice_enrollers" in runtime:
         catalog_runtime["voice_enrollers"] = runtime["voice_enrollers"]
     return {

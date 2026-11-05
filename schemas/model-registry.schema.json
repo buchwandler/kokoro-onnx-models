@@ -66,10 +66,25 @@
       "additionalProperties": false,
       "properties": {
         "layout": {
-          "enum": ["single-onnx-v1", "split-onnx-v1", "cloning-onnx-v1"]
+          "enum": [
+            "single-onnx-v1",
+            "split-onnx-v1",
+            "cloning-onnx-v1",
+            "language-router-onnx-v1"
+          ]
         },
         "voice_mode": { "enum": ["static", "reference"] },
         "max_tokens": { "type": "integer", "minimum": 1 },
+        "language_codes": { "const": ["en", "de"] },
+        "language_models": {
+          "type": "object",
+          "required": ["en", "de"],
+          "additionalProperties": false,
+          "properties": {
+            "en": { "const": "model_en" },
+            "de": { "const": "model_de" }
+          }
+        },
         "default_voice": { "type": "string", "minLength": 1 },
         "voices": {
           "type": "array",
@@ -106,6 +121,54 @@
           "else": {
             "required": ["default_voice", "voices"],
             "properties": { "voices": { "minItems": 1 } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "layout": { "const": "language-router-onnx-v1" } },
+            "required": ["layout"]
+          },
+          "then": {
+            "required": [
+              "language_codes",
+              "language_models",
+              "voice_mode",
+              "default_voice",
+              "voices",
+              "voice_metadata"
+            ],
+            "properties": {
+              "language_codes": { "const": ["en", "de"] },
+              "language_models": {
+                "const": { "en": "model_en", "de": "model_de" }
+              },
+              "voice_mode": { "const": "static" },
+              "max_tokens": { "const": 510 },
+              "default_voice": { "const": "AV_ariala" },
+              "voices": {
+                "const": [
+                  "AV_ariala",
+                  "AV_brody",
+                  "AV_david",
+                  "AV_elliott",
+                  "AV_ralph",
+                  "AV_cori",
+                  "AV_phil",
+                  "AV_helen",
+                  "AV_thorsten",
+                  "AV_bernd",
+                  "AV_eva_k",
+                  "AV_karlsson",
+                  "AV_kerstin",
+                  "AV_mucky",
+                  "AV_hokuspokus",
+                  "AV_julia"
+                ]
+              },
+              "voice_metadata": {
+                "$ref": "#/$defs/language_router_voice_metadata"
+              }
+            }
           }
         }
       ]
@@ -155,6 +218,96 @@
         "language_label": { "type": "string", "minLength": 1 },
         "description_key": { "type": "string", "minLength": 1 }
       }
+    },
+    "language_router_en_voice_metadata": {
+      "allOf": [
+        { "$ref": "#/$defs/voice_metadata" },
+        {
+          "type": "object",
+          "properties": {
+            "gender": { "const": "unknown" },
+            "language": { "const": "en" },
+            "locale": { "const": "en" },
+            "language_label": { "const": "English" }
+          }
+        }
+      ]
+    },
+    "language_router_de_voice_metadata": {
+      "allOf": [
+        { "$ref": "#/$defs/voice_metadata" },
+        {
+          "type": "object",
+          "properties": {
+            "gender": { "const": "unknown" },
+            "language": { "const": "de" },
+            "locale": { "const": "de" },
+            "language_label": { "const": "German" }
+          }
+        }
+      ]
+    },
+    "language_router_voice_metadata": {
+      "type": "object",
+      "required": [
+        "AV_ariala",
+        "AV_brody",
+        "AV_david",
+        "AV_elliott",
+        "AV_ralph",
+        "AV_cori",
+        "AV_phil",
+        "AV_helen",
+        "AV_thorsten",
+        "AV_bernd",
+        "AV_eva_k",
+        "AV_karlsson",
+        "AV_kerstin",
+        "AV_mucky",
+        "AV_hokuspokus",
+        "AV_julia"
+      ],
+      "propertyNames": {
+        "enum": [
+          "AV_ariala",
+          "AV_brody",
+          "AV_david",
+          "AV_elliott",
+          "AV_ralph",
+          "AV_cori",
+          "AV_phil",
+          "AV_helen",
+          "AV_thorsten",
+          "AV_bernd",
+          "AV_eva_k",
+          "AV_karlsson",
+          "AV_kerstin",
+          "AV_mucky",
+          "AV_hokuspokus",
+          "AV_julia"
+        ]
+      },
+      "properties": {
+        "AV_ariala": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_brody": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_david": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_elliott": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_ralph": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_cori": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_phil": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_helen": { "$ref": "#/$defs/language_router_en_voice_metadata" },
+        "AV_thorsten": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_bernd": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_eva_k": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_karlsson": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_kerstin": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_mucky": { "$ref": "#/$defs/language_router_de_voice_metadata" },
+        "AV_hokuspokus": {
+          "$ref": "#/$defs/language_router_de_voice_metadata"
+        },
+        "AV_julia": { "$ref": "#/$defs/language_router_de_voice_metadata" }
+      },
+      "additionalProperties": false
     },
     "enroller": {
       "type": "object",

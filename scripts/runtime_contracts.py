@@ -14,7 +14,8 @@ from typing import Any
 SINGLE_LAYOUT = "single-onnx-v1"
 SPLIT_LAYOUT = "split-onnx-v1"
 CLONING_LAYOUT = "cloning-onnx-v1"
-LAYOUTS = (SINGLE_LAYOUT, SPLIT_LAYOUT, CLONING_LAYOUT)
+LANGUAGE_ROUTER_LAYOUT = "language-router-onnx-v1"
+LAYOUTS = (SINGLE_LAYOUT, SPLIT_LAYOUT, CLONING_LAYOUT, LANGUAGE_ROUTER_LAYOUT)
 
 SPLIT_COMPONENTS = ("prosody", "curves", "decoder")
 CLONING_COMPONENTS = (
@@ -25,9 +26,33 @@ CLONING_COMPONENTS = (
     "curves",
     "decoder",
 )
+LANGUAGE_ROUTER_COMPONENTS = ("model_en", "model_de")
+LANGUAGE_ROUTER_VOICES = (
+    "AV_ariala",
+    "AV_brody",
+    "AV_david",
+    "AV_elliott",
+    "AV_ralph",
+    "AV_cori",
+    "AV_phil",
+    "AV_helen",
+    "AV_thorsten",
+    "AV_bernd",
+    "AV_eva_k",
+    "AV_karlsson",
+    "AV_kerstin",
+    "AV_mucky",
+    "AV_hokuspokus",
+    "AV_julia",
+)
+LANGUAGE_ROUTER_VOICE_LANGUAGES = {
+    **dict.fromkeys(LANGUAGE_ROUTER_VOICES[:8], "en"),
+    **dict.fromkeys(LANGUAGE_ROUTER_VOICES[8:], "de"),
+}
 LAYOUT_COMPONENTS: dict[str, tuple[str, ...]] = {
     SPLIT_LAYOUT: SPLIT_COMPONENTS,
     CLONING_LAYOUT: CLONING_COMPONENTS,
+    LANGUAGE_ROUTER_LAYOUT: LANGUAGE_ROUTER_COMPONENTS,
 }
 
 STATIC_VOICE_MODE = "static"
@@ -96,8 +121,13 @@ def validate_component_set(
     """Require exactly one artifact per declared component, with no extras."""
     _require(is_componentized(layout), f"Layout is not componentized: {layout!r}")
     declared = set(contract_components or {})
-    artifacts = set(artifact_components)
+    artifact_list = list(artifact_components)
+    artifacts = set(artifact_list)
     _require(bool(declared), f"{layout} contract must declare components")
+    _require(
+        len(artifact_list) == len(artifacts),
+        f"{layout} artifacts contain duplicate component entries",
+    )
     _require(
         declared == artifacts,
         f"{layout} components do not match contract: "
@@ -109,6 +139,57 @@ def validate_component_set(
         f"{layout} contract components must be {sorted(expected)}, "
         f"got {sorted(declared)}",
     )
+
+
+def validate_language_router_constraints(runtime: Mapping[str, Any]) -> None:
+    """Validate the fixed English/German two-component runtime contract."""
+    _require(
+        runtime.get("layout") == LANGUAGE_ROUTER_LAYOUT,
+        f"Language-router constraints require layout={LANGUAGE_ROUTER_LAYOUT!r}",
+    )
+    _require(
+        voice_mode(runtime) == STATIC_VOICE_MODE,
+        "Language-router runtime requires static voices",
+    )
+    _require(
+        runtime.get("language_models") == {"en": "model_en", "de": "model_de"},
+        "language_models must be exactly {'en': 'model_en', 'de': 'model_de'}",
+    )
+    _require(
+        runtime.get("language_codes") == ["en", "de"],
+        "Language-router language_codes must be exactly ['en', 'de']",
+    )
+    _require(
+        runtime.get("max_tokens") == 510,
+        "Language-router max_tokens must be 510",
+    )
+    voices = runtime.get("voices")
+    _require(
+        voices == list(LANGUAGE_ROUTER_VOICES),
+        "Language-router voice roster or publisher order changed",
+    )
+    _require(
+        runtime.get("default_voice") == "AV_ariala",
+        "Language-router default_voice must be AV_ariala",
+    )
+    metadata = runtime.get("voice_metadata")
+    _require(
+        isinstance(metadata, Mapping) and set(metadata) == set(LANGUAGE_ROUTER_VOICES),
+        "Language-router voice_metadata must cover the exact voice roster",
+    )
+    labels = {"en": "English", "de": "German"}
+    for voice in LANGUAGE_ROUTER_VOICES:
+        language = LANGUAGE_ROUTER_VOICE_LANGUAGES[voice]
+        _require(
+            metadata[voice]
+            == {
+                "gender": "unknown",
+                "language": language,
+                "locale": language,
+                "language_label": labels[language],
+            },
+            f"Language-router metadata is invalid or mis-scoped for {voice}",
+        )
 
 
 def validate_reference_constraints(runtime: Mapping[str, Any]) -> None:

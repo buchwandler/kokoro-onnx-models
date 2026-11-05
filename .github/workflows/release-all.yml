@@ -61,7 +61,7 @@ jobs:
           if [ "$KIND" = "mirror" ]; then
             uv run --with numpy --with 'torch>=2.6' python scripts/mirror_release.py "$RELEASE_KEY"
           else
-            if [ "$PROFILE" = "en-akinvox-cloning-v1" ]; then
+            if [ "$PROFILE" = "en-akinvox-cloning-v1" ] || [ "$PROFILE" = "akinvox-multispeaker-v1" ]; then
               uv run --python 3.12 --extra build python scripts/build_kokoro.py build "$PROFILE"
             else
               uv run scripts/build_kokoro.py build "$PROFILE"
@@ -124,6 +124,16 @@ jobs:
             --expected-model-version "${{ matrix.model_version }}" \
             --expected-release-version "${{ matrix.release_version }}" \
             --expected-builder-commit "${{ needs.plan.outputs.builder_commit }}"
+      - name: AKinVox multispeaker ONNX parity evidence
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'akinvox-multispeaker-v1' }}
+        run: |
+          uv run --python 3.12 --extra build --extra test python local_test/compare_akinvox_multispeaker_onnx.py --build-root build --no-build
+          test -f ".local-test/compare/akinvox-multispeaker-v1/report.json"
+      - name: AKinVox multispeaker all-voice ONNX smoke
+        if: ${{ matrix.kind == 'build' && matrix.profile == 'akinvox-multispeaker-v1' }}
+        run: |
+          uv run --python 3.12 --extra build python local_test/smoke_akinvox_multispeaker.py --asset-dir "dist/${{ matrix.tag }}" --strict-release-format
+          test -f ".local-test/smoke/akinvox-multispeaker-v1/report.json"
       - name: Install eSpeak NG for German frontend
         if: ${{ matrix.kind == 'build' && (matrix.profile == 'de-anna' || matrix.profile == 'ar-nabra') }}
         run: |
@@ -162,6 +172,8 @@ jobs:
             .local-test/compare/ru-zaakirio-base
             .local-test/compare/ru-zaakirio-dima
             .local-test/compare/en-oddadmix-7m-distill
+            .local-test/compare/akinvox-multispeaker-v1
+            .local-test/smoke/akinvox-multispeaker-v1
           compression-level: 0
           if-no-files-found: error
 

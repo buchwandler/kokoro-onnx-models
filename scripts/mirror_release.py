@@ -22,6 +22,11 @@ try:
     from scripts.voice_metadata import validate_voice_metadata
 except ModuleNotFoundError:
     from voice_metadata import validate_voice_metadata
+
+try:
+    from scripts.runtime_contracts import validate_language_router_constraints
+except ModuleNotFoundError:
+    from runtime_contracts import validate_language_router_constraints
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "catalog" / "releases.json"
 TARGET_REPOSITORY = "buchwandler/kokoro-onnx-models"
@@ -478,15 +483,26 @@ def _runtime(spec: dict[str, Any]) -> dict[str, Any]:
         "frontend_experimental": bool(spec.get("frontend_experimental", False)),
         "tokenizer_vocab_version": str(spec.get("tokenizer_vocab_version", "1.0")),
         "vocabulary_source": str(spec.get("vocabulary_source", "downloaded-config")),
-        "max_tokens": int(spec.get("max_tokens", 510)),
+        "max_tokens": int(configured.get("max_tokens", spec.get("max_tokens", 510))),
+        "voice_mode": str(configured.get("voice_mode", "static")),
         "default_voice": default_voice,
         "voices": voices,
-        "layout": str(spec.get("runtime_layout", "single-onnx-v1")),
+        "layout": str(
+            configured.get("layout", spec.get("runtime_layout", "single-onnx-v1"))
+        ),
     }
-    metadata = configured.get("voice_metadata")
+    for field in ("language_models", "voice_metadata"):
+        if field in configured:
+            runtime[field] = configured[field]
+    metadata = runtime.get("voice_metadata")
     if metadata is not None:
         try:
             runtime["voice_metadata"] = validate_voice_metadata(voices, metadata)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+    if runtime["layout"] == "language-router-onnx-v1":
+        try:
+            validate_language_router_constraints(runtime)
         except ValueError as exc:
             raise SystemExit(str(exc)) from exc
     enrollers = configured.get("voice_enrollers")
