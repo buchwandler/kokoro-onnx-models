@@ -15,8 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts import build_kokoro
-from scripts import runtime_contracts
+from scripts import build_kokoro, runtime_contracts
 
 PROFILE_KEY = "akinvox-multispeaker-v1"
 DEFAULT_OUTPUT = ROOT / ".local-test" / "smoke" / PROFILE_KEY
@@ -254,11 +253,12 @@ def run(argv: list[str] | None = None) -> int:
         "languages": results,
         "forbidden_runtime_assets": [],
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
+    report_path = args.output / "report.json"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    print(args.output)
+    print(report_path)
     return 0
 
 
