@@ -84,7 +84,7 @@ jobs:
             --expected-model-version "$MODEL_VERSION" \
             --expected-release-version "$RELEASE_VERSION" \
             --expected-builder-commit "$CANDIDATE_COMMIT"
-      - name: Compare or publish exact candidate bytes
+      - name: Publish candidate only when the tag is missing
         env:
           TAG: ${{ steps.resolve.outputs.tag }}
           CANDIDATE_DIR: ${{ steps.resolve.outputs.candidate_dir }}
@@ -92,13 +92,8 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$TAG" --repo "$RELEASE_REPOSITORY" >/dev/null 2>&1; then
-            rm -rf existing
-            mkdir existing
-            gh release download "$TAG" --repo "$RELEASE_REPOSITORY" --pattern release-manifest.json --dir existing --clobber
-            python scripts/release_all.py compare \
-              --candidate "$CANDIDATE_DIR/release-manifest.json" \
-              --existing existing/release-manifest.json
-            echo "Release tag already published with identical candidate: $TAG"
+            echo "Release tag already exists; preserving its published assets: $TAG"
+            echo "The sync-catalog job will validate the published release before updating the registry."
           else
             python scripts/update_registry_from_release.py "$CANDIDATE_DIR" --profile "$PROFILE" --preflight-publish
             gh release create "$TAG" "$CANDIDATE_DIR"/* \

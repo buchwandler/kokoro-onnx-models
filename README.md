@@ -159,10 +159,13 @@ python scripts/verify_candidate.py dist/model-files-v1.0-timestamped-r3 \
   --expected-profile v1.0
 ```
 
-The normal workflow never deletes or overwrites an existing release. A missing tag is
-published, an equivalent tag is skipped, and a differing tag fails. The v1.0 r3 release
-is a new immutable tag, while `model-files-v1.0-timestamped` and
-`model-files-v1.0-timestamped-r2` remain historical releases.
+The workflows never delete or overwrite an existing release. The `release-all` workflow skips an equivalent
+candidate and fails if the candidate differs. The individual `publish-release` workflow treats an existing
+tag as canonical, preserves its assets, and validates them during catalog synchronization. To publish
+changed assets, increment the release version and use a new tag. Use `refresh-catalog` to resynchronize
+registry metadata from an existing release.
+
+The v1.0 r3 release is a new immutable tag, while `model-files-v1.0-timestamped` and `model-files-v1.0-timestamped-r2` remain historical releases.
 After publishing a release manually, validate its assets and synchronize the runtime catalog with the published bytes:
 
 ```bash

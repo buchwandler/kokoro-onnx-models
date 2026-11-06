@@ -136,6 +136,18 @@ def test_catalog_writers_share_safe_concurrency_and_push_contract() -> None:
     assert "scripts/sync_registry_from_release.py" in workflows["refresh-catalog.yml"]
 
 
+def test_publish_release_preserves_existing_tag_and_syncs_published_assets() -> None:
+    root = Path(__file__).parents[1] / ".github" / "workflows"
+    publish = (root / "publish-release.yml").read_text(encoding="utf-8")
+    publish_job = publish.split("  sync-catalog:", 1)[0]
+    sync_job = publish.split("  sync-catalog:", 1)[1]
+
+    assert 'if gh release view "$TAG"' in publish_job
+    assert "Release tag already exists; preserving its published assets" in publish_job
+    assert "scripts/release_all.py compare" not in publish_job
+    assert "gh release create" in publish_job
+    assert "scripts/sync_registry_from_release.py" in sync_job
+
 def test_release_all_matrix_exposes_both_versions() -> None:
     matrix = publishable_matrix(
         {
