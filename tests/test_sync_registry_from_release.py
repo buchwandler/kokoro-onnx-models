@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from scripts import sync_registry_from_release as sync
 from scripts.update_registry_from_release import (
@@ -1046,3 +1047,89 @@ def test_sync_release_rejects_enroller_catalog_mismatch(tmp_path: Path) -> None:
             releases_path=releases,
             update=True,
         )
+
+
+def test_sync_akinvox_multispeaker_preserves_router_runtime_and_artifacts(
+    tmp_path: Path,
+) -> None:
+    release_key = "akinvox-multispeaker-v1"
+    releases = json.loads(
+        (ROOT / "catalog" / "releases.json").read_text(encoding="utf-8")
+    )
+    release = releases["releases"][release_key]
+    release["activate_runtime_registry"] = True
+    profile = json.loads(
+        (ROOT / "scripts" / "kokoro_profiles.json").read_text(encoding="utf-8")
+    )[release_key]
+
+    assets = []
+    for role, catalog_assets in (
+        ("model", release["model_assets"]),
+        ("voices", release["voice_assets"]),
+    ):
+        for catalog_asset in catalog_assets:
+            asset = {
+                "name": catalog_asset["filename"],
+                "role": role,
+                "format": catalog_asset["format"],
+                "size": 1,
+                "sha256": "0" * 64,
+            }
+            for field in ("component", "quality"):
+                if field in catalog_asset:
+                    asset[field] = catalog_asset[field]
+            assets.append(asset)
+
+    manifest = {
+        "tag": release["tag"],
+        "profile": release_key,
+        "model_version": release["model_version"],
+        "release_version": release["release_version"],
+        "runtime": {
+            "language_codes": release["language_codes"],
+            "frontend": release["frontend"],
+            "sample_rate": profile["sample_rate"],
+            **release["runtime"],
+        },
+        "onnx_contract": release["onnx_contract"],
+        "assets": assets,
+    }
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    registry_path = tmp_path / "models.json"
+    registry_path.write_text(json.dumps({"models": {}}), encoding="utf-8")
+    releases_path = tmp_path / "releases.json"
+    releases_path.write_text(json.dumps(releases), encoding="utf-8")
+
+    sync_release(
+        candidate,
+        profile=release_key,
+        registry_path=registry_path,
+        releases_path=releases_path,
+        update=True,
+    )
+
+    model = json.loads(registry_path.read_text(encoding="utf-8"))["models"][release_key]
+    runtime = model["runtime"]
+    distribution = model["distributions"][0]
+    assert model["runtime_available"] is True
+    assert runtime["layout"] == "language-router-onnx-v1"
+    assert runtime["language_models"] == {"en": "model_en", "de": "model_de"}
+    assert runtime["language_codes"] == ["en", "de"]
+    assert runtime["voices"] == release["runtime"]["voices"]
+    assert runtime["default_voice"] == "AV_ariala"
+    assert runtime["voice_metadata"] == release["runtime"]["voice_metadata"]
+    model_artifacts = {
+        artifact["component"]: artifact
+        for artifact in distribution["artifacts"]
+        if artifact["role"] == "model"
+    }
+    assert set(model_artifacts) == {"model_en", "model_de"}
+    assert {artifact["quality"] for artifact in model_artifacts.values()} == {"fp32"}
+    assert any(
+        artifact["role"] == "voices" and artifact["format"] == "numpy-npz"
+        for artifact in distribution["artifacts"]
+    )

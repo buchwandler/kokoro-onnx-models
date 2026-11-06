@@ -6,7 +6,16 @@
       "model_version": "1.0",
       "display_name": "v1.0",
       "runtime_available": true,
-      "language_codes": ["en", "es", "fr", "hi", "it", "ja", "pt", "zh"],
+      "language_codes": [
+        "en",
+        "es",
+        "fr",
+        "hi",
+        "it",
+        "ja",
+        "pt",
+        "zh"
+      ],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -675,7 +684,9 @@
       "model_version": "1.1",
       "display_name": "v1.1-zh",
       "runtime_available": true,
-      "language_codes": ["zh"],
+      "language_codes": [
+        "zh"
+      ],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -1553,7 +1564,12 @@
       "model_version": "1.2",
       "display_name": "v1.2-de-martin",
       "runtime_available": true,
-      "language_codes": ["de", "de-de", "de-at", "de-ch"],
+      "language_codes": [
+        "de",
+        "de-de",
+        "de-at",
+        "de-ch"
+      ],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "german-ipa-v1",
       "sample_rate": 24000,
@@ -1561,7 +1577,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "martin",
-        "voices": ["martin"],
+        "voices": [
+          "martin"
+        ],
         "voice_metadata": {
           "martin": {
             "gender": "male",
@@ -1631,7 +1649,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (ContextBoxAI)",
       "runtime_available": true,
-      "language_codes": ["vi"],
+      "language_codes": [
+        "vi"
+      ],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -1738,7 +1758,10 @@
               "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -1756,7 +1779,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (anphunl mirror)",
       "runtime_available": true,
-      "language_codes": ["vi"],
+      "language_codes": [
+        "vi"
+      ],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p",
       "sample_rate": 24000,
@@ -1863,7 +1888,10 @@
               "sha256": "81294f38fb6e81a5780e1fbc0301d1425777257dcc6f691e8d52e32fe25180f6",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -1881,7 +1909,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro Vietnamese (Ngọc Huyền)",
       "runtime_available": true,
-      "language_codes": ["vi"],
+      "language_codes": [
+        "vi"
+      ],
       "frontend": "vig2p-v1",
       "frontend_display_name": "vig2p Vietnamese",
       "sample_rate": 24000,
@@ -1889,7 +1919,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "ngoc_huyen",
-        "voices": ["ngoc_huyen"],
+        "voices": [
+          "ngoc_huyen"
+        ],
         "voice_metadata": {
           "ngoc_huyen": {
             "gender": "female",
@@ -1981,7 +2013,10 @@
               "sha256": "f7823e5598a615ad98146bedaa8dc558d254086e25eda1f7894d264ee33619e2",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -1999,7 +2034,9 @@
       "model_version": "0.1",
       "display_name": "Nabra-82M Arabic",
       "runtime_available": true,
-      "language_codes": ["ar"],
+      "language_codes": [
+        "ar"
+      ],
       "frontend": "nabra-arabic-v1",
       "frontend_display_name": "Arabic diacritizer + espeak-ng ar + Nabra cleanup",
       "sample_rate": 24000,
@@ -2007,7 +2044,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": ["default"],
+        "voices": [
+          "default"
+        ],
         "voice_metadata": {
           "default": {
             "gender": "female",
@@ -2091,7 +2130,10 @@
               "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2110,7 +2152,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro German Kerstin (Crane)",
       "runtime_available": true,
-      "language_codes": ["de"],
+      "language_codes": [
+        "de"
+      ],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA compatible frontend",
       "sample_rate": 24000,
@@ -2118,7 +2162,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": ["default"],
+        "voices": [
+          "default"
+        ],
         "voice_metadata": {
           "default": {
             "gender": "female",
@@ -2184,7 +2230,10 @@
               "sha256": "f96576f656c58221b42ce46c74398dc2a6ffc03b8408abe530d85ebd717ca062",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2221,7 +2270,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro Hebrew NC",
       "runtime_available": false,
-      "language_codes": ["he"],
+      "language_codes": [
+        "he"
+      ],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "Hebrew-specific G2P",
       "sample_rate": 24000,
@@ -2229,7 +2280,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "default",
-        "voices": ["default"]
+        "voices": [
+          "default"
+        ]
       },
       "onnx_contract": {
         "inputs": {
@@ -2254,7 +2307,9 @@
       "model_version": "1.1",
       "display_name": "Kokoro Swedish (Joakim multi-speaker)",
       "runtime_available": true,
-      "language_codes": ["sv"],
+      "language_codes": [
+        "sv"
+      ],
       "frontend": "kokorog2p-sv-v1",
       "frontend_display_name": "kokorog2p Swedish",
       "sample_rate": 24000,
@@ -2419,7 +2474,10 @@
               "sha256": "d91053a2a96fbfd66887b7f1a9485d8cacb28edffcb5320f9201ecdfa2e948fb",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -2437,7 +2495,9 @@
       "model_version": "1.1.4",
       "display_name": "Kokoro German Thorsten",
       "runtime_available": true,
-      "language_codes": ["de"],
+      "language_codes": [
+        "de"
+      ],
       "frontend": "kokorog2p-de-thorsten-v1",
       "frontend_display_name": "German Kokoro G2P + Thorsten short-ü normalization",
       "sample_rate": 24000,
@@ -2445,7 +2505,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "thorsten",
-        "voices": ["thorsten"],
+        "voices": [
+          "thorsten"
+        ],
         "voice_metadata": {
           "thorsten": {
             "gender": "male",
@@ -2537,7 +2599,10 @@
               "sha256": "3195c20800f7684494a94b64f30928b9b22ffab1aa46175c784c93ba084e44c5",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -2555,7 +2620,9 @@
       "model_version": "1",
       "display_name": "th-wayu",
       "runtime_available": true,
-      "language_codes": ["th"],
+      "language_codes": [
+        "th"
+      ],
       "frontend": "kokorog2p-th-wayu-v1",
       "frontend_display_name": "kokorog2p-th-wayu-v1",
       "sample_rate": 24000,
@@ -2806,7 +2873,9 @@
       "model_version": "1",
       "display_name": "Kokoro Kazakh (AnuarSv km_m1)",
       "runtime_available": true,
-      "language_codes": ["kk"],
+      "language_codes": [
+        "kk"
+      ],
       "frontend": "kokorog2p-kk-v1",
       "frontend_display_name": "kokorog2p Kazakh",
       "sample_rate": 24000,
@@ -2814,7 +2883,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "km_m1",
-        "voices": ["km_m1"],
+        "voices": [
+          "km_m1"
+        ],
         "voice_metadata": {
           "km_m1": {
             "gender": "male",
@@ -2888,7 +2959,10 @@
               "sha256": "e1cdc89c1d0abcfdbc189fce73a074dfa50b34d08321f9fe20126b8317c9b8f0",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little",
                 "voice_count": 1
               }
@@ -2925,7 +2999,9 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio base)",
       "runtime_available": true,
-      "language_codes": ["ru"],
+      "language_codes": [
+        "ru"
+      ],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
@@ -2933,7 +3009,10 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "sveta",
-        "voices": ["sveta", "masha"],
+        "voices": [
+          "sveta",
+          "masha"
+        ],
         "voice_metadata": {
           "sveta": {
             "gender": "female",
@@ -3031,7 +3110,10 @@
               "sha256": "614473e5650e2eaceec2459471cd0cd9ac3431ff2bde7c84cb4bdacef9f00916",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -3049,7 +3131,9 @@
       "model_version": "2",
       "display_name": "Kokoro Russian (Zaakirio Dima)",
       "runtime_available": true,
-      "language_codes": ["ru"],
+      "language_codes": [
+        "ru"
+      ],
       "frontend": "kokorog2p-ru-v1",
       "frontend_display_name": "Zaakirio Russian stress-aware G2P",
       "sample_rate": 24000,
@@ -3057,7 +3141,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "dima",
-        "voices": ["dima"],
+        "voices": [
+          "dima"
+        ],
         "voice_metadata": {
           "dima": {
             "gender": "male",
@@ -3149,7 +3235,10 @@
               "sha256": "e774e8859604164aa27c393fa4393c3a4ff2162d37911a39574551edbc801dcb",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -3167,7 +3256,9 @@
       "model_version": "1.0",
       "display_name": "Kokoro European Portuguese (logus2k)",
       "runtime_available": true,
-      "language_codes": ["pt-pt"],
+      "language_codes": [
+        "pt-pt"
+      ],
       "frontend": "tts-eu-pt-v1",
       "frontend_display_name": "European Portuguese via KokoroG2P + Lexphon",
       "sample_rate": 24000,
@@ -3175,7 +3266,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pt_eu",
-        "voices": ["pt_eu"],
+        "voices": [
+          "pt_eu"
+        ],
         "voice_metadata": {
           "pt_eu": {
             "gender": "female",
@@ -3276,7 +3369,10 @@
               "sha256": "6b91a570c1fe57d4af8ddde39a37d0fb3ebfcdfad7a8621ca0479ae18f53e3c3",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -3294,7 +3390,9 @@
       "model_version": "1",
       "display_name": "Kokoro German Anna",
       "runtime_available": true,
-      "language_codes": ["de"],
+      "language_codes": [
+        "de"
+      ],
       "frontend": "german-ipa-v1",
       "frontend_display_name": "German IPA via kokorog2p",
       "sample_rate": 24000,
@@ -3302,7 +3400,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "df_anna",
-        "voices": ["df_anna"],
+        "voices": [
+          "df_anna"
+        ],
         "voice_metadata": {
           "df_anna": {
             "gender": "female",
@@ -3394,7 +3494,10 @@
               "sha256": "d583ccff3cdca2f7fae535cb998ac07e9fcb90f09737b9a41fa2734ec44a8f0b",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -3412,7 +3515,9 @@
       "model_version": "1",
       "display_name": "Kokoro Polish (Software Mansion Mateusz)",
       "runtime_available": false,
-      "language_codes": ["pl"],
+      "language_codes": [
+        "pl"
+      ],
       "frontend": "phonemis-pl-v1",
       "frontend_display_name": "Software Mansion Phonemis Polish",
       "sample_rate": 24000,
@@ -3420,7 +3525,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "pm_mateusz",
-        "voices": ["pm_mateusz"]
+        "voices": [
+          "pm_mateusz"
+        ]
       },
       "onnx_contract": {
         "inputs": {
@@ -3453,7 +3560,9 @@
       "model_version": "1.0",
       "display_name": "en-oddadmix-7m-distill",
       "runtime_available": true,
-      "language_codes": ["en"],
+      "language_codes": [
+        "en"
+      ],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -3461,7 +3570,9 @@
         "layout": "single-onnx-v1",
         "max_tokens": 510,
         "default_voice": "af_msa",
-        "voices": ["af_msa"]
+        "voices": [
+          "af_msa"
+        ]
       },
       "onnx_contract": {
         "inputs": {
@@ -3563,7 +3674,10 @@
               "sha256": "129d447a7c9bdce1d5b6cb5ecb789bbfd9f427b7775131a97dfa5638583b3b92",
               "handling": {
                 "dtype": "float32",
-                "shape": [510, 256],
+                "shape": [
+                  510,
+                  256
+                ],
                 "endianness": "little"
               }
             }
@@ -3581,7 +3695,9 @@
       "model_version": "1.0.1",
       "display_name": "AkinVox Kokoro Cloning v1",
       "runtime_available": true,
-      "language_codes": ["en"],
+      "language_codes": [
+        "en"
+      ],
       "frontend": "pykokoro-native-v1",
       "frontend_display_name": "pykokoro-native-v1",
       "sample_rate": 24000,
@@ -3877,6 +3993,311 @@
           "provenance": {
             "source_repository": "AKinvox/kokoro-cloning-v1",
             "source_revision": "0094666f0a9038ce49789446eb8dd3ddfc848b43",
+            "transform": null,
+            "source_manifest": null
+          }
+        }
+      ]
+    },
+    "akinvox-multispeaker-v1": {
+      "model_version": "2026.10.07",
+      "display_name": "akinvox-multispeaker-v1",
+      "runtime_available": true,
+      "language_codes": [
+        "en",
+        "de"
+      ],
+      "frontend": "akinvox-multispeaker-v1",
+      "frontend_display_name": "akinvox-multispeaker-v1",
+      "sample_rate": 24000,
+      "runtime": {
+        "layout": "language-router-onnx-v1",
+        "max_tokens": 510,
+        "default_voice": "AV_ariala",
+        "voices": [
+          "AV_ariala",
+          "AV_brody",
+          "AV_david",
+          "AV_elliott",
+          "AV_ralph",
+          "AV_cori",
+          "AV_phil",
+          "AV_helen",
+          "AV_thorsten",
+          "AV_bernd",
+          "AV_eva_k",
+          "AV_karlsson",
+          "AV_kerstin",
+          "AV_mucky",
+          "AV_hokuspokus",
+          "AV_julia"
+        ],
+        "voice_mode": "static",
+        "language_codes": [
+          "en",
+          "de"
+        ],
+        "language_models": {
+          "en": "model_en",
+          "de": "model_de"
+        },
+        "voice_metadata": {
+          "AV_ariala": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_brody": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_david": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_elliott": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_ralph": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_cori": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_phil": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_helen": {
+            "gender": "unknown",
+            "language": "en",
+            "locale": "en",
+            "language_label": "English"
+          },
+          "AV_thorsten": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_bernd": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_eva_k": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_karlsson": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_kerstin": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_mucky": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_hokuspokus": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          },
+          "AV_julia": {
+            "gender": "unknown",
+            "language": "de",
+            "locale": "de",
+            "language_label": "German"
+          }
+        }
+      },
+      "onnx_contract": {
+        "inputs": {
+          "tokens": "int64",
+          "style": "float32",
+          "speed": "float32"
+        },
+        "outputs": {
+          "audio": "float32",
+          "duration": "int64"
+        },
+        "max_tokens": 510,
+        "timing": {
+          "kind": "token-duration-v1",
+          "output": "duration",
+          "unit": "frame",
+          "samples_per_frame": 600,
+          "includes_boundary_tokens": true
+        },
+        "components": {
+          "model_en": {
+            "inputs": {
+              "tokens": "int64",
+              "style": "float32",
+              "speed": "float32"
+            },
+            "outputs": {
+              "audio": "float32",
+              "duration": "int64"
+            }
+          },
+          "model_de": {
+            "inputs": {
+              "tokens": "int64",
+              "style": "float32",
+              "speed": "float32"
+            },
+            "outputs": {
+              "audio": "float32",
+              "duration": "int64"
+            }
+          }
+        }
+      },
+      "license": {
+        "declared": "Apache-2.0 for AkinVox adapter/exported weights; preserve bundled NOTICE and third-party attribution terms",
+        "redistribution": "allowed-with-upstream-terms",
+        "source_repository": "AKinvox/kokoro-multispeaker"
+      },
+      "mirror_policy": "optional",
+      "distributions": [
+        {
+          "id": "github-model-files-akinvox-multispeaker-v2026.10.07",
+          "provider": "github-release",
+          "transport": "https",
+          "release_key": "akinvox-multispeaker-v1",
+          "release_tag": "model-files-akinvox-multispeaker-v2026.10.07",
+          "release_version": 1,
+          "runtime_ready": true,
+          "artifacts": [
+            {
+              "id": "license-LICENSE",
+              "role": "license",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/LICENSE",
+              "local_name": "LICENSE",
+              "format": "text",
+              "size": 11358,
+              "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+            },
+            {
+              "id": "attribution-NOTICE",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/NOTICE",
+              "local_name": "NOTICE",
+              "format": "text",
+              "size": 824,
+              "sha256": "59527eeb5f5893a041bb18e18d953b71ee4b86b142828ba327764e7358c283b0"
+            },
+            {
+              "id": "license-StyleTTS2-MIT",
+              "role": "license",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/StyleTTS2-MIT.txt",
+              "local_name": "StyleTTS2-MIT.txt",
+              "format": "text",
+              "size": 1075,
+              "sha256": "7f023c12a1d6b25583506f6fc77f5287c7c71b65c0f886922f14153bcc07dfa9",
+              "component": "styletts2"
+            },
+            {
+              "id": "attribution-THIRD_PARTY",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/THIRD_PARTY.md",
+              "local_name": "THIRD_PARTY.md",
+              "format": "markdown",
+              "size": 3317,
+              "sha256": "c5cf7ecdea69bcd55cd46a9fdf427cd30e0ecc658974166be1a48e5ede989adf"
+            },
+            {
+              "id": "bundle-bundle",
+              "role": "bundle",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/bundle.json",
+              "local_name": "bundle.json",
+              "format": "json",
+              "size": 153866,
+              "sha256": "102d40aa49fbbaecc035d83389433996f6bb97eccc2a955cd8f2a083bf64c0bc"
+            },
+            {
+              "id": "runtime-config-config-akinvox-multispeaker-v2026.10.07",
+              "role": "runtime-config",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/config-akinvox-multispeaker-v2026.10.07.json",
+              "local_name": "config-akinvox-multispeaker-v2026.10.07.json",
+              "format": "json",
+              "size": 4370,
+              "sha256": "a906458489234730b3e7f24cd84c980e212cfee742e37869fa64302344254c74"
+            },
+            {
+              "id": "model-kokoro-akinvox-multispeaker-de-v2026.10.07",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/kokoro-akinvox-multispeaker-de-v2026.10.07.onnx",
+              "local_name": "kokoro-akinvox-multispeaker-de-v2026.10.07.onnx",
+              "format": "onnx",
+              "size": 325511348,
+              "sha256": "96786492590a26c2538a175ebc2d5d6ff5d7d4f6ce83cae57ec0df8f804ecf26",
+              "quality": "fp32",
+              "component": "model_de"
+            },
+            {
+              "id": "model-kokoro-akinvox-multispeaker-en-v2026.10.07",
+              "role": "model",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/kokoro-akinvox-multispeaker-en-v2026.10.07.onnx",
+              "local_name": "kokoro-akinvox-multispeaker-en-v2026.10.07.onnx",
+              "format": "onnx",
+              "size": 325511348,
+              "sha256": "236ab8c697cff92615121f786e7cd8f2c701577a2fdeb7677161237b049d1dcc",
+              "quality": "fp32",
+              "component": "model_en"
+            },
+            {
+              "id": "attribution-source-catalog-akinvox-multispeaker-v2026.10.07",
+              "role": "attribution",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/source-catalog-akinvox-multispeaker-v2026.10.07.json",
+              "local_name": "source-catalog-akinvox-multispeaker-v2026.10.07.json",
+              "format": "json",
+              "size": 1016,
+              "sha256": "0645bf599c6b55e5354191de58d8f4e48f9b9c41b13cd13e22b7d43a2b1c7a08"
+            },
+            {
+              "id": "voices-voices-akinvox-multispeaker-v2026.10.07",
+              "role": "voices",
+              "url": "https://github.com/buchwandler/kokoro-onnx-models/releases/download/model-files-akinvox-multispeaker-v2026.10.07/voices-akinvox-multispeaker-v2026.10.07.npz",
+              "local_name": "voices-akinvox-multispeaker-v2026.10.07.npz",
+              "format": "numpy-npz",
+              "size": 8359858,
+              "sha256": "6e615f68961a8a7bd3ddbaa87949e4d1e2cbbab93d18ade3fa6a8a8951e282c7"
+            }
+          ],
+          "provenance": {
+            "source_repository": "AKinvox/kokoro-multispeaker",
+            "source_revision": "2b3fa45b39256382872823562da36d371a808e5a",
             "transform": null,
             "source_manifest": null
           }

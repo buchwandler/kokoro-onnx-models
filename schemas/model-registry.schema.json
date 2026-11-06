@@ -453,6 +453,7 @@
             "voice",
             "voices",
             "config",
+            "runtime-config",
             "vocab",
             "metadata",
             "bundle",

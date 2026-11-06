@@ -3256,7 +3256,7 @@
       "source_repository": "AKinvox/kokoro-multispeaker",
       "source_revision": "2b3fa45b39256382872823562da36d371a808e5a",
       "publish": true,
-      "activate_runtime_registry": false,
+      "activate_runtime_registry": true,
       "license": "Apache-2.0 for AkinVox adapter/exported weights; preserve bundled NOTICE and third-party attribution terms",
       "license_notices": {
         "statement": "AkinVox adapter and exported weights are Apache-2.0. Preserve the upstream LICENSE, NOTICE, THIRD_PARTY.md, and StyleTTS2 license. The third-party notice includes source attribution for AV_mucky under CC BY 4.0. No training audio is redistributed.",

@@ -17,16 +17,54 @@ def load_registry() -> dict:
 
 def test_committed_registry_is_valid() -> None:
     registry = verify_registry()
-    assert len(registry["models"]) == 20
+    assert len(registry["models"]) == 21
 
 
-def test_staged_release_does_not_require_runtime_registry_entry() -> None:
+def test_akinvox_multispeaker_is_runtime_active() -> None:
     registry = verify_registry()
-    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())["releases"]
+    releases = json.loads((ROOT / "catalog" / "releases.json").read_text())[
+        "releases"
+    ]
+    model = registry["models"]["akinvox-multispeaker-v1"]
+    runtime = model["runtime"]
 
-    assert "akinvox-multispeaker-v1" not in registry["models"]
-    assert releases["akinvox-multispeaker-v1"]["activate_runtime_registry"] is False
-
+    assert model["runtime_available"] is True
+    assert model["language_codes"] == ["en", "de"]
+    assert runtime["layout"] == "language-router-onnx-v1"
+    assert runtime["voice_mode"] == "static"
+    assert runtime["language_models"] == {"en": "model_en", "de": "model_de"}
+    assert runtime["language_codes"] == ["en", "de"]
+    assert runtime["default_voice"] == "AV_ariala"
+    assert len(runtime["voices"]) == 16
+    assert len(set(runtime["voices"])) == 16
+    assert set(runtime["voice_metadata"]) == set(runtime["voices"])
+    assert sum(
+        metadata["language"] == "en" for metadata in runtime["voice_metadata"].values()
+    ) == 8
+    assert sum(
+        metadata["language"] == "de" for metadata in runtime["voice_metadata"].values()
+    ) == 8
+    assert all(
+        metadata["language"] in {"en", "de"}
+        for metadata in runtime["voice_metadata"].values()
+    )
+    assert releases["akinvox-multispeaker-v1"]["activate_runtime_registry"] is True
+    distribution = next(
+        item for item in model["distributions"] if item["provider"] == "github-release"
+    )
+    model_artifacts = {
+        artifact["component"]: artifact
+        for artifact in distribution["artifacts"]
+        if artifact["role"] == "model"
+    }
+    assert set(model_artifacts) == {"model_en", "model_de"}
+    assert {artifact["quality"] for artifact in model_artifacts.values()} == {"fp32"}
+    assert any(
+        artifact["role"] == "voices"
+        and artifact["format"] == "numpy-npz"
+        and artifact["local_name"].startswith("voices")
+        for artifact in distribution["artifacts"]
+    )
 
 def test_github_distributions_match_release_catalog() -> None:
     registry = load_registry()

@@ -94,7 +94,7 @@ def test_profile_and_release_pin_the_multispeaker_target() -> None:
     assert release["release_version"] == 1
     assert release["model_version"] == "2026.10.07"
     assert release["source_revision"] == akinvox_multispeaker.SOURCE_REVISION
-    assert release["activate_runtime_registry"] is False
+    assert release["activate_runtime_registry"] is True
     assert release["runtime"] == profile["release"]["runtime"]
     assert [asset["component"] for asset in release["model_assets"]] == [
         "model_en",

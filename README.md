@@ -65,7 +65,7 @@ Supported build profiles:
 | `de-thorsten` | German | `Thorsten-Voice/Kokoro` | yes |
 | `de-anna` | German | `software-mansion/react-native-executorch-kokoro` | yes |
 | `pl-mateusz` | Polish | `software-mansion/react-native-executorch-kokoro` | yes |
-| `akinvox-multispeaker-v1` | English + German | `AKinvox/kokoro-multispeaker` | yes, staged until runtime consumer support |
+| `akinvox-multispeaker-v1` | English + German | `AKinvox/kokoro-multispeaker` | yes, runtime-ready via language-router |
 | `en-oddadmix-7m-distill` | English | `oddadmix/Kokoro-7M-Distill` | yes, checkpoint build |
 | `pt-eu-logus2k` | European Portuguese | `logus2k/kokoro_tts_eu_pt` | yes |
 | `th-wayu` | Thai | `kunato/wayu-kokoro-thai-v1` | yes, mirror/split ONNX |
@@ -73,7 +73,7 @@ Supported build profiles:
 | `ru-zaakirio-base` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
 | `ru-zaakirio-dima` | Russian | `zaakirio/kokoro-ru` | yes, checkpoint build |
 `vi-anphunl` is retained as a compatibility model ID/release profile but is built from the same pinned ContextBoxAI checkpoint and voice inventory as `vi-contextbox`. It has an independent immutable release tag so existing clients using this model ID can continue to resolve it.
-`akinvox-multispeaker-v1` packages separate `model_en` and `model_de` ONNX graphs with one static `voices.npz` archive. Language selection is explicit, all 16 voices are language-scoped in runtime metadata, and no upstream Python package or adapter checkpoint is needed at runtime. The release is publishable but remains staged with `runtime_available: false` until the language-router consumer support is available and shipped.
+`akinvox-multispeaker-v1` packages separate `model_en` and `model_de` ONNX graphs with one static `voices.npz` archive. Language selection is explicit, all 16 voices are language-scoped in runtime metadata, and no upstream Python package or adapter checkpoint is needed at runtime. The release is runtime-ready through the OnnxVoice language-router and PyKokoro AKinVox frontend.
 
 
 The Swedish source revision is pinned after the upstream stock-Kokoro checkpoint format fix. Its optional upstream post-processing recommendation uses notch filters at 2400, 4800, 7200, and 9600 Hz with Q=35; those filters are not baked into the ONNX graph.
