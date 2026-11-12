@@ -35,7 +35,9 @@ def _load_bundle(bundle_path: Path) -> dict[str, Any]:
     return bundle
 
 
-def _parity_summary(bundle: dict[str, Any]) -> dict[str, Any]:
+def _parity_summary(
+    bundle: dict[str, Any], *, case_filter: str | None = None
+) -> dict[str, Any]:
     if (
         bundle.get("profile") != PROFILE_KEY
         or bundle.get("model_version") != "2026.10.07"
@@ -52,6 +54,7 @@ def _parity_summary(bundle: dict[str, Any]) -> dict[str, Any]:
     if set(components) != {"model_en", "model_de"}:
         raise SystemExit(f"Unexpected ONNX component set: {sorted(components)}")
 
+    terminal_duration_regression: dict[str, Any] | None = None
     languages: dict[str, Any] = {}
     for language, (prefix, expected_voices) in LANGUAGES.items():
         component_name = f"model_{language}"
@@ -63,26 +66,62 @@ def _parity_summary(bundle: dict[str, Any]) -> dict[str, Any]:
             raise SystemExit(f"{component_name} has the wrong output contract")
         parity = component.get("parity", {})
         cases = parity.get("cases", [])
-        if parity.get("status") != "pass" or len(cases) != 5:
-            raise SystemExit(f"{component_name} is missing its five parity cases")
-        if any(not str(case.get("fixture", "")).startswith(prefix) for case in cases):
+        terminal_only = language == "en" and (
+            case_filter == "terminal-sounds-regression"
+            or (
+                case_filter is None
+                and len(cases) == 1
+                and cases[0].get("fixture") == "terminal-sounds-regression"
+            )
+        )
+        expected_count = 1 if terminal_only else (6 if language == "en" else 5)
+        if parity.get("status") != "pass" or len(cases) != expected_count:
+            raise SystemExit(
+                f"{component_name} is missing its expected {expected_count} parity cases"
+            )
+        if any(
+            not str(case.get("fixture", "")).startswith(prefix)
+            and not (
+                language == "en"
+                and case.get("fixture") == "terminal-sounds-regression"
+            )
+            for case in cases
+        ):
             raise SystemExit(
                 f"{component_name} parity includes a fixture for another language"
             )
-        if [case.get("voice") for case in cases] != [
-            expected_voices[0],
-            expected_voices[1],
-            expected_voices[0],
-            expected_voices[1],
-            expected_voices[0],
-        ]:
+        if terminal_only:
+            expected_parity_voices = ["AV_brody"]
+        else:
+            expected_parity_voices = [
+                expected_voices[0],
+                expected_voices[1],
+                expected_voices[0],
+                expected_voices[1],
+                expected_voices[0],
+            ]
+            if language == "en":
+                expected_parity_voices.append("AV_brody")
+        if [case.get("voice") for case in cases] != expected_parity_voices:
             raise SystemExit(
                 f"{component_name} parity does not cover the expected voices"
             )
-        if [case.get("speed") for case in cases][-1] == 1.0:
+        if not terminal_only and not any(
+            float(case.get("speed", 1.0)) != 1.0 for case in cases
+        ):
             raise SystemExit(
                 f"{component_name} parity does not include a non-default speed"
             )
+        if language == "en":
+            terminal_cases = [
+                case for case in cases
+                if case.get("fixture") == "terminal-sounds-regression"
+            ]
+            if len(terminal_cases) != 1:
+                raise SystemExit("English parity is missing terminal-sounds-regression")
+            terminal_duration_regression = terminal_cases[0].get("terminal_diagnostics")
+            if not isinstance(terminal_duration_regression, dict):
+                raise SystemExit("Terminal-sounds parity is missing duration diagnostics")
         languages[language] = {
             "component": component_name,
             "status": parity["status"],
@@ -123,6 +162,7 @@ def _parity_summary(bundle: dict[str, Any]) -> dict[str, Any]:
         "status": "pass",
         "component_count": len(components),
         "languages": languages,
+        "terminal_duration_regression": terminal_duration_regression,
         "adapter_audit": {
             language: {
                 "target_count": audit["target_count"],
@@ -149,6 +189,11 @@ def run(argv: list[str] | None = None) -> int:
         "--no-build", action="store_true", help="Inspect an existing build bundle"
     )
     parser.add_argument("--keep-build", action="store_true")
+    parser.add_argument(
+        "--case",
+        choices=("terminal-sounds-regression",),
+        help="Run this English case during build or select it from an existing report",
+    )
     args = parser.parse_args(argv)
 
     profiles = build_kokoro.load_profiles(args.profiles)
@@ -160,6 +205,21 @@ def run(argv: list[str] | None = None) -> int:
         **dict(profile.get("export_validation") or {}),
         "export_seed": args.seed,
     }
+    if args.case and not args.no_build:
+        cases = profile["export_validation"]["cases"]
+        if not any(case.get("name") == args.case for case in cases):
+            raise SystemExit(f"Missing export validation case {args.case!r}")
+        profile["export_validation"]["cases"] = [
+            case
+            for case in cases
+            if (
+                (
+                    not str(case.get("name", "")).startswith("english-")
+                    and case.get("name") != "terminal-sounds-regression"
+                )
+                or case.get("name") == args.case
+            )
+        ]
     if not args.no_build:
         print(
             f"[{PROFILE_KEY}] building both language graphs and running parity",
@@ -175,7 +235,15 @@ def run(argv: list[str] | None = None) -> int:
         )
 
     out_dir = args.build_root / PROFILE_KEY
-    summary = _parity_summary(_load_bundle(out_dir / "bundle.json"))
+    summary = _parity_summary(
+        _load_bundle(out_dir / "bundle.json"),
+        case_filter=args.case if not args.no_build else None,
+    )
+    if args.case:
+        terminal = summary.get("terminal_duration_regression")
+        if not isinstance(terminal, dict) or terminal.get("case") != args.case:
+            raise SystemExit(f"Parity report does not contain requested case {args.case!r}")
+        summary["selected_case"] = args.case
     summary["seed"] = args.seed
     args.output_root.mkdir(parents=True, exist_ok=True)
     report_path = args.output_root / PROFILE_KEY / "report.json"

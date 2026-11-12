@@ -401,6 +401,24 @@
           "speed": 1.0
         },
         {
+          "name": "terminal-sounds-regression",
+          "text": "It was just as uncomfortable as it sounds.",
+          "phonemes": "ˌɪt wʌz ʤˈʌst æz ˌʌnkˈʌmfəɹTəbᵊl æz ɪt sˈWndz.",
+          "tokens": [
+            0, 157, 102, 62, 16, 65, 138, 68, 16, 82, 156, 138, 61, 62, 16, 72,
+            68, 16, 157, 138, 56, 53, 156, 138, 55, 48, 83, 123, 36, 83, 44, 42,
+            54, 16, 72, 68, 16, 102, 62, 16, 61, 156, 39, 56, 46, 68, 4, 0
+          ],
+          "speed": 1.0,
+          "terminal_region": {
+            "text": "sounds",
+            "phonemes": "sˈWndz",
+            "frontend_token_span": [39, 45],
+            "model_token_span": [40, 46],
+            "token_ids": [61, 156, 39, 56, 46, 68]
+          }
+        },
+        {
           "name": "english-short-speed-085",
           "text": "Hello.",
           "phonemes": "həlˈO.",

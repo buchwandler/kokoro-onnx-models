@@ -144,17 +144,50 @@ def test_parity_pairs_use_language_specific_fixtures_and_voices() -> None:
         pairs = akinvox_multispeaker._selected_parity_pairs(
             language, language_cases, voices
         )
-        assert len(pairs) == 5
-        assert all(case["name"].startswith(prefix) for case, _ in pairs)
-        assert [voice for _, voice in pairs] == [
+        expected_count = 6 if language == "en" else 5
+        assert len(pairs) == expected_count
+        assert all(
+            case["name"].startswith(prefix)
+            or (language == "en" and case["name"] == "terminal-sounds-regression")
+            for case, _ in pairs
+        )
+        expected_pair_voices = [
             voices[0],
             voices[1],
             voices[0],
             voices[1],
             voices[0],
         ]
-        assert [case["speed"] for case, _ in pairs][-1] != 1.0
+        if language == "en":
+            expected_pair_voices.append("AV_brody")
+            assert pairs[-1][0]["name"] == "terminal-sounds-regression"
+        assert [voice for _, voice in pairs] == expected_pair_voices
+        assert any(float(case["speed"]) != 1.0 for case, _ in pairs)
 
+
+def test_targeted_terminal_parity_uses_only_brody() -> None:
+    cases = build_kokoro.load_profiles()[MODEL_ID]["export_validation"]["cases"]
+    terminal = next(case for case in cases if case["name"] == "terminal-sounds-regression")
+
+    pairs = akinvox_multispeaker._selected_parity_pairs(
+        "en", [terminal], ENGLISH_VOICES
+    )
+
+    assert pairs == [(terminal, "AV_brody")]
+
+
+def test_terminal_profile_case_matches_frozen_frontend_fixture() -> None:
+    fixture = json.loads(
+        (ROOT / "tests/fixtures/akinvox_terminal_sounds.json").read_text(encoding="utf-8")
+    )
+    cases = build_kokoro.load_profiles()[MODEL_ID]["export_validation"]["cases"]
+    case = next(item for item in cases if item["name"] == fixture["case"])
+
+    assert case["text"] == fixture["source_text"]
+    assert case["phonemes"] == fixture["phonemes"]
+    assert case["tokens"] == fixture["token_ids"]
+    assert case["speed"] == fixture["speed"]
+    assert case["terminal_region"] == fixture["terminal_region"]
 
 def test_language_router_runtime_is_strict_and_voice_scoped() -> None:
     profile = build_kokoro.load_profiles()[MODEL_ID]
@@ -331,3 +364,44 @@ def test_executable_python_does_not_import_upstream_adapter_package() -> None:
 
     assert forbidden == []
     assert "kokoro-multispeaker" not in (ROOT / "pyproject.toml").read_text().lower()
+
+
+
+def test_terminal_sounds_fixture_preserves_pykokoro_alignment() -> None:
+    fixture = json.loads(
+        (ROOT / "tests/fixtures/akinvox_terminal_sounds.json").read_text(encoding="utf-8")
+    )
+
+    assert fixture["format"] == "akinvox-terminal-duration-fixture/v1"
+    assert fixture["source_text"] == "It was just as uncomfortable as it sounds."
+    assert fixture["normalized_text"] == fixture["source_text"]
+    assert fixture["language"] == "en-US"
+    assert fixture["voice"] == "AV_brody"
+    assert fixture["target"] == MODEL_ID
+    assert fixture["speed"] == 1.0
+    assert fixture["frontend"]["name"] == "pykokoro.PreparedG2PAdapter"
+    assert fixture["frontend"]["pykokoro_version"]
+    assert fixture["frontend"]["pykokoro_commit"]
+    assert fixture["frontend"]["g2p_version"]
+
+    frontend_tokens = fixture["frontend_token_ids"]
+    model_tokens = fixture["token_ids"]
+    assert fixture["frontend_token_count"] == len(frontend_tokens)
+    assert fixture["token_count"] == len(model_tokens)
+    assert model_tokens == [0, *frontend_tokens, 0]
+
+    alignment = fixture["frontend_alignment"]
+    terminal_index = next(
+        index for index, item in enumerate(alignment) if item["text"] == "sounds"
+    )
+    terminal = alignment[terminal_index]
+    frontend_start = sum(item["model_span_token_count"] for item in alignment[:terminal_index])
+    frontend_end = frontend_start + terminal["model_token_count"]
+    model_span = [frontend_start + 1, frontend_end + 1]
+
+    assert fixture["terminal_region"]["text"] == "sounds"
+    assert fixture["terminal_region"]["phonemes"] == terminal["phonemes"]
+    assert fixture["terminal_region"]["frontend_token_span"] == [frontend_start, frontend_end]
+    assert fixture["terminal_region"]["model_token_span"] == model_span
+    assert fixture["terminal_region"]["token_ids"] == model_tokens[model_span[0] : model_span[1]]
+    assert frontend_end <= len(frontend_tokens)

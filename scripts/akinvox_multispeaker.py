@@ -911,6 +911,7 @@ def _language_cases(
         case
         for case in cases
         if str(case.get("name", "")).startswith(prefixes[language])
+        or (language == "en" and case.get("name") == "terminal-sounds-regression")
     ]
     _require(bool(selected), f"{language} has no language-specific parity fixtures")
     return selected
@@ -922,6 +923,13 @@ def _selected_parity_pairs(
     voice_names: list[str],
 ) -> list[tuple[Mapping[str, Any], str]]:
     _require(len(voice_names) >= 2, f"{language} needs at least two voices for parity")
+    if (
+        language == "en"
+        and len(cases) == 1
+        and cases[0].get("name") == "terminal-sounds-regression"
+    ):
+        _require("AV_brody" in voice_names, "Terminal-sounds parity requires AV_brody")
+        return [(cases[0], "AV_brody")]
     standard_speed = [case for case in cases if float(case.get("speed", 1.0)) == 1.0]
     _require(len(standard_speed) >= 2, f"{language} needs two speed-1.0 token fixtures")
     pairs = [(case, voice) for case in standard_speed[:2] for voice in voice_names[:2]]
@@ -932,6 +940,16 @@ def _selected_parity_pairs(
         nondefault is not None, f"{language} needs one non-default speed parity case"
     )
     pairs.append((nondefault, voice_names[0]))
+    if language == "en":
+        terminal_cases = [
+            case for case in cases if case.get("name") == "terminal-sounds-regression"
+        ]
+        _require(
+            len(terminal_cases) == 1,
+            "English parity requires one terminal-sounds regression fixture",
+        )
+        _require("AV_brody" in voice_names, "Terminal-sounds parity requires AV_brody")
+        pairs.append((terminal_cases[0], "AV_brody"))
     return pairs
 
 
@@ -1042,6 +1060,17 @@ def _export_language_model(
             patched_case,
             sample_rate=int(profile["sample_rate"]),
             validation=validation,
+            diagnostic_case=(
+                {
+                    **case,
+                    "voice": voice_name,
+                    "samples_per_frame": int(
+                        profile["onnx_contract"]["timing"]["samples_per_frame"]
+                    ),
+                }
+                if "terminal_region" in case
+                else None
+            ),
         )
         result.update(
             {

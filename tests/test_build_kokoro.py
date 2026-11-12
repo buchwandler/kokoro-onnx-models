@@ -859,3 +859,69 @@ def test_kazakh_profile_is_pinned_to_repaired_checkpoint_revision() -> None:
     }
     assert profile["voices"]["items"] == {"km_m1": "km_m1.pt"}
     assert profile["language"] == "kk"
+
+
+def test_terminal_duration_diagnostics_compare_paths_and_report_tails() -> None:
+    duration = np.array([1, 2, 3, 4, 1, 1], dtype=np.int64)
+    audio = np.zeros(int(duration.sum()) * 600, dtype=np.float32)
+    audio[-1] = 1e-5
+    native_case = {
+        "name": "terminal-sounds-regression",
+        "tokens": np.array([[0, 10, 88, 89, 11, 0]], dtype=np.int64),
+        "duration": duration,
+        "audio": audio,
+    }
+    patched_case = {"duration_frames": duration.copy(), "audio_samples": audio.size}
+    case = {
+        "name": "terminal-sounds-regression",
+        "text": "It was just as uncomfortable as it sounds.",
+        "voice": "AV_brody",
+        "samples_per_frame": 600,
+        "terminal_region": {
+            "text": "sounds",
+            "phonemes": "sˈWndz",
+            "model_token_span": [2, 4],
+            "token_ids": [88, 89],
+        },
+    }
+
+    report = build_kokoro._terminal_duration_diagnostics(
+        native_case, patched_case, audio, duration, case, sample_rate=24_000
+    )
+
+    assert report["native_duration_frames"] == report["onnx_duration_frames"] == 12
+    assert report["native_audio_samples"] == report["onnx_audio_samples"] == 7200
+    assert report["terminal_duration_frames"] == [3, 4]
+    assert report["terminal_total_frames"] == 7
+    assert report["terminal_total_samples"] == 4200
+    assert report["terminal_total_ms"] == pytest.approx(175.0)
+    for path in ("native", "patched", "onnx"):
+        assert report["paths"][path]["actual_samples"] == 7200
+        assert report["paths"][path]["expected_samples"] == 7200
+    tail = report["paths"]["native"]["waveform_tail"]
+    assert tail["last_50ms_rms"] == pytest.approx(1e-5 / np.sqrt(1200))
+    assert tail["last_100ms_rms"] == pytest.approx(1e-5 / np.sqrt(2400))
+    assert tail["last_200ms_rms"] == pytest.approx(1e-5 / np.sqrt(4800))
+    assert tail["last_non_negligible_sample"] == 7199
+    assert tail["terminal_peak_sample"] == 7199
+
+
+    with pytest.raises(build_kokoro.BuildError, match="Native terminal regression audio length"):
+        build_kokoro._terminal_duration_diagnostics(
+            {**native_case, "audio": audio[:-1]},
+            patched_case,
+            audio[:-1],
+            duration,
+            case,
+            sample_rate=24_000,
+        )
+
+    with pytest.raises(build_kokoro.BuildError, match="duration mismatch"):
+        build_kokoro._terminal_duration_diagnostics(
+            native_case,
+            patched_case,
+            audio,
+            duration + np.array([0, 0, 0, 0, 0, 1]),
+            case,
+            sample_rate=24_000,
+        )

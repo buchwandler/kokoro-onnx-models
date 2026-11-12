@@ -1,0 +1,50 @@
+{
+  "format": "akinvox-terminal-duration-fixture/v1",
+  "case": "terminal-sounds-regression",
+  "source_text": "It was just as uncomfortable as it sounds.",
+  "normalized_text": "It was just as uncomfortable as it sounds.",
+  "language": "en-US",
+  "voice": "AV_brody",
+  "target": "akinvox-multispeaker-v1",
+  "speed": 1.0,
+  "frontend": {
+    "name": "pykokoro.PreparedG2PAdapter",
+    "pykokoro_version": "0.10.12",
+    "pykokoro_commit": "f73fda4b24018244a2e8b281d4bfb5bb212a9cd8",
+    "g2p": "kokorog2p",
+    "g2p_version": "0.9.17",
+    "language": "en-us",
+    "tokenizer_vocab_version": "1.0"
+  },
+  "phonemes": "ˌɪt wʌz ʤˈʌst æz ˌʌnkˈʌmfəɹTəbᵊl æz ɪt sˈWndz.",
+  "frontend_token_ids": [
+    157, 102, 62, 16, 65, 138, 68, 16, 82, 156, 138, 61, 62, 16, 72, 68,
+    16, 157, 138, 56, 53, 156, 138, 55, 48, 83, 123, 36, 83, 44, 42, 54,
+    16, 72, 68, 16, 102, 62, 16, 61, 156, 39, 56, 46, 68, 4
+  ],
+  "frontend_token_count": 46,
+  "token_ids": [
+    0, 157, 102, 62, 16, 65, 138, 68, 16, 82, 156, 138, 61, 62, 16, 72,
+    68, 16, 157, 138, 56, 53, 156, 138, 55, 48, 83, 123, 36, 83, 44, 42,
+    54, 16, 72, 68, 16, 102, 62, 16, 61, 156, 39, 56, 46, 68, 4, 0
+  ],
+  "token_count": 48,
+  "frontend_alignment": [
+    {"text": "It", "phonemes": "ˌɪt", "char_span": [0, 2], "model_token_count": 3, "model_span_token_count": 4},
+    {"text": "was", "phonemes": "wʌz", "char_span": [3, 6], "model_token_count": 3, "model_span_token_count": 4},
+    {"text": "just", "phonemes": "ʤˈʌst", "char_span": [7, 11], "model_token_count": 5, "model_span_token_count": 6},
+    {"text": "as", "phonemes": "æz", "char_span": [12, 14], "model_token_count": 2, "model_span_token_count": 3},
+    {"text": "uncomfortable", "phonemes": "ˌʌnkˈʌmfəɹTəbᵊl", "char_span": [15, 28], "model_token_count": 15, "model_span_token_count": 16},
+    {"text": "as", "phonemes": "æz", "char_span": [29, 31], "model_token_count": 2, "model_span_token_count": 3},
+    {"text": "it", "phonemes": "ɪt", "char_span": [32, 34], "model_token_count": 2, "model_span_token_count": 3},
+    {"text": "sounds", "phonemes": "sˈWndz", "char_span": [35, 41], "model_token_count": 6, "model_span_token_count": 6},
+    {"text": ".", "phonemes": ".", "char_span": [41, 42], "model_token_count": 1, "model_span_token_count": 1}
+  ],
+  "terminal_region": {
+    "text": "sounds",
+    "phonemes": "sˈWndz",
+    "frontend_token_span": [39, 45],
+    "model_token_span": [40, 46],
+    "token_ids": [61, 156, 39, 56, 46, 68]
+  }
+}

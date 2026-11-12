@@ -417,6 +417,34 @@ def validate_duration_audio_consistency(
     }
 
 
+
+
+def waveform_tail_metrics(audio: np.ndarray, sample_rate: int) -> dict[str, Any]:
+    """Measure waveform tail RMS and peak values for diagnostic comparison."""
+    values = np.asarray(audio, dtype=np.float64).reshape(-1)
+    window_rms: dict[str, float] = {}
+    for window_ms in (50, 100, 200):
+        sample_count = min(values.size, round(sample_rate * window_ms / 1000))
+        tail = values[-sample_count:]
+        window_rms[f"last_{window_ms}ms_rms"] = float(
+            np.sqrt(np.mean(np.square(tail), dtype=np.float64))
+        )
+
+    threshold = float(np.finfo(np.float32).eps)
+    active = np.flatnonzero(np.abs(values) > threshold)
+    last_active = int(active[-1]) if active.size else None
+    terminal_count = min(values.size, round(sample_rate * 200 / 1000))
+    terminal = values[-terminal_count:]
+    peak_offset = int(np.argmax(np.abs(terminal)))
+    return {
+        **window_rms,
+        "last_non_negligible_threshold": threshold,
+        "last_non_negligible_sample": last_active,
+        "samples_from_end": values.size - 1 - last_active if last_active is not None else None,
+        "terminal_peak": float(np.max(np.abs(terminal))),
+        "terminal_peak_sample": values.size - terminal_count + peak_offset,
+    }
+
 def install_exact_onnx_istft(model: Any) -> tuple[dict[str, Any], Any]:
     try:
         from scripts.onnx_istft import ExactOnnxISTFT
@@ -763,6 +791,8 @@ def run_patched_pytorch_case(
             token_count=int(native_case["tokens"].shape[1]),
         ),
         "max_abs_error": sample_max_abs_error,
+        "duration_frames": np.asarray(patched_duration_np).reshape(-1).astype(np.int64).tolist(),
+        "audio_samples": int(patched_audio_np.size),
         "sample_max_abs_error": sample_max_abs_error,
     }
 
@@ -848,6 +878,112 @@ def run_onnx_case(
     return np.asarray(audio), np.asarray(duration)
 
 
+
+
+
+def _terminal_duration_diagnostics(
+    native_case: Mapping[str, Any],
+    patched_case: Mapping[str, Any],
+    onnx_audio: np.ndarray,
+    onnx_duration: np.ndarray,
+    case: Mapping[str, Any],
+    *,
+    sample_rate: int,
+) -> dict[str, Any]:
+    terminal = case["terminal_region"]
+    token_ids = np.asarray(native_case["tokens"]).reshape(-1).astype(np.int64)
+    token_count = int(token_ids.size)
+    start, end = (int(value) for value in terminal["model_token_span"])
+    if not 0 <= start < end <= token_count:
+        raise BuildError(f"Invalid terminal token span for {case['name']!r}")
+    if token_ids[start:end].tolist() != [int(value) for value in terminal["token_ids"]]:
+        raise BuildError(f"Terminal token IDs do not match model input for {case['name']!r}")
+
+    native_duration = np.asarray(native_case["duration"]).reshape(-1).astype(np.int64)
+    patched_duration = np.asarray(patched_case["duration_frames"]).reshape(-1).astype(np.int64)
+    onnx_duration_values = np.asarray(onnx_duration).reshape(-1).astype(np.int64)
+    for label, values in (("patched", patched_duration), ("ONNX", onnx_duration_values)):
+        try:
+            np.testing.assert_array_equal(values, native_duration)
+        except AssertionError as exc:
+            raise BuildError(f"Native/{label} terminal regression duration mismatch: {exc}") from exc
+
+    native_audio = np.asarray(native_case["audio"])
+    onnx_audio_values = np.asarray(onnx_audio)
+    native_samples = int(native_audio.size)
+    patched_samples = int(patched_case["audio_samples"])
+    onnx_samples = int(onnx_audio_values.size)
+    if native_samples != onnx_samples:
+        raise BuildError(
+            f"Native/ONNX terminal regression audio length mismatch: "
+            f"{native_samples} != {onnx_samples}"
+        )
+
+    samples_per_frame = int(case.get("samples_per_frame", 600))
+    durations = {
+        "native": native_duration,
+        "patched": patched_duration,
+        "onnx": onnx_duration_values,
+    }
+    sample_counts = {
+        "native": native_samples,
+        "patched": patched_samples,
+        "onnx": onnx_samples,
+    }
+    path_records: dict[str, Any] = {}
+    for label, values in durations.items():
+        total_frames = int(values.sum())
+        expected_samples = total_frames * samples_per_frame
+        actual_samples = sample_counts[label]
+        if actual_samples != expected_samples:
+            raise BuildError(
+                f"{label.capitalize()} terminal regression audio length {actual_samples} "
+                f"does not equal {total_frames} * {samples_per_frame}"
+            )
+        terminal_durations = values[start:end]
+        terminal_frames = int(terminal_durations.sum())
+        path_records[label] = {
+            "duration_frames": values.tolist(),
+            "total_duration_frames": total_frames,
+            "audio_samples": actual_samples,
+            "samples_per_frame": samples_per_frame,
+            "expected_samples": expected_samples,
+            "actual_samples": actual_samples,
+            "terminal_duration_frames": terminal_durations.tolist(),
+            "terminal_total_frames": terminal_frames,
+            "terminal_total_samples": terminal_frames * samples_per_frame,
+            "terminal_total_ms": terminal_frames * samples_per_frame / sample_rate * 1000.0,
+        }
+    path_records["native"]["waveform_tail"] = waveform_tail_metrics(
+        native_audio, sample_rate
+    )
+    path_records["onnx"]["waveform_tail"] = waveform_tail_metrics(
+        onnx_audio_values, sample_rate
+    )
+
+    onnx_terminal = path_records["onnx"]
+    return {
+        "case": str(case["name"]),
+        "text": str(case["text"]),
+        "voice": str(case["voice"]),
+        "token_count": token_count,
+        "samples_per_frame": samples_per_frame,
+        "native_duration_frames": path_records["native"]["total_duration_frames"],
+        "onnx_duration_frames": onnx_terminal["total_duration_frames"],
+        "native_audio_samples": native_samples,
+        "onnx_audio_samples": onnx_samples,
+        "terminal_text": str(terminal["text"]),
+        "terminal_phonemes": str(terminal["phonemes"]),
+        "terminal_token_span": [start, end],
+        "terminal_token_ids": [int(value) for value in terminal["token_ids"]],
+        "terminal_duration_frames": onnx_terminal["terminal_duration_frames"],
+        "terminal_total_frames": onnx_terminal["terminal_total_frames"],
+        "terminal_total_samples": onnx_terminal["terminal_total_samples"],
+        "terminal_total_ms": onnx_terminal["terminal_total_ms"],
+        "paths": path_records,
+    }
+
+
 def _validate_onnx_case(
     session: Any,
     native_case: Mapping[str, Any],
@@ -855,6 +991,7 @@ def _validate_onnx_case(
     *,
     sample_rate: int,
     validation: Mapping[str, Any],
+    diagnostic_case: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     actual_audio_np, actual_duration_np = run_onnx_case(session, native_case)
     native_duration_np = np.asarray(native_case["duration"])
@@ -885,7 +1022,7 @@ def _validate_onnx_case(
                 f"ONNX frame RMS CV ratio {cv_ratio:.6f} is outside "
                 f"[{min_cv_ratio:.6f}, {max_cv_ratio:.6f}]"
             )
-    return {
+    result = {
         "name": str(native_case["name"]),
         "native": waveform_metrics(native_audio_np, sample_rate),
         "patched": patched_case["patched"],
@@ -897,7 +1034,16 @@ def _validate_onnx_case(
             token_count=int(native_case["tokens"].shape[1]),
         ),
     }
-
+    if diagnostic_case is not None:
+        result["terminal_diagnostics"] = _terminal_duration_diagnostics(
+            native_case,
+            patched_case,
+            actual_audio_np,
+            actual_duration_np,
+            diagnostic_case,
+            sample_rate=sample_rate,
+        )
+    return result
 
 def _validate_parity_case(
     session: Any,
